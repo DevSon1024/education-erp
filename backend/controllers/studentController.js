@@ -1,51 +1,85 @@
 const Student = require('../models/Student');
 const asyncHandler = require('express-async-handler');
 
-// @desc    Get all students (with pagination & search)
+// @desc    Get Students with Advanced Filters
 // @route   GET /api/students
 const getStudents = asyncHandler(async (req, res) => {
-    const { keyword, pageNumber, courseId } = req.query;
+    const { 
+        pageNumber, pageSize, 
+        fromDate, toDate, 
+        courseId, studentName, batch 
+    } = req.query;
     
-    // 1. Explicit Filter: Only fetch non-deleted students
     let query = { isDeleted: false };
 
-    // 2. Add Search Filters
-    if (keyword) {
-        query.name = { $regex: keyword, $options: 'i' };
+    // 1. Date Range Filter (Admission Date)
+    if (fromDate && toDate) {
+        query.admissionDate = { 
+            $gte: new Date(fromDate), 
+            $lte: new Date(toDate) 
+        };
     }
+
+    // 2. Course Filter
     if (courseId) {
         query.course = courseId;
     }
 
-    // 3. Pagination Logic
-    const pageSize = 10;
+    // 3. Name Search (Checks First, Middle, or Last Name)
+    if (studentName) {
+        query.$or = [
+            { firstName: { $regex: studentName, $options: 'i' } },
+            { middleName: { $regex: studentName, $options: 'i' } },
+            { lastName: { $regex: studentName, $options: 'i' } }
+        ];
+    }
+
+    // 4. Batch Filter
+    if (batch) {
+        query.batch = { $regex: batch, $options: 'i' };
+    }
+
+    // Pagination
+    const limit = Number(pageSize) || 10;
     const page = Number(pageNumber) || 1;
     const count = await Student.countDocuments(query);
 
     const students = await Student.find(query)
-        .populate('course', 'name') // Fetch Course Name
-        .limit(pageSize)
-        .skip(pageSize * (page - 1))
+        .populate('course', 'name duration')
+        .limit(limit)
+        .skip(limit * (page - 1))
         .sort({ createdAt: -1 });
 
-    console.log(`Sending ${students.length} students to Frontend`); // Server Log
-
-    res.json({ students, page, pages: Math.ceil(count / pageSize), count });
+    res.json({ students, page, pages: Math.ceil(count / limit), count });
 });
 
-// @desc    Register new student
-// @route   POST /api/students
+// @desc    Create Student (Updated for new fields)
 const createStudent = asyncHandler(async (req, res) => {
-    // Generate Reg No (e.g., 2026-1001)
+    // Generate Reg No
     const count = await Student.countDocuments();
     const regNo = `${new Date().getFullYear()}-${1001 + count}`;
     
+    // Calculate pending fees initially = total fees
+    const pendingFees = req.body.totalFees;
+
     const student = await Student.create({
         ...req.body,
-        regNo
+        regNo,
+        pendingFees
     });
-    console.log("New Student Created:", student.name); // Server Log
     res.status(201).json(student);
+});
+
+// @desc    Toggle Active Status
+const toggleStudentStatus = asyncHandler(async (req, res) => {
+    const student = await Student.findById(req.params.id);
+    if(student) {
+        student.isActive = !student.isActive;
+        await student.save();
+        res.json({ message: 'Status updated', isActive: student.isActive });
+    } else {
+        res.status(404); throw new Error('Student not found');
+    }
 });
 
 // @desc    Soft Delete Student

@@ -7,6 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Menu Structure mapped to Modules
 const MENU_ITEMS = [
+  {title: 'Home',
+    path: '/home',
+    subItems: ['Inquiry List', 'Exam Pending List']
+  },
   { 
     title: 'Master', 
     path: '/master',

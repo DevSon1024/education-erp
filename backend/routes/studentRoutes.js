@@ -11,4 +11,7 @@ router.route('/')
 router.route('/:id')
     .delete(protect, deleteStudent);
 
+router.route('/:id/toggle')
+    .put(protect, toggleStudentStatus);
+
 module.exports = router;
