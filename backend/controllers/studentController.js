@@ -6,8 +6,10 @@ const asyncHandler = require('express-async-handler');
 const getStudents = asyncHandler(async (req, res) => {
     const { keyword, pageNumber, courseId } = req.query;
     
-    // Filter Logic
+    // 1. Explicit Filter: Only fetch non-deleted students
     let query = { isDeleted: false };
+
+    // 2. Add Search Filters
     if (keyword) {
         query.name = { $regex: keyword, $options: 'i' };
     }
@@ -15,16 +17,18 @@ const getStudents = asyncHandler(async (req, res) => {
         query.course = courseId;
     }
 
-    // Pagination
+    // 3. Pagination Logic
     const pageSize = 10;
     const page = Number(pageNumber) || 1;
     const count = await Student.countDocuments(query);
 
     const students = await Student.find(query)
-        .populate('course', 'name')
+        .populate('course', 'name') // Fetch Course Name
         .limit(pageSize)
         .skip(pageSize * (page - 1))
         .sort({ createdAt: -1 });
+
+    console.log(`Sending ${students.length} students to Frontend`); // Server Log
 
     res.json({ students, page, pages: Math.ceil(count / pageSize), count });
 });
@@ -32,13 +36,15 @@ const getStudents = asyncHandler(async (req, res) => {
 // @desc    Register new student
 // @route   POST /api/students
 const createStudent = asyncHandler(async (req, res) => {
-    // Generate Reg No (Simple logic for demo: YYYY-RAND)
-    const regNo = `${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    // Generate Reg No (e.g., 2026-1001)
+    const count = await Student.countDocuments();
+    const regNo = `${new Date().getFullYear()}-${1001 + count}`;
     
     const student = await Student.create({
         ...req.body,
         regNo
     });
+    console.log("New Student Created:", student.name); // Server Log
     res.status(201).json(student);
 });
 

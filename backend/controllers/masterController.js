@@ -43,14 +43,17 @@ const deleteCourse = asyncHandler(async (req, res) => {
 // @desc Get all batches
 // @route GET /api/master/batch
 const getBatches = asyncHandler(async (req, res) => {
-    const batches = await Batch.find({}).sort({ createdAt: -1 });
-    res.json(batches);
+    // Explicitly filter for isDeleted: false
+    const batches = await Batch.find({ isDeleted: false }).sort({ createdAt: -1 });
+    console.log("Batches sent to UI:", batches); // SERVER CONSOLE LOG
+    res.json(batches); 
 });
 
 // @desc Create batch
 // @route POST /api/master/batch
 const createBatch = asyncHandler(async (req, res) => {
     const batch = await Batch.create(req.body);
+    console.log("New Batch Created:", batch); // SERVER CONSOLE LOG
     res.status(201).json(batch);
 });
 

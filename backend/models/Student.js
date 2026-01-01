@@ -1,19 +1,19 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-    regNo: { type: String, required: true, unique: true }, // Auto-generated
+    regNo: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     email: { type: String },
     phone: { type: String, required: true },
     
     // Relations
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
-    batch: { type: String, required: true }, // Simple string for now or ID
+    batch: { type: String, required: true }, 
     
     // Details
     fatherName: { type: String },
     dob: { type: Date },
-    gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+    gender: { type: String },
     address: { type: String },
     
     // Status
@@ -21,10 +21,7 @@ const studentSchema = new mongoose.Schema({
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 
-// Query Middleware for Soft Delete
-studentSchema.pre(/^find/, function(next) {
-    this.find({ isDeleted: { $ne: true } });
-    next();
-});
+// REMOVED the "pre(/^find/)" middleware block
+// We will filter in the controller instead.
 
 module.exports = mongoose.model('Student', studentSchema);
