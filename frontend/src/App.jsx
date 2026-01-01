@@ -1,35 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Pages
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import Navbar from './components/layout/Navbar';
+
+// Placeholder Dashboard (We will move this to a separate file later)
+const Dashboard = () => (
+  <div className="container mx-auto p-6">
+    <h2 className="text-2xl font-bold text-gray-800 mb-4">Admin Dashboard</h2>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+       {['Total Students', 'New Admissions', 'Fees Collected', 'Pending Enquiries'].map((title, i) => (
+         <div key={i} className="bg-white p-6 rounded-lg shadow-md border-t-4 border-primary hover:shadow-lg transition-shadow">
+            <h3 className="text-gray-500 font-medium text-sm">{title}</h3>
+            <p className="text-3xl font-bold text-gray-800 mt-2">{Math.floor(Math.random() * 1000) + 100}</p>
+         </div>
+       ))}
+    </div>
+  </div>
+);
+
+// Private Route Wrapper
+const PrivateRoute = ({ children }) => {
+  const { user } = useSelector((state) => state.auth);
+  return user ? children : <Navigate to="/login" />;
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user } = useSelector((state) => state.auth);
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Router>
+        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+          {/* Show Navbar only if logged in */}
+          {user && <Navbar />}
+          
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
+            <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
+            
+            {/* Private Routes */}
+            <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            
+            {/* Catch all - Redirect to Home */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </Router>
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
