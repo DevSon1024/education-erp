@@ -1,28 +1,34 @@
 const Course = require('../models/Course');
 const Batch = require('../models/Batch');
 const Employee = require('../models/Employee');
+const Subject = require('../models/Subject');
 const asyncHandler = require('express-async-handler');
-
 // --- COURSE CONTROLLERS ---
 
 // @desc Get all courses
 // @route GET /api/master/course
 const getCourses = asyncHandler(async (req, res) => {
-    const courses = await Course.find({}).sort({ createdAt: -1 });
+    const { courseId, courseType } = req.query;
+    let query = { isDeleted: false };
+
+    if (courseId) {
+        query._id = courseId;
+    }
+    if (courseType) {
+        query.courseType = courseType;
+    }
+
+    const courses = await Course.find(query)
+        .populate('subjects', 'name') // Populate subject names
+        .sort({ sorting: 1, createdAt: -1 }); // Sort by user defined order
+
     res.json(courses);
 });
 
 // @desc Create course
 // @route POST /api/master/course
 const createCourse = asyncHandler(async (req, res) => {
-    const { name, code, duration, fees } = req.body;
-    
-    const courseExists = await Course.findOne({ code });
-    if (courseExists) {
-        res.status(400); throw new Error('Course code already exists');
-    }
-
-    const course = await Course.create({ name, code, duration, fees });
+    const course = await Course.create(req.body);
     res.status(201).json(course);
 });
 
@@ -76,6 +82,18 @@ const getBatches = asyncHandler(async (req, res) => {
     res.json(batches);
 });
 
+// @desc Get All Subjects
+const getSubjects = asyncHandler(async (req, res) => {
+    const subjects = await Subject.find({ isActive: true });
+    res.json(subjects);
+});
+
+// @desc Create Dummy Subject (For seeding)
+const createSubject = asyncHandler(async (req, res) => {
+    const subject = await Subject.create(req.body);
+    res.status(201).json(subject);
+})
+
 // @desc Create batch
 // @route POST /api/master/batch
 const createBatch = asyncHandler(async (req, res) => {
@@ -110,6 +128,7 @@ const deleteBatch = asyncHandler(async (req, res) => {
 
 module.exports = { 
     getCourses, createCourse, deleteCourse, 
-    getBatches, createBatch, deleteBatch,
+    getBatches,getSubjects, createSubject,
+    createBatch, deleteBatch,
     createEmployee, getEmployees 
 };

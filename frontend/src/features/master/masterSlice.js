@@ -26,6 +26,13 @@ export const fetchBatches = createAsyncThunk('master/fetchBatches', async (param
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+export const fetchSubjects = createAsyncThunk('master/fetchSubjects', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'subject');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 export const fetchEmployees = createAsyncThunk('master/fetchEmployees', async (_, thunkAPI) => {
     try {
         const response = await axios.get(API_URL + 'employee');
@@ -46,6 +53,7 @@ const masterSlice = createSlice({
         courses: [],
         batches: [],
         employees: [],
+        subjects: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -71,6 +79,9 @@ const masterSlice = createSlice({
             })
             .addCase(fetchEmployees.fulfilled, (state, action) => {
                 state.employees = action.payload;
+            })
+            .addCase(fetchSubjects.fulfilled, (state, action) => {
+                state.subjects = action.payload;
             })
             .addCase(createBatch.fulfilled, (state, action) => {
                 state.batches.push(action.payload);

@@ -3,7 +3,8 @@ const router = express.Router();
 const { protect } = require('../middlewares/authMiddleware');
 const { 
     getCourses, createCourse, deleteCourse,
-    getBatches, createBatch, deleteBatch, createEmployee, getEmployees
+    getBatches, createBatch, deleteBatch, createEmployee, getEmployees,
+    getSubjects, createSubject
 } = require('../controllers/masterController');
 
 // Course Routes
@@ -22,5 +23,10 @@ router.delete('/batch/:id', protect, deleteBatch);
 router.route('/employee')
     .get(protect, getEmployees)
     .post(protect, createEmployee);
+
+// Subject Routes
+router.route('/subject')
+    .get(protect, getSubjects)
+    .post(protect, createSubject);
     
 module.exports = router;

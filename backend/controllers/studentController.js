@@ -95,4 +95,4 @@ const deleteStudent = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { getStudents, createStudent, deleteStudent };
+module.exports = { getStudents, createStudent, deleteStudent, toggleStudentStatus };
