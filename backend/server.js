@@ -21,6 +21,7 @@ app.use(cors({
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/students', require('./routes/studentRoutes'));
+app.use('/api/master', require('./routes/masterRoutes'));
 // Error Handler
 app.use(errorHandler);
 

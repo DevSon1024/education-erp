@@ -10,6 +10,8 @@ import RegisterPage from './pages/RegisterPage';
 import Navbar from './components/layout/Navbar';
 import StudentList from './pages/master/StudentList';
 import StudentRegistration from './pages/master/StudentRegistration';
+import CourseMaster from './pages/master/CourseMaster';
+import BatchMaster from './pages/master/BatchMaster';
 
 // Placeholder Dashboard (We will move this to a separate file later)
 const Dashboard = () => (
@@ -52,6 +54,9 @@ function App() {
 
             <Route path="/master/student" element=    {<PrivateRoute><StudentList /></PrivateRoute>} />
             <Route path="/master/student/new" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
+
+            <Route path="/master/course" element={<PrivateRoute><CourseMaster /></PrivateRoute>} />
+            <Route path="/master/batch" element={<PrivateRoute><BatchMaster /></PrivateRoute>} />
             
             {/* Catch all - Redirect to Home */}
             <Route path="*" element={<Navigate to="/" />} />

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const SmartTable = ({ columns, data, pagination, onPageChange, onEdit, onDelete }) => {
+// FIX: Added "data = []" to props destructuring
+const SmartTable = ({ columns, data = [], pagination, onPageChange, onEdit, onDelete }) => {
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
@@ -17,7 +18,8 @@ const SmartTable = ({ columns, data, pagination, onPageChange, onEdit, onDelete 
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.length > 0 ? (
+            {/* Safe Check: ensure data exists and has length */}
+            {data && data.length > 0 ? (
               data.map((row, rowIdx) => (
                 <tr key={row._id || rowIdx} className="hover:bg-gray-50 transition-colors">
                   {columns.map((col, colIdx) => (
@@ -26,10 +28,10 @@ const SmartTable = ({ columns, data, pagination, onPageChange, onEdit, onDelete 
                     </td>
                   ))}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => onEdit(row)} className="text-blue-600 hover:text-blue-900 mr-3">
+                    <button onClick={() => onEdit && onEdit(row)} className="text-blue-600 hover:text-blue-900 mr-3">
                       <Edit size={18} />
                     </button>
-                    <button onClick={() => onDelete(row._id)} className="text-red-600 hover:text-red-900">
+                    <button onClick={() => onDelete && onDelete(row._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={18} />
                     </button>
                   </td>
