@@ -14,6 +14,7 @@ import CourseMaster from './pages/master/CourseMaster';
 import BatchMaster from './pages/master/BatchMaster';
 import InquiryPage from './pages/transaction/InquiryPage';
 import FeeCollection from './pages/transaction/FeeCollection';
+import EmployeeMaster from './pages/master/EmployeeMaster';
 
 // Placeholder Dashboard (We will move this to a separate file later)
 const Dashboard = () => (
@@ -62,6 +63,8 @@ function App() {
 
             <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
             <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} />
+
+            <Route path="/master/employee" element={<PrivateRoute><EmployeeMaster /></PrivateRoute>} />
             
             {/* Catch all - Redirect to Home */}
             <Route path="*" element={<Navigate to="/" />} />

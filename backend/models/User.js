@@ -7,14 +7,22 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: { 
         type: String, 
-        enum: ['Super Admin', 'Branch Admin', 'Employee', 'Teacher', 'Student'], 
+        enum: [
+            'Super Admin', 'Branch Admin', 'Teacher', 'Student', 
+            'Manager', 'Faculty', 'Marketing Person', 'Branch Director', 'Receptionist', 'Other'
+        ], 
         default: 'Student' 
     },
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
+// --- FIXED ENCRYPTION HOOK ---
+// Removed 'next' parameter. Since it is 'async', Mongoose waits for it to finish automatically.
+userSchema.pre('save', async function () {
+    // 1. If password is not modified, do nothing and return
+    if (!this.isModified('password')) return;
+    
+    // 2. Hash the password
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 });
