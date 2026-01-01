@@ -20,7 +20,7 @@ app.use(cors({
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-
+app.use('/api/students', require('./routes/studentRoutes'));
 // Error Handler
 app.use(errorHandler);
 

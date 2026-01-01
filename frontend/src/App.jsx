@@ -8,6 +8,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Navbar from './components/layout/Navbar';
+import StudentList from './pages/master/StudentList';
+import StudentRegistration from './pages/master/StudentRegistration';
 
 // Placeholder Dashboard (We will move this to a separate file later)
 const Dashboard = () => (
@@ -47,6 +49,9 @@ function App() {
             
             {/* Private Routes */}
             <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+
+            <Route path="/master/student" element=    {<PrivateRoute><StudentList /></PrivateRoute>} />
+            <Route path="/master/student/new" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
             
             {/* Catch all - Redirect to Home */}
             <Route path="*" element={<Navigate to="/" />} />
