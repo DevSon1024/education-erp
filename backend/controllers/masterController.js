@@ -1,5 +1,6 @@
 const Course = require('../models/Course');
 const Batch = require('../models/Batch');
+const Employee = require('../models/Employee');
 const asyncHandler = require('express-async-handler');
 
 // --- COURSE CONTROLLERS ---
@@ -43,18 +44,55 @@ const deleteCourse = asyncHandler(async (req, res) => {
 // @desc Get all batches
 // @route GET /api/master/batch
 const getBatches = asyncHandler(async (req, res) => {
-    // Explicitly filter for isDeleted: false
-    const batches = await Batch.find({ isDeleted: false }).sort({ createdAt: -1 });
-    console.log("Batches sent to UI:", batches); // SERVER CONSOLE LOG
-    res.json(batches); 
+    const { startDate, endDate, searchBy, searchValue } = req.query;
+
+    let query = { isDeleted: false };
+
+    // 1. Date Filter (Batches starting in this range)
+    if (startDate && endDate) {
+        query.startDate = { 
+            $gte: new Date(startDate), 
+            $lte: new Date(endDate) 
+        };
+    }
+
+    // 2. Search Logic
+    if (searchBy && searchValue) {
+        if (searchBy === 'Batch Name') {
+            query.name = { $regex: searchValue, $options: 'i' };
+        } else if (searchBy === 'Employee Name') {
+            // Find employees matching the name first
+            const employees = await Employee.find({ name: { $regex: searchValue, $options: 'i' } }).select('_id');
+            const empIds = employees.map(e => e._id);
+            query.faculty = { $in: empIds };
+        }
+    }
+
+    const batches = await Batch.find(query)
+        .populate('course', 'name')
+        .populate('faculty', 'name')
+        .sort({ createdAt: -1 });
+
+    res.json(batches);
 });
 
 // @desc Create batch
 // @route POST /api/master/batch
 const createBatch = asyncHandler(async (req, res) => {
     const batch = await Batch.create(req.body);
-    console.log("New Batch Created:", batch); // SERVER CONSOLE LOG
     res.status(201).json(batch);
+});
+
+// @desc Create Dummy Employee (Helper for testing)
+const createEmployee = asyncHandler(async (req, res) => {
+    const emp = await Employee.create(req.body);
+    res.status(201).json(emp);
+});
+
+// @desc Get All Employees (For Dropdown)
+const getEmployees = asyncHandler(async (req, res) => {
+    const emps = await Employee.find({ isDeleted: false });
+    res.json(emps);
 });
 
 // @desc Delete batch
@@ -70,4 +108,8 @@ const deleteBatch = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { getCourses, createCourse, deleteCourse, getBatches, createBatch, deleteBatch };
+module.exports = { 
+    getCourses, createCourse, deleteCourse, 
+    getBatches, createBatch, deleteBatch,
+    createEmployee, getEmployees 
+};

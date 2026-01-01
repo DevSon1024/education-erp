@@ -19,19 +19,18 @@ export const createCourse = createAsyncThunk('master/createCourse', async (data,
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });
 
-export const fetchBatches = createAsyncThunk('master/fetchBatches', async (_, thunkAPI) => {
+export const fetchBatches = createAsyncThunk('master/fetchBatches', async (params, thunkAPI) => {
     try {
-        const response = await axios.get(API_URL + 'batch');
-        
-        // DEBUG LOG: Open your browser console (F12) to see this
-        console.log("API BATCH RESPONSE:", response.data); 
-
-        // Ensure it returns an array
+        const response = await axios.get(API_URL + 'batch', { params });
         return Array.isArray(response.data) ? response.data : [];
-    } catch (error) { 
-        console.error("API BATCH ERROR:", error);
-        return thunkAPI.rejectWithValue(error.message); 
-    }
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const fetchEmployees = createAsyncThunk('master/fetchEmployees', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'employee');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
 export const createBatch = createAsyncThunk('master/createBatch', async (data, thunkAPI) => {
@@ -46,6 +45,7 @@ const masterSlice = createSlice({
     initialState: {
         courses: [],
         batches: [],
+        employees: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -68,6 +68,9 @@ const masterSlice = createSlice({
             // Batches
             .addCase(fetchBatches.fulfilled, (state, action) => { 
                 state.batches = action.payload; 
+            })
+            .addCase(fetchEmployees.fulfilled, (state, action) => {
+                state.employees = action.payload;
             })
             .addCase(createBatch.fulfilled, (state, action) => {
                 state.batches.push(action.payload);
