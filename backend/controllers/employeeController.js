@@ -4,7 +4,6 @@ const asyncHandler = require('express-async-handler');
 
 // @desc    Get Employees
 const getEmployees = asyncHandler(async (req, res) => {
-    // ... (Keep existing filter logic from previous step) ...
     const { joiningFrom, joiningTo, gender, searchBy, searchValue } = req.query;
     let query = { isDeleted: false };
     
@@ -23,15 +22,13 @@ const getEmployees = asyncHandler(async (req, res) => {
     res.json(employees);
 });
 
-// ... existing imports
-
 const createEmployee = asyncHandler(async (req, res) => {
     const { 
         name, email, mobile, gender, type, 
         loginUsername, loginPassword, isLoginActive 
     } = req.body;
 
-    console.log("--------------------------------");
+    // console.log("--------------------------------");
     // console.log("RECEIVED PAYLOAD:", req.body); // DEBUG 1
 
     // 1. Check if Employee Email exists

@@ -15,6 +15,7 @@ import BatchMaster from './pages/master/BatchMaster';
 import InquiryPage from './pages/transaction/InquiryPage';
 import FeeCollection from './pages/transaction/FeeCollection';
 import EmployeeMaster from './pages/master/EmployeeMaster';
+import SubjectMaster from './pages/master/SubjectMaster';
 
 // Placeholder Dashboard (We will move this to a separate file later)
 const Dashboard = () => (
@@ -61,10 +62,13 @@ function App() {
             <Route path="/master/course" element={<PrivateRoute><CourseMaster /></PrivateRoute>} />
             <Route path="/master/batch" element={<PrivateRoute><BatchMaster /></PrivateRoute>} />
 
+            <Route path="/master/employee" element={<PrivateRoute><EmployeeMaster /></PrivateRoute>} />
+            <Route path="/master/subject" element={<PrivateRoute><SubjectMaster /></PrivateRoute>} />
+
             <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
             <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} />
 
-            <Route path="/master/employee" element={<PrivateRoute><EmployeeMaster /></PrivateRoute>} />
+            
             
             {/* Catch all - Redirect to Home */}
             <Route path="*" element={<Navigate to="/" />} />

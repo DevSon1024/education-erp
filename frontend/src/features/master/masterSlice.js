@@ -26,11 +26,18 @@ export const fetchBatches = createAsyncThunk('master/fetchBatches', async (param
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
-export const fetchSubjects = createAsyncThunk('master/fetchSubjects', async (_, thunkAPI) => {
+export const fetchSubjects = createAsyncThunk('master/fetchSubjects', async (params, thunkAPI) => {
     try {
-        const response = await axios.get(API_URL + 'subject');
+        const response = await axios.get(API_URL + 'subject', { params });
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createSubject = createAsyncThunk('master/createSubject', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(API_URL + 'subject', data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });
 
 export const fetchEmployees = createAsyncThunk('master/fetchEmployees', async (_, thunkAPI) => {
@@ -60,6 +67,7 @@ const masterSlice = createSlice({
     },
     reducers: {
         resetMasterStatus: (state) => {
+            state.isLoading = false;
             state.isSuccess = false;
             state.message = '';
         }
@@ -80,8 +88,27 @@ const masterSlice = createSlice({
             .addCase(fetchEmployees.fulfilled, (state, action) => {
                 state.employees = action.payload;
             })
+            .addCase(fetchSubjects.pending, (state) => { state.isLoading = true; })
             .addCase(fetchSubjects.fulfilled, (state, action) => {
+                state.isLoading = false;
                 state.subjects = action.payload;
+            })
+            .addCase(fetchSubjects.rejected, (state, action) => {
+                state.isLoading = false;
+                console.error(action.payload);
+            })
+            .addCase(createSubject.pending, (state) => { state.isLoading = true; })
+            .addCase(createSubject.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.message = 'Subject Created Successfully';
+                // INSTANT UPDATE: Add to list immediately
+                state.subjects.unshift(action.payload); 
+            })
+            .addCase(createSubject.rejected, (state, action) => {
+                state.isLoading = false;
+                state.message = action.payload;
+                state.isSuccess = false; // Ensure it fails gracefully
             })
             .addCase(createBatch.fulfilled, (state, action) => {
                 state.batches.push(action.payload);

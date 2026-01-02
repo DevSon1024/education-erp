@@ -84,15 +84,28 @@ const getBatches = asyncHandler(async (req, res) => {
 
 // @desc Get All Subjects
 const getSubjects = asyncHandler(async (req, res) => {
-    const subjects = await Subject.find({ isActive: true });
+    const { searchBy, searchValue } = req.query;
+    let query = { isDeleted: false };
+
+    // Search Logic
+    if (searchBy && searchValue) {
+        if (searchBy === 'Subject Name') {
+            query.name = { $regex: searchValue, $options: 'i' };
+        } else if (searchBy === 'Printed Name') {
+            query.printedName = { $regex: searchValue, $options: 'i' };
+        }
+    }
+
+    const subjects = await Subject.find(query).sort({ createdAt: -1 });
     res.json(subjects);
 });
 
 // @desc Create Dummy Subject (For seeding)
 const createSubject = asyncHandler(async (req, res) => {
+    // Basic validation could go here
     const subject = await Subject.create(req.body);
     res.status(201).json(subject);
-})
+});
 
 // @desc Create batch
 // @route POST /api/master/batch
