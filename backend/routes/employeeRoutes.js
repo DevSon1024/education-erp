@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middlewares/authMiddleware');
+const { checkPermission } = require('../middlewares/permissionMiddleware');
 const { getEmployees, createEmployee, deleteEmployee } = require('../controllers/employeeController');
 
 router.route('/')
-    .get(protect, getEmployees)
-    .post(protect, createEmployee);
+    .get(protect, checkPermission('Employee', 'view'), getEmployees)
+    .post(protect, checkPermission('Employee', 'add'), createEmployee);
 
 router.route('/:id')
-    .delete(protect, deleteEmployee);
+    .delete(protect, checkPermission('Employee', 'delete'), deleteEmployee);
 
 module.exports = router;

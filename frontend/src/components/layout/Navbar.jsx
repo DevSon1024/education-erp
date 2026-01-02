@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
-import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
+import { fetchMyPermissions } from '../../features/userRights/userRightsSlice'; // Ensure this path is correct
+import { Menu, X, ChevronDown, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Menu Structure mapped to Modules
-const MENU_ITEMS = [
-  {title: 'Home',
+// Defined outside component to prevent re-creation
+const BASE_MENU_ITEMS = [
+  {
+    title: 'Home',
     path: '/home',
     subItems: ['Inquiry List', 'Exam Pending List']
   },
@@ -33,22 +35,81 @@ const MENU_ITEMS = [
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
+  // specific selector with safe fallback
+  const { myPermissions = [] } = useSelector((state) => state.userRights || {}); 
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [filteredMenu, setFilteredMenu] = useState([]);
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
   };
 
+  // 1. Fetch Permissions on Load
+  useEffect(() => {
+    if (user) {
+      // console.log("Fetching permissions for user:", user.email); // Debug
+      dispatch(fetchMyPermissions());
+    }
+  }, [user, dispatch]);
+
+  // 2. Filter Menu based on Permissions
+  useEffect(() => {
+    if (!user) return;
+
+    // console.log("Current User Permissions:", myPermissions); // Debug
+
+    // Super Admin gets everything + User Rights page
+    if (user.role === 'Super Admin') {
+      const adminMenu = BASE_MENU_ITEMS.map(item => {
+        if (item.title === 'Master') {
+          // Add 'User Rights' if not already present
+          const hasRights = item.subItems.includes('User Rights');
+          return hasRights ? item : { ...item, subItems: [...item.subItems, 'User Rights'] };
+        }
+        return item;
+      });
+      setFilteredMenu(adminMenu);
+      return;
+    }
+
+    // Normal User Filtering
+    const newMenu = BASE_MENU_ITEMS.map(item => {
+      // Always show Home
+      if (item.title === 'Home') return item;
+
+      // Filter sub-items based on 'view' permission
+      const visibleSubItems = item.subItems.filter(sub => {
+        // Find permission matching the Page Name exactly
+        const perm = myPermissions.find(p => p.page === sub);
+        
+        // Debugging logs for specific items (check your browser console)
+        // if (sub === 'Student') console.log(`Checking ${sub}:`, perm);
+
+        // Return true only if permission exists AND view is true
+        return perm && perm.view === true;
+      });
+
+      // Only return the main menu item if it has visible sub-items
+      if (visibleSubItems.length > 0) {
+        return { ...item, subItems: visibleSubItems };
+      }
+      return null;
+    }).filter(Boolean); // Remove null entries (empty menus)
+
+    setFilteredMenu(newMenu);
+
+  }, [user, myPermissions]);
+
   return (
     <header className="bg-white shadow-md relative z-50">
-      {/* Top Bar - Branding & User Profile */}
+      {/* Top Bar */}
       <div className="container mx-auto px-4 py-2 flex justify-between items-center border-b border-gray-100">
         <div className="flex items-center gap-2">
-           {/* Placeholder for Logo */}
            <div className="w-10 h-10 bg-gradient-to-tr from-orange-500 to-green-500 rounded-lg flex items-center justify-center text-white font-bold">SI</div>
            <div>
               <h1 className="text-xl font-bold text-primary tracking-tight">Smart Institute</h1>
@@ -56,7 +117,6 @@ const Navbar = () => {
            </div>
         </div>
 
-        {/* User Profile (Right Side) */}
         <div className="flex items-center gap-4">
           <div className="hidden md:flex flex-col items-end">
             <span className="text-sm font-semibold text-gray-700">{user?.name || 'Guest'}</span>
@@ -66,17 +126,16 @@ const Navbar = () => {
             <LogOut size={20} />
           </button>
           
-          {/* Mobile Toggle */}
           <button className="md:hidden p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
-      {/* Main Navigation - Centered & Animated */}
+      {/* Main Navigation - Uses filteredMenu */}
       <nav className="hidden md:block bg-primary text-white py-3">
         <div className="container mx-auto flex justify-center gap-8">
-          {MENU_ITEMS.map((item, index) => (
+          {filteredMenu.map((item, index) => (
             <div 
               key={index} 
               className="relative group"
@@ -88,7 +147,6 @@ const Navbar = () => {
                 <ChevronDown size={14} className={`transition-transform duration-300 ${hoveredMenu === index ? 'rotate-180' : ''}`}/>
               </button>
 
-              {/* Animated Dropdown */}
               <AnimatePresence>
                 {hoveredMenu === index && (
                   <motion.div
@@ -102,7 +160,7 @@ const Navbar = () => {
                       {item.subItems.map((sub, subIdx) => (
                         <Link 
                           key={subIdx} 
-                          to={`${item.path}/${sub.toLowerCase().replace(' ', '-')}`}
+                          to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`}
                           className="block px-4 py-2 text-sm hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0"
                         >
                           {sub}
@@ -117,10 +175,10 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t">
-          {MENU_ITEMS.map((item, index) => (
+          {filteredMenu.map((item, index) => (
             <div key={index} className="border-b">
               <div className="px-4 py-3 font-semibold text-primary bg-gray-50">{item.title}</div>
               <div className="pl-6 bg-white">

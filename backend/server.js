@@ -24,6 +24,7 @@ app.use('/api/students', require('./routes/studentRoutes'));
 app.use('/api/master', require('./routes/masterRoutes'));
 app.use('/api/transaction', require('./routes/transactionRoutes'));
 app.use('/api/employees', require('./routes/employeeRoutes'));
+app.use('/api/user-rights', require('./routes/userRightRoutes'));
 // Error Handler
 app.use(errorHandler);
 
