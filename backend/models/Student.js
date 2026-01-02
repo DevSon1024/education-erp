@@ -2,29 +2,30 @@ const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
     // --- System Fields ---
-    enrollmentNo: { type: String, unique: true }, // Auto-generated
+    enrollmentNo: { type: String, unique: true }, 
     regNo: { type: String, required: true, unique: true },
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
     branchName: { type: String, default: 'Main Branch' },
+    registrationDate: { type: Date, default: Date.now }, // Added as per requirement
 
     // --- Personal Details ---
     admissionDate: { type: Date, required: true, default: Date.now },
     aadharCard: { type: String, required: true },
     firstName: { type: String, required: true },
-    middleName: { type: String, required: true }, // Father/Husband
+    middleName: { type: String, required: true }, // Father/Husband Name
     lastName: { type: String, required: true },
     motherName: { type: String },
     
     dob: { type: Date, required: true },
     gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
-    studentPhoto: { type: String }, // Path to image
+    studentPhoto: { type: String }, 
 
     // --- Contact & Address ---
     email: { type: String },
-    mobileStudent: { type: String },
-    mobileParent: { type: String, required: true }, // Required
     contactHome: { type: String },
+    mobileStudent: { type: String },
+    mobileParent: { type: String, required: true }, 
     
     address: { type: String, required: true },
     state: { type: String, required: true },
@@ -35,7 +36,7 @@ const studentSchema = new mongoose.Schema({
     occupationType: { type: String, enum: ['Service', 'Business', 'Student', 'Unemployed'] },
     occupationName: { type: String },
     education: { type: String },
-    reference: { type: String, required: true }, // Source of inquiry
+    reference: { type: String, required: true },
 
     // --- Academic & Fees ---
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
@@ -45,15 +46,21 @@ const studentSchema = new mongoose.Schema({
     totalFees: { type: Number, required: true },
     pendingFees: { type: Number, required: true },
     
+    // EMI Details (Optional)
+    emiDetails: {
+        downPayment: { type: Number, default: 0 },
+        installments: { type: Number, default: 0 },
+        installmentAmount: { type: Number, default: 0 }
+    }
+
 }, { timestamps: true });
 
-// Middleware to generate Enrollment No (Simple Logic)
-studentSchema.pre('save', async function(next) {
+// Middleware for Enrollment No
+studentSchema.pre('save', async function() {
     if (!this.enrollmentNo) {
         const count = await mongoose.model('Student').countDocuments();
         this.enrollmentNo = `ENR${new Date().getFullYear()}${String(count + 1).padStart(4, '0')}`;
     }
-    next();
 });
 
 module.exports = mongoose.model('Student', studentSchema);
