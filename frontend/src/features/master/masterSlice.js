@@ -70,6 +70,34 @@ export const cancelExamRequest = createAsyncThunk('master/cancelExamRequest', as
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+export const fetchExamSchedules = createAsyncThunk('master/fetchExamSchedules', async (params, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'exam-schedule', { params });
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createExamSchedule = createAsyncThunk('master/createExamSchedule', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(API_URL + 'exam-schedule', data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const updateExamSchedule = createAsyncThunk('master/updateExamSchedule', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}exam-schedule/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const deleteExamSchedule = createAsyncThunk('master/deleteExamSchedule', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(`${API_URL}exam-schedule/${id}`);
+        return response.data; // Expecting { id: ... }
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 const masterSlice = createSlice({
     name: 'master',
     initialState: {
@@ -79,6 +107,7 @@ const masterSlice = createSlice({
         subjects: [],
         examRequests: [],
         studentsList: [],
+        examSchedules: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -144,6 +173,26 @@ const masterSlice = createSlice({
                 state.isSuccess = true;
                 state.message = 'Exam Cancelled';
                 state.examRequests = state.examRequests.filter(req => req._id !== action.payload);
+            })
+            // Exam Schedule
+            .addCase(fetchExamSchedules.fulfilled, (state, action) => {
+                state.examSchedules = action.payload;
+            })
+            .addCase(createExamSchedule.fulfilled, (state, action) => {
+                state.examSchedules.unshift(action.payload);
+                state.isSuccess = true;
+                state.message = 'Exam Schedule Created';
+            })
+            .addCase(updateExamSchedule.fulfilled, (state, action) => {
+                const index = state.examSchedules.findIndex(s => s._id === action.payload._id);
+                if (index !== -1) state.examSchedules[index] = action.payload;
+                state.isSuccess = true;
+                state.message = 'Exam Schedule Updated';
+            })
+            .addCase(deleteExamSchedule.fulfilled, (state, action) => {
+                state.examSchedules = state.examSchedules.filter(s => s._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'Exam Schedule Deleted';
             });
     }
 });

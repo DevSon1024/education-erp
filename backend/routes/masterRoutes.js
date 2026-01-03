@@ -9,6 +9,11 @@ const {
     getSubjects, createSubject
 } = require('../controllers/masterController');
 const { getExamRequests, cancelExamRequest, createExamRequest } = require('../controllers/examController');
+const { 
+    getExamSchedules, createExamSchedule, 
+    updateExamSchedule, deleteExamSchedule, 
+    getExamScheduleDetails 
+} = require('../controllers/examScheduleController');
 
 // --- Course Routes ---
 router.route('/course')
@@ -39,5 +44,16 @@ router.route('/exam-request')
     .post(protect, createExamRequest);
 
 router.put('/exam-request/:id/cancel', protect, cancelExamRequest);
+
+// --- Exam Schedule Routes ---
+router.route('/exam-schedule')
+    .get(protect, getExamSchedules)
+    .post(protect, createExamSchedule);
+
+router.route('/exam-schedule/:id')
+    .put(protect, updateExamSchedule)
+    .delete(protect, deleteExamSchedule);
+
+router.get('/exam-schedule/:id/details', protect, getExamScheduleDetails);
 
 module.exports = router;

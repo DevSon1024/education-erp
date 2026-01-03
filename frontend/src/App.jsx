@@ -18,6 +18,7 @@ import EmployeeMaster from './pages/master/EmployeeMaster';
 import SubjectMaster from './pages/master/SubjectMaster';
 import UserRights from './pages/master/UserRights';
 import ExamRequestList from './pages/master/ExamRequestList';
+import ExamSchedule from './pages/master/ExamSchedule';
 
 // Placeholder Dashboard (We will move this to a separate file later)
 const Dashboard = () => (
@@ -68,6 +69,7 @@ function App() {
             <Route path="/master/subject" element={<PrivateRoute><SubjectMaster /></PrivateRoute>} />
             <Route path="/master/user-rights" element={<PrivateRoute><UserRights /></PrivateRoute>} />
             <Route path="/master/exam-request-list" element={<PrivateRoute><ExamRequestList /></PrivateRoute>} />
+            <Route path="/master/exam-schedule" element={<PrivateRoute><ExamSchedule /></PrivateRoute>} />
 
             <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
             <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} />
