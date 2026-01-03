@@ -8,7 +8,7 @@ const {
     createEmployee, getEmployees,
     getSubjects, createSubject
 } = require('../controllers/masterController');
-const { getExamRequests, cancelExamRequest, createExamRequest } = require('../controllers/examController');
+const { getExamRequests, cancelExamRequest, createExamRequest,getPendingExams } = require('../controllers/examController');
 const { 
     getExamSchedules, createExamSchedule, 
     updateExamSchedule, deleteExamSchedule, 
@@ -47,6 +47,9 @@ router.route('/exam-request')
     .post(protect, createExamRequest);
 
 router.put('/exam-request/:id/cancel', protect, cancelExamRequest);
+
+// Dashboard Route
+router.get('/exam-pending', protect, getPendingExams);
 
 // --- Exam Schedule Routes ---
 router.route('/exam-schedule')

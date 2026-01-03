@@ -105,6 +105,13 @@ export const fetchExamResults = createAsyncThunk('master/fetchExamResults', asyn
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+export const fetchPendingExams = createAsyncThunk('master/fetchPendingExams', async (params, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'exam-pending', { params });
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 export const createExamResult = createAsyncThunk('master/createExamResult', async (data, thunkAPI) => {
     try {
         const response = await axios.post(API_URL + 'exam-result', data);
@@ -130,6 +137,7 @@ const masterSlice = createSlice({
         studentsList: [],
         examSchedules: [],
         examResults: [],
+        pendingExams: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -229,6 +237,9 @@ const masterSlice = createSlice({
                 state.examSchedules = state.examSchedules.filter(s => s._id !== action.payload.id);
                 state.isSuccess = true;
                 state.message = 'Exam Schedule Deleted';
+            })
+            .addCase(fetchPendingExams.fulfilled, (state, action) => {
+                state.pendingExams = action.payload;
             });
     }
 });

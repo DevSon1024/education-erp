@@ -30,6 +30,51 @@ const getExamRequests = asyncHandler(async (req, res) => {
     res.json(requests);
 });
 
+// @desc    Get Pending Exams (Dashboard)
+// @route   GET /api/master/exam-pending
+const getPendingExams = asyncHandler(async (req, res) => {
+    const { courseId, minPendingDays } = req.query;
+
+    let query = { 
+        isDeleted: false, 
+        status: { $in: ['Pending', 'Approved'] } // Not 'Completed' or 'Cancelled'
+    };
+
+    // Filter by Course (via Student)
+    if (courseId) {
+        const studentsInCourse = await Student.find({ course: courseId }).select('_id');
+        query.student = { $in: studentsInCourse };
+    }
+
+    let requests = await ExamRequest.find(query)
+        .populate({
+            path: 'student',
+            populate: { path: 'course', select: 'name duration' },
+            select: 'firstName lastName regNo admissionDate mobileStudent mobileParent'
+        })
+        .sort({ createdAt: 1 }); // Oldest first
+
+    // Calculate Pending Days and Filter
+    const today = new Date();
+    
+    let pendingList = requests.map(req => {
+        const reqDate = new Date(req.createdAt);
+        const diffTime = Math.abs(today - reqDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        return {
+            ...req.toObject(),
+            pendingDays: diffDays
+        };
+    });
+
+    if (minPendingDays) {
+        pendingList = pendingList.filter(req => req.pendingDays >= Number(minPendingDays));
+    }
+
+    res.json(pendingList);
+});
+
 // @desc    Cancel Exam Request
 // @route   PUT /api/master/exam-request/:id/cancel
 const cancelExamRequest = asyncHandler(async (req, res) => {
@@ -51,4 +96,4 @@ const createExamRequest = asyncHandler(async (req, res) => {
     res.status(201).json(request);
 });
 
-module.exports = { getExamRequests, cancelExamRequest, createExamRequest };
+module.exports = { getExamRequests, cancelExamRequest, createExamRequest,getPendingExams };

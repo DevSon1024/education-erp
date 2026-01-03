@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useSelector } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import AdminHome from './pages/AdminHome';
 // Pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -58,7 +58,8 @@ function App() {
             <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
             
             {/* Private Routes */}
-            <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/home" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
+            <Route path="/" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
 
             <Route path="/master/student" element=    {<PrivateRoute><StudentList /></PrivateRoute>} />
             <Route path="/master/student/new" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
