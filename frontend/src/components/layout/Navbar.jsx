@@ -1,12 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
-import { fetchMyPermissions } from '../../features/userRights/userRightsSlice'; // Ensure this path is correct
-import { Menu, X, ChevronDown, LogOut } from 'lucide-react';
+import { fetchMyPermissions } from '../../features/userRights/userRightsSlice';
+import { Menu, X, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Defined outside component to prevent re-creation
+// Transaction menu with nested structure
+const TRANSACTION_MENU = [
+  {
+    title: 'Inquiry',
+    hasSubOptions: true,
+    subOptions: [
+      { name: 'Online', path: '/transaction/inquiry/online' },
+      { name: 'Offline', path: '/transaction/inquiry/offline' },
+      { name: 'DSR', path: '/transaction/inquiry/dsr' }
+    ]
+  },
+  {
+    title: 'Visitors',
+    hasSubOptions: true,
+    subOptions: [
+      { name: 'Todays Visitors List', path: '/transaction/visitors/todays-list' },
+      { name: 'Todays Visited Report', path: '/transaction/visitors/todays-report' },
+      { name: 'Visitors', path: '/transaction/visitors' }
+    ]
+  },
+  {
+    title: 'Student Admission Fees',
+    path: '/transaction/student-admission-fees',
+    hasSubOptions: false
+  },
+  {
+    title: 'Student Registration',
+    path: '/transaction/student-registration',
+    hasSubOptions: false
+  },
+  {
+    title: 'Student Cancellation',
+    path: '/transaction/student-cancellation',
+    hasSubOptions: false
+  },
+  {
+    title: 'Fees Receipt',
+    path: '/transaction/fees-receipt',
+    hasSubOptions: false
+  }
+];
+
 const BASE_MENU_ITEMS = [
   {
     title: 'Home',
@@ -21,7 +62,8 @@ const BASE_MENU_ITEMS = [
   { 
     title: 'Transaction', 
     path: '/transaction',
-    subItems: ['Admission', 'Fees Receipt', 'Attendance', 'Inquiry'] 
+    isCustom: true, // Flag to use custom rendering
+    customMenu: TRANSACTION_MENU
   },
   { 
     title: 'Reports', 
@@ -35,39 +77,50 @@ const BASE_MENU_ITEMS = [
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
-  // specific selector with safe fallback
   const { myPermissions = [] } = useSelector((state) => state.userRights || {}); 
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [filteredMenu, setFilteredMenu] = useState([]);
+  
+  // State for tracking expanded sub-items in Transaction menu
+  const [expandedSubItems, setExpandedSubItems] = useState({});
+  
+  // Check if current path is under transaction
+  const isTransactionPath = location.pathname.startsWith('/transaction');
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
   };
 
-  // 1. Fetch Permissions on Load
+  // Toggle sub-item expansion
+  const toggleSubItem = (title) => {
+    setExpandedSubItems(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  };
+
+  // Fetch Permissions on Load
   useEffect(() => {
     if (user) {
-      // console.log("Fetching permissions for user:", user.email); // Debug
       dispatch(fetchMyPermissions());
     }
   }, [user, dispatch]);
 
-  // 2. Filter Menu based on Permissions
+  // Filter Menu based on Permissions
   useEffect(() => {
     if (!user) return;
-
-    // console.log("Current User Permissions:", myPermissions); // Debug
 
     // Super Admin gets everything + User Rights page
     if (user.role === 'Super Admin') {
       const adminMenu = BASE_MENU_ITEMS.map(item => {
         if (item.title === 'Master') {
-          // Add 'User Rights' if not already present
           const hasRights = item.subItems.includes('User Rights');
           return hasRights ? item : { ...item, subItems: [...item.subItems, 'User Rights'] };
         }
@@ -79,31 +132,150 @@ const Navbar = () => {
 
     // Normal User Filtering
     const newMenu = BASE_MENU_ITEMS.map(item => {
-      // Always show Home
       if (item.title === 'Home') return item;
 
-      // Filter sub-items based on 'view' permission
-      const visibleSubItems = item.subItems.filter(sub => {
-        // Find permission matching the Page Name exactly
-        const perm = myPermissions.find(p => p.page === sub);
-        
-        // Debugging logs for specific items (check your browser console)
-        // if (sub === 'Student') console.log(`Checking ${sub}:`, perm);
+      // Skip custom filtering for Transaction menu
+      if (item.isCustom) return item;
 
-        // Return true only if permission exists AND view is true
+      const visibleSubItems = item.subItems.filter(sub => {
+        const perm = myPermissions.find(p => p.page === sub);
         return perm && perm.view === true;
       });
 
-      // Only return the main menu item if it has visible sub-items
       if (visibleSubItems.length > 0) {
         return { ...item, subItems: visibleSubItems };
       }
       return null;
-    }).filter(Boolean); // Remove null entries (empty menus)
+    }).filter(Boolean);
 
     setFilteredMenu(newMenu);
-
   }, [user, myPermissions]);
+
+  // Custom Transaction Dropdown Component
+  const TransactionDropdown = ({ isHovered, isMobile = false }) => {
+    if (isMobile) {
+      return (
+        <div className="bg-white">
+          {TRANSACTION_MENU.map((item, idx) => (
+            <div key={idx} className="border-b border-gray-100 last:border-0">
+              {item.hasSubOptions ? (
+                <div>
+                  <button
+                    onClick={() => toggleSubItem(item.title)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                  >
+                    <span>{item.title}</span>
+                    <ChevronRight 
+                      size={16} 
+                      className={`transition-transform duration-200 ${expandedSubItems[item.title] ? 'rotate-90' : ''}`}
+                    />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {expandedSubItems[item.title] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="bg-gray-50 overflow-hidden"
+                      >
+                        {item.subOptions.map((subOpt, subIdx) => (
+                          <Link
+                            key={subIdx}
+                            to={subOpt.path}
+                            className="block px-8 py-2 text-sm text-gray-600 hover:bg-blue-100 hover:text-primary transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {subOpt.name}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <Link
+                  to={item.path}
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.title}
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Desktop dropdown with sticky behavior
+    return (
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-72 z-50"
+            onMouseEnter={() => setHoveredMenu(filteredMenu.findIndex(m => m.title === 'Transaction'))}
+            onMouseLeave={() => setHoveredMenu(null)}
+          >
+            <div className="bg-white text-gray-800 shadow-2xl rounded-lg overflow-hidden border-t-4 border-accent max-h-[500px] overflow-y-auto">
+              {TRANSACTION_MENU.map((item, idx) => (
+                <div key={idx} className="border-b border-gray-100 last:border-0">
+                  {item.hasSubOptions ? (
+                    <div className="group/item">
+                      <button
+                        onClick={() => toggleSubItem(item.title)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                      >
+                        <span>{item.title}</span>
+                        <ChevronRight 
+                          size={16} 
+                          className={`transition-transform duration-200 ${expandedSubItems[item.title] ? 'rotate-90' : ''}`}
+                        />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {expandedSubItems[item.title] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="bg-gradient-to-r from-blue-50 to-gray-50 overflow-hidden"
+                          >
+                            {item.subOptions.map((subOpt, subIdx) => (
+                              <Link
+                                key={subIdx}
+                                to={subOpt.path}
+                                className="block px-8 py-2.5 text-sm text-gray-600 hover:bg-blue-100 hover:text-primary transition-colors border-l-2 border-transparent hover:border-primary"
+                              >
+                                • {subOpt.name}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors"
+                    >
+                      {item.title}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
 
   return (
     <header className="bg-white shadow-md relative z-50">
@@ -132,7 +304,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Main Navigation - Uses filteredMenu */}
+      {/* Main Navigation */}
       <nav className="hidden md:block bg-primary text-white py-3">
         <div className="container mx-auto flex justify-center gap-8">
           {filteredMenu.map((item, index) => (
@@ -147,29 +319,34 @@ const Navbar = () => {
                 <ChevronDown size={14} className={`transition-transform duration-300 ${hoveredMenu === index ? 'rotate-180' : ''}`}/>
               </button>
 
-              <AnimatePresence>
-                {hoveredMenu === index && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 15 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-56"
-                  >
-                    <div className="bg-white text-gray-800 shadow-xl rounded-lg overflow-hidden border-t-4 border-accent">
-                      {item.subItems.map((sub, subIdx) => (
-                        <Link 
-                          key={subIdx} 
-                          to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block px-4 py-2 text-sm hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0"
-                        >
-                          {sub}
-                        </Link>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Custom Transaction Menu */}
+              {item.isCustom ? (
+                <TransactionDropdown isHovered={hoveredMenu === index} />
+              ) : (
+                <AnimatePresence>
+                  {hoveredMenu === index && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 15 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-56"
+                    >
+                      <div className="bg-white text-gray-800 shadow-xl rounded-lg overflow-hidden border-t-4 border-accent">
+                        {item.subItems.map((sub, subIdx) => (
+                          <Link 
+                            key={subIdx} 
+                            to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`}
+                            className="block px-4 py-2 text-sm hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0"
+                          >
+                            {sub}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
             </div>
           ))}
         </div>
@@ -177,17 +354,26 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-white border-t max-h-[80vh] overflow-y-auto">
           {filteredMenu.map((item, index) => (
             <div key={index} className="border-b">
               <div className="px-4 py-3 font-semibold text-primary bg-gray-50">{item.title}</div>
-              <div className="pl-6 bg-white">
-                {item.subItems.map((sub, subIdx) => (
-                  <Link key={subIdx} to="#" className="block py-2 text-sm text-gray-600 border-b border-gray-100 last:border-0">
-                    {sub}
-                  </Link>
-                ))}
-              </div>
+              {item.isCustom ? (
+                <TransactionDropdown isMobile={true} />
+              ) : (
+                <div className="pl-6 bg-white">
+                  {item.subItems.map((sub, subIdx) => (
+                    <Link 
+                      key={subIdx} 
+                      to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="block py-2 text-sm text-gray-600 border-b border-gray-100 last:border-0"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {sub}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

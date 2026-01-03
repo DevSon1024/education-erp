@@ -3,17 +3,20 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useSelector } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AdminHome from './pages/AdminHome';
+
+// Layout
+import Navbar from './components/layout/Navbar';
+
 // Pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import Navbar from './components/layout/Navbar';
+import AdminHome from './pages/AdminHome';
+
+// Master Pages
 import StudentList from './pages/master/StudentList';
 import StudentRegistration from './pages/master/StudentRegistration';
 import CourseMaster from './pages/master/CourseMaster';
 import BatchMaster from './pages/master/BatchMaster';
-import InquiryPage from './pages/transaction/InquiryPage';
-import FeeCollection from './pages/transaction/FeeCollection';
 import EmployeeMaster from './pages/master/EmployeeMaster';
 import SubjectMaster from './pages/master/SubjectMaster';
 import UserRights from './pages/master/UserRights';
@@ -21,20 +24,23 @@ import ExamRequestList from './pages/master/ExamRequestList';
 import ExamSchedule from './pages/master/ExamSchedule';
 import ExamResult from './pages/master/ExamResult';
 
-// Placeholder Dashboard (We will move this to a separate file later)
-const Dashboard = () => (
-  <div className="container mx-auto p-6">
-    <h2 className="text-2xl font-bold text-gray-800 mb-4">Admin Dashboard</h2>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-       {['Total Students', 'New Admissions', 'Fees Collected', 'Pending Enquiries'].map((title, i) => (
-         <div key={i} className="bg-white p-6 rounded-lg shadow-md border-t-4 border-primary hover:shadow-lg transition-shadow">
-            <h3 className="text-gray-500 font-medium text-sm">{title}</h3>
-            <p className="text-3xl font-bold text-gray-800 mt-2">{Math.floor(Math.random() * 1000) + 100}</p>
-         </div>
-       ))}
-    </div>
-  </div>
-);
+// Transaction Pages
+import InquiryPage from './pages/transaction/InquiryPage';
+import FeeCollection from './pages/transaction/FeeCollection';
+
+// Transaction - Inquiry Sub-pages (Create these files)
+// import InquiryOnline from './pages/transaction/InquiryOnline';
+// import InquiryOffline from './pages/transaction/InquiryOffline';
+// import InquiryDSR from './pages/transaction/InquiryDSR';
+
+// Transaction - Visitors Sub-pages (Create these files)
+// import TodaysVisitorsList from './pages/transaction/TodaysVisitorsList';
+// import TodaysVisitedReport from './pages/transaction/TodaysVisitedReport';
+// import Visitors from './pages/transaction/Visitors';
+
+// Transaction - Other Pages (Create these files)
+// import StudentAdmissionFees from './pages/transaction/StudentAdmissionFees';
+// import StudentCancellation from './pages/transaction/StudentCancellation';
 
 // Private Route Wrapper
 const PrivateRoute = ({ children }) => {
@@ -53,36 +59,75 @@ function App() {
           {user && <Navbar />}
           
           <Routes>
-            {/* Public Routes */}
+            {/* ==================== PUBLIC ROUTES ==================== */}
             <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
             <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
             
-            {/* Private Routes */}
+            {/* ==================== PRIVATE ROUTES ==================== */}
+            
+            {/* Home */}
             <Route path="/home" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
             <Route path="/" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
 
-            <Route path="/master/student" element=    {<PrivateRoute><StudentList /></PrivateRoute>} />
+            {/* ==================== MASTER ROUTES ==================== */}
+            
+            {/* Student */}
+            <Route path="/master/student" element={<PrivateRoute><StudentList /></PrivateRoute>} />
             <Route path="/master/student/new" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
 
+            {/* Course, Batch, Subject */}
             <Route path="/master/course" element={<PrivateRoute><CourseMaster /></PrivateRoute>} />
             <Route path="/master/batch" element={<PrivateRoute><BatchMaster /></PrivateRoute>} />
-            <Route path="/master/exam-result" element={<PrivateRoute><ExamResult /></PrivateRoute>} />
-
-            <Route path="/master/employee" element={<PrivateRoute><EmployeeMaster /></PrivateRoute>} />
             <Route path="/master/subject" element={<PrivateRoute><SubjectMaster /></PrivateRoute>} />
+
+            {/* Employee & User Rights */}
+            <Route path="/master/employee" element={<PrivateRoute><EmployeeMaster /></PrivateRoute>} />
             <Route path="/master/user-rights" element={<PrivateRoute><UserRights /></PrivateRoute>} />
+
+            {/* Exam Related */}
             <Route path="/master/exam-request-list" element={<PrivateRoute><ExamRequestList /></PrivateRoute>} />
             <Route path="/master/exam-schedule" element={<PrivateRoute><ExamSchedule /></PrivateRoute>} />
+            <Route path="/master/exam-result" element={<PrivateRoute><ExamResult /></PrivateRoute>} />
 
-            <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
-            <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} />
+            {/* ==================== TRANSACTION ROUTES ==================== */}
+            
+            {/* Legacy/General Inquiry & Fees */}
+            {/* <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} /> */}
 
-            {/* Catch all - Redirect to Home */}
+            {/* Inquiry Sub-Options */}
+            {/* <Route path="/transaction/inquiry/online" element={<PrivateRoute><InquiryOnline /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/inquiry/offline" element={<PrivateRoute><InquiryOffline /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/inquiry/dsr" element={<PrivateRoute><InquiryDSR /></PrivateRoute>} /> */}
+
+            {/* Visitors Sub-Options */}
+            {/* <Route path="/transaction/visitors/todays-list" element={<PrivateRoute><TodaysVisitorsList /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/visitors/todays-report" element={<PrivateRoute><TodaysVisitedReport /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/visitors" element={<PrivateRoute><Visitors /></PrivateRoute>} /> */}
+
+            {/* Student Related Transactions */}
+            {/* <Route path="/transaction/student-admission-fees" element={<PrivateRoute><StudentAdmissionFees /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/student-registration" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} /> */}
+            {/* <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} /> */}
+
+            {/* ==================== CATCH ALL ==================== */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
       </Router>
-      <ToastContainer position="top-right" autoClose={3000} />
+      
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 }
