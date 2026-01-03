@@ -14,6 +14,9 @@ const {
     updateExamSchedule, deleteExamSchedule, 
     getExamScheduleDetails 
 } = require('../controllers/examScheduleController');
+const { 
+    getExamResults, createExamResult, updateExamResult 
+} = require('../controllers/examResultController');
 
 // --- Course Routes ---
 router.route('/course')

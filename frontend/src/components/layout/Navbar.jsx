@@ -16,7 +16,7 @@ const BASE_MENU_ITEMS = [
   { 
     title: 'Master', 
     path: '/master',
-    subItems: ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'Exam Request List', 'Exam Schedule'] 
+    subItems: ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'Exam Request List', 'Exam Schedule', 'Exam Result'] 
   },
   { 
     title: 'Transaction', 
