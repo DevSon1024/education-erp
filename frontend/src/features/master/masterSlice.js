@@ -54,6 +54,22 @@ export const createBatch = createAsyncThunk('master/createBatch', async (data, t
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });
 
+// New: Fetch Exam Requests
+export const fetchExamRequests = createAsyncThunk('master/fetchExamRequests', async (params, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'exam-request', { params });
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+// New: Cancel Exam Request
+export const cancelExamRequest = createAsyncThunk('master/cancelExamRequest', async (id, thunkAPI) => {
+    try {
+        await axios.put(`${API_URL}exam-request/${id}/cancel`);
+        return id;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 const masterSlice = createSlice({
     name: 'master',
     initialState: {
@@ -61,6 +77,8 @@ const masterSlice = createSlice({
         batches: [],
         employees: [],
         subjects: [],
+        examRequests: [],
+        studentsList: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -114,6 +132,18 @@ const masterSlice = createSlice({
                 state.batches.push(action.payload);
                 state.isSuccess = true;
                 state.message = 'Batch Added';
+            })
+            // Exam Request Cases
+            .addCase(fetchExamRequests.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchExamRequests.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.examRequests = action.payload;
+            })
+            .addCase(cancelExamRequest.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.message = 'Exam Cancelled';
+                state.examRequests = state.examRequests.filter(req => req._id !== action.payload);
             });
     }
 });

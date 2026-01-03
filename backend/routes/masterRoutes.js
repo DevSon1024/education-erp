@@ -8,6 +8,7 @@ const {
     createEmployee, getEmployees,
     getSubjects, createSubject
 } = require('../controllers/masterController');
+const { getExamRequests, cancelExamRequest, createExamRequest } = require('../controllers/examController');
 
 // --- Course Routes ---
 router.route('/course')
@@ -32,4 +33,11 @@ router.route('/employee')
     .get(protect, checkPermission('Employee', 'view'), getEmployees)
     .post(protect, checkPermission('Employee', 'add'), createEmployee);
     
+// --- Exam Request Routes ---
+router.route('/exam-request')
+    .get(protect, getExamRequests) // View Permission handled in UI or add checkPermission('Exam Request List', 'view')
+    .post(protect, createExamRequest);
+
+router.put('/exam-request/:id/cancel', protect, cancelExamRequest);
+
 module.exports = router;
