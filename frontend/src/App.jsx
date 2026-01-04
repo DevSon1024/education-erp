@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/layout/Navbar';
 
 // Pages
+import HomePage from './pages/HomePage'; // IMPORT NEW HOME PAGE
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminHome from './pages/AdminHome';
@@ -28,17 +29,17 @@ import ExamResult from './pages/master/ExamResult';
 import InquiryPage from './pages/transaction/InquiryPage';
 import FeeCollection from './pages/transaction/FeeCollection';
 
-// Transaction - Inquiry Sub-pages (Create these files)
+// Transaction - Inquiry Sub-pages
 import InquiryOnline from './pages/transaction/InquiryOnline';
 import InquiryOffline from './pages/transaction/InquiryOffline';
 import InquiryDSR from './pages/transaction/InquiryDSR';
 
-// Transaction - Visitors Sub-pages (Create these files)
+// Transaction - Visitors Sub-pages
 import TodaysVisitorsList from './pages/transaction/TodaysVisitorsList';
 import TodaysVisitedReport from './pages/transaction/TodaysVisitedReport';
 import Visitors from './pages/transaction/Visitors';
 
-// Transaction - Other Pages (Create these files)
+// Transaction - Other Pages
 import StudentAdmissionFees from './pages/transaction/StudentAdmissionFees';
 import StudentCancellation from './pages/transaction/StudentCancellation';
 
@@ -55,19 +56,45 @@ function App() {
     <>
       <Router>
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-          {/* Show Navbar only if logged in */}
-          {user && <Navbar />}
+          {/* Show Navbar only if logged in AND not on the public landing page */}
+          {/* We only show the Admin Navbar if the user is logged in and not on the public '/' route. 
+              However, since standard routing often keeps the layout, we can just show it if user exists 
+              but the HomePage has its own PublicNavbar. 
+              
+              FIX: The HomePage component includes its own specific PublicNavbar. 
+              The Admin Navbar is rendered here globally. We should conditionally hide the Admin Navbar 
+              if the current route is '/' or allow the router to handle layout.
+              
+              Simplest approach: Move <Navbar /> inside specific layouts or routes, 
+              but since it's global here, let's just conditionally render it if path is NOT '/'.
+              But we can't easily check path outside <Router>.
+              
+              Alternative: The user asked for a "guest user" page. 
+              If the user is logged in, they might still want to see the Admin Navbar on other pages.
+              Let's keep the existing logic: {user && <Navbar />}
+              The HomePage is routed at '/'. If a user is logged in and goes to '/', 
+              they will see both navbars (Admin and Public). 
+              
+              To fix this cleanly in this structure: The HomePage should probably be a 'PublicRoute' 
+              or we accept that logged in users see the Admin bar on top. 
+              Given the request is for "Guest User", this is acceptable. 
+          */}
+          
+          {user && window.location.pathname !== '/' && <Navbar />}
           
           <Routes>
-            {/* PUBLIC */}
-            <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
-            <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
+            {/* PUBLIC LANDING PAGE */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* AUTH */}
+            {/* Redirect logged in users to /home (Dashboard) instead of / */}
+            <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/home" />} />
+            <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/home" />} />
             
             {/* PRIVATE ROUTES */}
             
-            {/* Home */}
+            {/* Admin Dashboard */}
             <Route path="/home" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
-            <Route path="/" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
 
             {/* MASTER ROUTES */}
             
@@ -111,6 +138,7 @@ function App() {
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
 
             {/* ==================== CATCH ALL ==================== */}
+            {/* Redirect unknown routes to Public Home instead of Admin Home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
