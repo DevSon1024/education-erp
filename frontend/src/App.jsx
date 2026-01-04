@@ -29,18 +29,18 @@ import InquiryPage from './pages/transaction/InquiryPage';
 import FeeCollection from './pages/transaction/FeeCollection';
 
 // Transaction - Inquiry Sub-pages (Create these files)
-// import InquiryOnline from './pages/transaction/InquiryOnline';
-// import InquiryOffline from './pages/transaction/InquiryOffline';
-// import InquiryDSR from './pages/transaction/InquiryDSR';
+import InquiryOnline from './pages/transaction/InquiryOnline';
+import InquiryOffline from './pages/transaction/InquiryOffline';
+import InquiryDSR from './pages/transaction/InquiryDSR';
 
 // Transaction - Visitors Sub-pages (Create these files)
-// import TodaysVisitorsList from './pages/transaction/TodaysVisitorsList';
-// import TodaysVisitedReport from './pages/transaction/TodaysVisitedReport';
-// import Visitors from './pages/transaction/Visitors';
+import TodaysVisitorsList from './pages/transaction/TodaysVisitorsList';
+import TodaysVisitedReport from './pages/transaction/TodaysVisitedReport';
+import Visitors from './pages/transaction/Visitors';
 
 // Transaction - Other Pages (Create these files)
-// import StudentAdmissionFees from './pages/transaction/StudentAdmissionFees';
-// import StudentCancellation from './pages/transaction/StudentCancellation';
+import StudentAdmissionFees from './pages/transaction/StudentAdmissionFees';
+import StudentCancellation from './pages/transaction/StudentCancellation';
 
 // Private Route Wrapper
 const PrivateRoute = ({ children }) => {
@@ -59,17 +59,17 @@ function App() {
           {user && <Navbar />}
           
           <Routes>
-            {/* ==================== PUBLIC ROUTES ==================== */}
+            {/* PUBLIC */}
             <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
             <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/" />} />
             
-            {/* ==================== PRIVATE ROUTES ==================== */}
+            {/* PRIVATE ROUTES */}
             
             {/* Home */}
             <Route path="/home" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
             <Route path="/" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
 
-            {/* ==================== MASTER ROUTES ==================== */}
+            {/* MASTER ROUTES */}
             
             {/* Student */}
             <Route path="/master/student" element={<PrivateRoute><StudentList /></PrivateRoute>} />
@@ -92,23 +92,23 @@ function App() {
             {/* ==================== TRANSACTION ROUTES ==================== */}
             
             {/* Legacy/General Inquiry & Fees */}
-            {/* <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} /> */}
+            <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
+            <Route path="/transaction/fees-receipt" element={<PrivateRoute><FeeCollection /></PrivateRoute>} />
 
             {/* Inquiry Sub-Options */}
-            {/* <Route path="/transaction/inquiry/online" element={<PrivateRoute><InquiryOnline /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/inquiry/offline" element={<PrivateRoute><InquiryOffline /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/inquiry/dsr" element={<PrivateRoute><InquiryDSR /></PrivateRoute>} /> */}
+            <Route path="/transaction/inquiry/online" element={<PrivateRoute><InquiryOnline /></PrivateRoute>} />
+            <Route path="/transaction/inquiry/offline" element={<PrivateRoute><InquiryOffline /></PrivateRoute>} />
+            <Route path="/transaction/inquiry/dsr" element={<PrivateRoute><InquiryDSR /></PrivateRoute>} />
 
             {/* Visitors Sub-Options */}
-            {/* <Route path="/transaction/visitors/todays-list" element={<PrivateRoute><TodaysVisitorsList /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/visitors/todays-report" element={<PrivateRoute><TodaysVisitedReport /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/visitors" element={<PrivateRoute><Visitors /></PrivateRoute>} /> */}
+            <Route path="/transaction/visitors/todays-list" element={<PrivateRoute><TodaysVisitorsList /></PrivateRoute>} />
+            <Route path="/transaction/visitors/todays-report" element={<PrivateRoute><TodaysVisitedReport /></PrivateRoute>} />
+            <Route path="/transaction/visitors" element={<PrivateRoute><Visitors /></PrivateRoute>} />
 
             {/* Student Related Transactions */}
-            {/* <Route path="/transaction/student-admission-fees" element={<PrivateRoute><StudentAdmissionFees /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/student-registration" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} /> */}
-            {/* <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} /> */}
+            <Route path="/transaction/student-admission-fees" element={<PrivateRoute><StudentAdmissionFees /></PrivateRoute>} />
+            <Route path="/transaction/student-registration" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
+            <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
 
             {/* ==================== CATCH ALL ==================== */}
             <Route path="*" element={<Navigate to="/" />} />
