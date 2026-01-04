@@ -15,15 +15,19 @@ const inquirySchema = new mongoose.Schema({
     contactParent: { type: String },
     
     // Education & Address
-    education: { type: String }, // e.g., 12th Pass
-    qualification: { type: String }, // specific degree
+    education: { type: String }, 
+    qualification: { type: String }, 
     address: { type: String },
     state: { type: String },
     city: { type: String, default: 'Surat' },
 
     // Inquiry Specifics
     interestedCourse: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-    source: { type: String }, // Reference
+    source: { 
+        type: String, 
+        enum: ['Walk-in', 'Social Media', 'Reference', 'Online', 'Call'], 
+        default: 'Walk-in' 
+    },
     inquiryDate: { type: Date, default: Date.now },
     status: { 
         type: String, 
@@ -31,15 +35,16 @@ const inquirySchema = new mongoose.Schema({
         default: 'Open' 
     },
     
-    // Follow-ups
+    // Follow-ups & Remarks
     followUpDate: { type: Date },
-    followUpDetails: { type: String }, // Current/Latest remark
+    followUpDetails: { type: String }, 
+    remarks: { type: String }, // Additional remarks
     
     // Allocation
-    allocatedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Employee/User
+    allocatedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
 
     // Assets
-    studentPhoto: { type: String }, // Path or URL
+    studentPhoto: { type: String }, 
 
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });

@@ -11,7 +11,7 @@ const getInquiries = asyncHandler(async (req, res) => {
         endDate, 
         status, 
         studentName, 
-        source, // ADDED: Filter by source (Online, Walk-in, etc.)
+        source, // Filter by source (Online, Walk-in, etc.)
         dateFilterType 
     } = req.query;
 
@@ -20,25 +20,16 @@ const getInquiries = asyncHandler(async (req, res) => {
     // Date Filters
     if (startDate && endDate) {
         const dateField = dateFilterType || 'inquiryDate';
-        // Set end date to end of day
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        
-        query[dateField] = {
-            $gte: new Date(startDate),
-            $lte: end
-        };
+        query[dateField] = { $gte: new Date(startDate), $lte: end };
     }
 
     // Status Filter
-    if (status) {
-        query.status = status;
-    }
+    if (status) query.status = status;
 
-    // Source Filter (e.g., 'Online')
-    if (source) {
-        query.source = source;
-    }
+    // Source Filter
+    if (source) query.source = source;
 
     // Student Name Search (Regex)
     if (studentName) {
@@ -62,16 +53,18 @@ const createInquiry = asyncHandler(async (req, res) => {
     res.status(201).json(inquiry);
 });
 
-// @desc Update Inquiry Status/Follow-up
+// @desc Update Inquiry (Status, Source, Follow-up)
 const updateInquiryStatus = asyncHandler(async (req, res) => {
     const inquiry = await Inquiry.findById(req.params.id);
     if (inquiry) {
-        inquiry.status = req.body.status || inquiry.status;
-        inquiry.remarks = req.body.remarks || inquiry.remarks;
-        inquiry.followUpDate = req.body.followUpDate || inquiry.followUpDate;
-        inquiry.followUpDetails = req.body.followUpDetails || inquiry.followUpDetails;
-        inquiry.allocatedTo = req.body.allocatedTo || inquiry.allocatedTo;
-        
+        // Allow updating core status fields
+        if(req.body.status) inquiry.status = req.body.status;
+        if(req.body.source) inquiry.source = req.body.source; // Allow source transfer
+        if(req.body.remarks) inquiry.remarks = req.body.remarks;
+        if(req.body.followUpDetails) inquiry.followUpDetails = req.body.followUpDetails;
+        if(req.body.followUpDate) inquiry.followUpDate = req.body.followUpDate;
+        if(req.body.allocatedTo) inquiry.allocatedTo = req.body.allocatedTo;
+
         await inquiry.save();
         res.json(inquiry);
     } else {
@@ -79,10 +72,9 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
     }
 });
 
-// --- FEES (Unchanged) ---
+// --- FEES (Standard) ---
 const createFeeReceipt = asyncHandler(async (req, res) => {
     const { studentId, courseId, amountPaid, paymentMode, remarks } = req.body;
-
     const count = await FeeReceipt.countDocuments();
     const receiptNo = `REC-${1000 + count + 1}`;
 
@@ -95,7 +87,6 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
         remarks,
         createdBy: req.user._id
     });
-
     res.status(201).json(receipt);
 });
 
