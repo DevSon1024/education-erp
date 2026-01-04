@@ -1,4 +1,6 @@
 const Student = require('../models/Student');
+const Course = require('../models/Course');
+const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
 
 // @desc    Get Students (With Debugging)
@@ -43,7 +45,7 @@ const getStudents = asyncHandler(async (req, res) => {
 // @desc    Create Student (With Validation Logs)
 // @route   POST /api/students
 const createStudent = asyncHandler(async (req, res) => {
-    console.log("RECEIVED STUDENT DATA:", req.body); // <--- DEBUG LOG
+    console.log("RECEIVED STUDENT DATA:", req.body);
 
     // 1. Generate Reg No
     const count = await Student.countDocuments();
@@ -53,17 +55,42 @@ const createStudent = asyncHandler(async (req, res) => {
     const pendingFees = req.body.totalFees;
 
     try {
+        // Create the student
         const student = await Student.create({
             ...req.body,
             regNo,
             pendingFees
         });
         
-        console.log("STUDENT SAVED SUCCESSFULLY:", student._id); // <--- DEBUG LOG
+        console.log("STUDENT SAVED SUCCESSFULLY:", student._id);
+
+        // --- SMS LOGIC START ---
+        try {
+            // 1. Fetch Course Name (since we only have courseId)
+            const courseData = await Course.findById(student.course);
+            const courseName = courseData ? courseData.name : 'Course';
+
+            // 2. Prepare Variables
+            const studentName = `${student.firstName} ${student.lastName}`;
+            const enrollmentNo = student.enrollmentNo; // Populated by pre-save hook in Model
+            const batchTime = student.batch;
+            const mobileNumber = student.mobileStudent || student.mobileParent; // Fallback to parent if student has no mobile
+
+            // 3. Construct Message
+            const message = `Welcome to Smart Institute, Dear ${studentName}. your admission has been successfully completed. Enrollment No. ${enrollmentNo}, course ${courseName}, Batch Time ${batchTime}.`;
+
+            // 4. Send SMS (Non-blocking: we don't await strictly if we don't want to delay response)
+            sendSMS(mobileNumber, message);
+
+        } catch (smsError) {
+            console.error("Error preparing SMS:", smsError.message);
+        }
+        // --- SMS LOGIC END ---
+
         res.status(201).json(student);
 
     } catch (error) {
-        console.error("STUDENT SAVE ERROR:", error.message); // <--- DEBUG LOG
+        console.error("STUDENT SAVE ERROR:", error.message);
         res.status(400);
         throw new Error('Invalid Student Data: ' + error.message);
     }

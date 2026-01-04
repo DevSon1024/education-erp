@@ -8,6 +8,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Import logo from assets
+import logoImage from '../assets/logo2.png';
+import HeroImage1 from '../assets/Gemini_Generated_Image_ds77tjds77tjds77.png'
+
 const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [
@@ -134,7 +138,7 @@ const HomePage = () => {
   const { user } = useSelector((state) => state.auth);
 
   const heroImages = [
-    { image: "https://placehold.co/1920x600/1e3a8a/white?text=Empowering+Education" },
+    { image: HeroImage1 },
     { image: "https://placehold.co/1920x600/f59e0b/white?text=Smart+Campus+Facilities" },
     { image: "https://placehold.co/1920x600/10b981/white?text=Excellence+in+Teaching" },
   ];
@@ -181,11 +185,35 @@ const HomePage = () => {
       {/* 2. Logo & Branding */}
       <div className="bg-white py-4 shadow-sm relative z-10">
         <div className="container mx-auto px-4 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-             <div className="w-14 h-14 bg-gradient-to-tr from-orange-500 to-green-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold shadow-md">SI</div>
-             <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight">Smart Institute</h1>
-                <p className="text-sm text-accent font-medium tracking-wide uppercase">सपने जो SMART बना दे</p>
+           <div className="flex items-center gap-4">
+             {/* Logo Image */}
+             <img 
+               src={logoImage} 
+               alt="Smart Institute Logo" 
+               className="h-16 w-auto object-contain"
+             />
+             {/* Slogan with Mirror Effect */}
+             <div className="relative">
+                <p className="text-base md:text-lg text-accent font-bold tracking-wide uppercase" 
+                   style={{
+                     background: 'linear-gradient(180deg, #f59e0b 60%, transparent 60%)',
+                     WebkitBackgroundClip: 'text',
+                    //  WebkitTextFillColor: 'transparent',
+                     backgroundClip: 'text'
+                   }}>
+                  सपने जो SMART बना दे
+                </p>
+                {/* Mirror Reflection */}
+                <p className="text-base md:text-lg font-bold tracking-wide uppercase absolute top-full left-0 opacity-30 blur-[1px]"
+                   style={{
+                     transform: 'scaleY(-1)',
+                     background: 'linear-gradient(0deg, #f59e0b 0%, transparent 100%)',
+                     WebkitBackgroundClip: 'text',
+                     WebkitTextFillColor: 'transparent',
+                     backgroundClip: 'text'
+                   }}>
+                  सपने जो SMART बना दे
+                </p>
              </div>
            </div>
         </div>
@@ -316,8 +344,7 @@ const HomePage = () => {
             {/* Disclaimer & Logo */}
             <div>
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-tr from-orange-500 to-green-500 rounded-lg flex items-center justify-center text-white font-bold">SI</div>
-                <h2 className="text-xl font-bold text-white">Smart Institute</h2>
+                <img src={logoImage} alt="Smart Institute Logo" className="h-10 w-auto object-contain" />
               </div>
               <p className="text-sm text-gray-400 leading-relaxed mb-6">
                 Disclaimer Smart Institute © 2026 Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
