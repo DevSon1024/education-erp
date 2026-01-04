@@ -1,5 +1,6 @@
 const Employee = require('../models/Employee');
 const User = require('../models/User');
+const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
 
 // @desc    Get Employees
@@ -28,9 +29,6 @@ const createEmployee = asyncHandler(async (req, res) => {
         loginUsername, loginPassword, isLoginActive 
     } = req.body;
 
-    // console.log("--------------------------------");
-    // console.log("RECEIVED PAYLOAD:", req.body); // DEBUG 1
-
     // 1. Check if Employee Email exists
     const empExists = await Employee.findOne({ email });
     if (empExists) {
@@ -51,29 +49,53 @@ const createEmployee = asyncHandler(async (req, res) => {
                 name,
                 email: loginUsername,
                 password: loginPassword,
-                role: type, // <--- This fails if User Model Enum isn't updated
+                role: type,
                 isActive: isLoginActive
             });
             userId = newUser._id;
-            // console.log("USER CREATED:", userId); // DEBUG 2
         } catch (error) {
-            console.error("USER CREATION ERROR:", error.message); // DEBUG 3
+            console.error("USER CREATION ERROR:", error.message);
             res.status(400); throw new Error('User Login Error: ' + error.message);
         }
     }
 
     // 3. Create Employee
     try {
+        // Generate Registration Number
+        const count = await Employee.countDocuments();
+        const regNo = `EMP-${new Date().getFullYear()}-${1001 + count}`;
+
         const employee = await Employee.create({
             ...req.body,
+            regNo,
             userAccount: userId
         });
+
+        // --- SMS LOGIC START ---
+        if (userId && loginUsername && loginPassword) {
+            try {
+                // EXACT FORMAT REQUESTED:
+                // Dear, {var1}. Your Registration process has been successfully completed. Reg.No. {var2}, User ID-{var3}, Password-{var4}, smart institute.
+                
+                const message = `Dear, ${name}. Your Registration process has been successfully completed. Reg.No. ${regNo}, User ID-${loginUsername}, Password-${loginPassword}, smart institute.`;
+
+                // Send SMS (Non-blocking)
+                sendSMS(mobile, message);
+                console.log("Employee Welcome SMS Sent to:", mobile);
+
+            } catch (smsError) {
+                console.error("Error sending Employee SMS:", smsError.message);
+            }
+        }
+        // --- SMS LOGIC END ---
+
         res.status(201).json(employee);
+
     } catch (error) {
         // Cleanup if Employee fails but User was made
         if(userId) await User.findByIdAndDelete(userId);
         
-        console.error("EMPLOYEE CREATION ERROR:", error.message); // DEBUG 4
+        console.error("EMPLOYEE CREATION ERROR:", error.message);
         res.status(400); throw new Error(error.message);
     }
 });
