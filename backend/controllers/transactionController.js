@@ -1,15 +1,51 @@
 const Inquiry = require('../models/Inquiry');
 const FeeReceipt = require('../models/FeeReceipt');
-const Student = require('../models/Student');
 const asyncHandler = require('express-async-handler');
 
 // --- INQUIRY ---
 
-// @desc Get Inquiries
+// @desc Get Inquiries with Filters
 const getInquiries = asyncHandler(async (req, res) => {
-    const inquiries = await Inquiry.find({ isDeleted: false })
+    const { 
+        startDate, 
+        endDate, 
+        status, 
+        studentName, 
+        dateFilterType // 'inquiryDate', 'followUpDate', 'createdAt'
+    } = req.query;
+
+    let query = { isDeleted: false };
+
+    // Date Filters
+    if (startDate && endDate) {
+        const dateField = dateFilterType || 'inquiryDate';
+        query[dateField] = {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate)
+        };
+    }
+
+    // Status Filter
+    if (status) {
+        query.status = status;
+    }
+
+    // Student Name Search (Regex)
+    if (studentName) {
+        query.$or = [
+            { firstName: { $regex: studentName, $options: 'i' } },
+            { lastName: { $regex: studentName, $options: 'i' } }
+        ];
+    }
+
+    // Exclude completed if filtering for dropdown lists usually, 
+    // but for main table we might want them unless specified.
+    
+    const inquiries = await Inquiry.find(query)
         .populate('interestedCourse', 'name')
+        .populate('allocatedTo', 'name')
         .sort({ createdAt: -1 });
+
     res.json(inquiries);
 });
 
@@ -19,12 +55,20 @@ const createInquiry = asyncHandler(async (req, res) => {
     res.status(201).json(inquiry);
 });
 
-// @desc Update Inquiry Status
+// @desc Update Inquiry (Status, Follow-up, etc.)
 const updateInquiryStatus = asyncHandler(async (req, res) => {
     const inquiry = await Inquiry.findById(req.params.id);
     if (inquiry) {
         inquiry.status = req.body.status || inquiry.status;
-        inquiry.remarks = req.body.remarks || inquiry.remarks;
+        inquiry.followUpDetails = req.body.followUpDetails || inquiry.followUpDetails;
+        inquiry.followUpDate = req.body.followUpDate || inquiry.followUpDate;
+        inquiry.allocatedTo = req.body.allocatedTo || inquiry.allocatedTo;
+        
+        // Update other fields if edited
+        if(req.body.firstName) inquiry.firstName = req.body.firstName;
+        if(req.body.lastName) inquiry.lastName = req.body.lastName;
+        if(req.body.contactStudent) inquiry.contactStudent = req.body.contactStudent;
+        
         await inquiry.save();
         res.json(inquiry);
     } else {
@@ -32,16 +76,11 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
     }
 });
 
-// --- FEES ---
-
-// @desc Collect Fees
+// --- FEES (Unchanged) ---
 const createFeeReceipt = asyncHandler(async (req, res) => {
     const { studentId, courseId, amountPaid, paymentMode, remarks } = req.body;
-
-    // Generate Receipt No (Simple logic)
     const count = await FeeReceipt.countDocuments();
     const receiptNo = `REC-${1000 + count + 1}`;
-
     const receipt = await FeeReceipt.create({
         receiptNo,
         student: studentId,
@@ -51,11 +90,9 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
         remarks,
         createdBy: req.user._id
     });
-
     res.status(201).json(receipt);
 });
 
-// @desc Get Receipts for a Student
 const getStudentFees = asyncHandler(async (req, res) => {
     const receipts = await FeeReceipt.find({ student: req.params.studentId }).sort({ createdAt: -1 });
     res.json(receipts);
