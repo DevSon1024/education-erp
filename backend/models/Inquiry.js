@@ -23,11 +23,17 @@ const inquirySchema = new mongoose.Schema({
 
     // Inquiry Specifics
     interestedCourse: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+    
+    // System Source (Defines if it's DSR, Walk-in/Offline, etc.)
     source: { 
         type: String, 
-        enum: ['Walk-in', 'Social Media', 'Reference', 'Online', 'Call'], 
+        enum: ['Walk-in', 'Social Media', 'Reference', 'Online', 'Call', 'DSR'], 
         default: 'Walk-in' 
     },
+    
+    // Specific Reference Detail (e.g. Name of person, specific newspaper)
+    referenceBy: { type: String }, 
+
     inquiryDate: { type: Date, default: Date.now },
     status: { 
         type: String, 
@@ -36,9 +42,14 @@ const inquirySchema = new mongoose.Schema({
     },
     
     // Follow-ups & Remarks
-    followUpDate: { type: Date },
+    followUpDate: { type: Date }, // Stores Date and Time
     followUpDetails: { type: String }, 
-    remarks: { type: String }, // Additional remarks
+    
+    // Extended Follow-up fields
+    nextVisitingDate: { type: Date },
+    visitReason: { type: String },
+    
+    remarks: { type: String }, 
     
     // Allocation
     allocatedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 

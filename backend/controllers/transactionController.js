@@ -11,7 +11,7 @@ const getInquiries = asyncHandler(async (req, res) => {
         endDate, 
         status, 
         studentName, 
-        source, // Filter by source (Online, Walk-in, etc.)
+        source, 
         dateFilterType 
     } = req.query;
 
@@ -53,17 +53,30 @@ const createInquiry = asyncHandler(async (req, res) => {
     res.status(201).json(inquiry);
 });
 
-// @desc Update Inquiry (Status, Source, Follow-up)
+// @desc Update Inquiry
 const updateInquiryStatus = asyncHandler(async (req, res) => {
     const inquiry = await Inquiry.findById(req.params.id);
     if (inquiry) {
-        // Allow updating core status fields
+        // Core updates
         if(req.body.status) inquiry.status = req.body.status;
-        if(req.body.source) inquiry.source = req.body.source; // Allow source transfer
+        if(req.body.source) inquiry.source = req.body.source;
         if(req.body.remarks) inquiry.remarks = req.body.remarks;
+        if(req.body.allocatedTo) inquiry.allocatedTo = req.body.allocatedTo;
+        
+        // Field updates
+        if(req.body.referenceBy !== undefined) inquiry.referenceBy = req.body.referenceBy;
+        if(req.body.firstName) inquiry.firstName = req.body.firstName;
+        if(req.body.lastName) inquiry.lastName = req.body.lastName;
+        // ... (Other fields can be added as needed, or use Object.assign for full updates if safe)
+
+        // Follow Up Updates
         if(req.body.followUpDetails) inquiry.followUpDetails = req.body.followUpDetails;
         if(req.body.followUpDate) inquiry.followUpDate = req.body.followUpDate;
-        if(req.body.allocatedTo) inquiry.allocatedTo = req.body.allocatedTo;
+        if(req.body.nextVisitingDate) inquiry.nextVisitingDate = req.body.nextVisitingDate;
+        if(req.body.visitReason) inquiry.visitReason = req.body.visitReason;
+
+        // Soft Delete
+        if(req.body.isDeleted !== undefined) inquiry.isDeleted = req.body.isDeleted;
 
         await inquiry.save();
         res.json(inquiry);
