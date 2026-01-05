@@ -153,7 +153,7 @@ const HomePage = () => {
     <div className="min-h-screen bg-white font-sans">
       
       {/* 1. Slim Top Header */}
-      <div className="bg-gray-900 text-gray-300 py-1.5 text-xs">
+      <div className="bg-blue-900 text-gray-300 py-5 text-xs">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1"><Phone size={12} /> +91-96017-49300</span>
@@ -173,8 +173,8 @@ const HomePage = () => {
                  </Link>
               ) : (
                 <>
-                  <Link to="/login" className="flex items-center gap-1 hover:text-white"><LogIn size={12} /> Login</Link>
-                  <Link to="/register" className="flex items-center gap-1 hover:text-white"><UserPlus size={12} /> Register</Link>
+                  <Link to="/login" className="flex items-center gap-1 text-base hover:text-white"><LogIn size={18} /> Login</Link>
+                  <Link to="/register" className="flex items-center gap-1 text-base hover:text-white"><UserPlus size={18} /> Register</Link>
                 </>
               )}
             </div>
