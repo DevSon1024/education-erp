@@ -11,31 +11,31 @@ import Navbar from './components/layout/Navbar';
 import HomePage from './pages/HomePage'; 
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import AdminHome from './pages/AdminHome';
+import AdminHome from './pages/admin/AdminHome';
 
 // Master Pages
-import StudentList from './pages/master/StudentList';
-import StudentRegistration from './pages/master/StudentRegistration';
-import CourseMaster from './pages/master/CourseMaster';
-import BatchMaster from './pages/master/BatchMaster';
-import EmployeeMaster from './pages/master/EmployeeMaster';
-import SubjectMaster from './pages/master/SubjectMaster';
-import UserRights from './pages/master/UserRights';
-import ExamRequestList from './pages/master/ExamRequestList';
-import ExamSchedule from './pages/master/ExamSchedule';
-import ExamResult from './pages/master/ExamResult';
+import StudentList from './pages/admin/master/StudentList';
+import StudentRegistration from './pages/admin/master/StudentRegistration';
+import CourseMaster from './pages/admin/master/CourseMaster';
+import BatchMaster from './pages/admin/master/BatchMaster';
+import EmployeeMaster from './pages/admin/master/EmployeeMaster';
+import SubjectMaster from './pages/admin/master/SubjectMaster';
+import UserRights from './pages/admin/master/UserRights';
+import ExamRequestList from './pages/admin/master/ExamRequestList';
+import ExamSchedule from './pages/admin/master/ExamSchedule';
+import ExamResult from './pages/admin/master/ExamResult';
 
 // Transaction Pages
-import InquiryPage from './pages/transaction/InquiryPage';
-import FeeCollection from './pages/transaction/FeeCollection';
-import InquiryOnline from './pages/transaction/InquiryOnline';
-import InquiryOffline from './pages/transaction/InquiryOffline';
-import InquiryDSR from './pages/transaction/InquiryDSR';
-import TodaysVisitorsList from './pages/transaction/TodaysVisitorsList';
-import TodaysVisitedReport from './pages/transaction/TodaysVisitedReport';
-import Visitors from './pages/transaction/Visitors';
-import StudentAdmissionFees from './pages/transaction/StudentAdmissionFees';
-import StudentCancellation from './pages/transaction/StudentCancellation';
+import InquiryPage from './pages/admin/transaction/InquiryPage';
+import FeeCollection from './pages/admin/transaction/FeeCollection';
+import InquiryOnline from './pages/admin/transaction/InquiryOnline';
+import InquiryOffline from './pages/admin/transaction/InquiryOffline';
+import InquiryDSR from './pages/admin/transaction/InquiryDSR';
+import TodaysVisitorsList from './pages/admin/transaction/TodaysVisitorsList';
+import TodaysVisitedReport from './pages/admin/transaction/TodaysVisitedReport';
+import Visitors from './pages/admin/transaction/Visitors';
+import StudentAdmissionFees from './pages/admin/transaction/StudentAdmissionFees';
+import StudentCancellation from './pages/admin/transaction/StudentCancellation';
 
 // Private Route Wrapper
 const PrivateRoute = ({ children }) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchInquiries, updateInquiry, resetTransaction } from '../../features/transaction/transactionSlice';
-import SmartTable from '../../components/ui/SmartTable';
+import { fetchInquiries, updateInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
+import SmartTable from '../../../components/ui/SmartTable';
 import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';

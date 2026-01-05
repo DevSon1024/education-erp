@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchExamSchedules, fetchBatches, fetchExamResults, createExamResult, updateExamResult, resetMasterStatus } from '../../features/master/masterSlice';
-import { fetchStudents } from '../../features/student/studentSlice';
+import { fetchExamSchedules, fetchBatches, fetchExamResults, createExamResult, updateExamResult, resetMasterStatus } from '../../../features/master/masterSlice';
+import { fetchStudents } from '../../../features/student/studentSlice';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Plus, Search, RefreshCw, Edit, Printer, Award, Save } from 'lucide-react';

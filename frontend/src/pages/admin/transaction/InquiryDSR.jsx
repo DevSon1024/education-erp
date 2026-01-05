@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { fetchInquiries, createInquiry, updateInquiry, resetTransaction } from '../../features/transaction/transactionSlice';
-import { fetchCourses } from '../../features/master/masterSlice';
-import SmartTable from '../../components/ui/SmartTable';
-import InquiryForm from '../../components/transaction/InquiryForm'; // Imported reusable form
+import { fetchInquiries, createInquiry, updateInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
+import { fetchCourses } from '../../../features/master/masterSlice';
+import SmartTable from '../../../components/ui/SmartTable';
+import InquiryForm from '../../../components/transaction/InquiryForm'; // Imported reusable form
 import { 
     Plus, Search, X, PhoneCall, FileText, Edit, Trash2
 } from 'lucide-react';

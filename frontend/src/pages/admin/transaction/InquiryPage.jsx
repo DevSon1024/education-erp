@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchInquiries, createInquiry, resetTransaction } from '../../features/transaction/transactionSlice';
-import { fetchCourses } from '../../features/master/masterSlice';
-import SmartTable from '../../components/ui/SmartTable';
+import { fetchInquiries, createInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
+import { fetchCourses } from '../../../features/master/masterSlice';
+import SmartTable from '../../../components/ui/SmartTable';
 import { toast } from 'react-toastify';
 import { PhoneCall } from 'lucide-react';
 

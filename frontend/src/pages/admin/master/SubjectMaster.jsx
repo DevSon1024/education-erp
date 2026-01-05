@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSubjects, createSubject, resetMasterStatus } from '../../features/master/masterSlice';
+import { fetchSubjects, createSubject, resetMasterStatus } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, BookOpen, Edit, Trash2, Loader } from 'lucide-react';
 

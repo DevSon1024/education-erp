@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchInquiries, updateInquiry } from '../features/transaction/transactionSlice';
-import { fetchPendingExams, fetchCourses } from '../features/master/masterSlice';
+import { fetchInquiries, updateInquiry } from '../../features/transaction/transactionSlice';
+import { fetchPendingExams, fetchCourses } from '../../features/master/masterSlice';
 import { useNavigate } from 'react-router-dom';
 import { Search, RefreshCw, ExternalLink, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';

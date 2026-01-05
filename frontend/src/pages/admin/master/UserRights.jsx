@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEmployees } from '../../features/employee/employeeSlice';
-import { fetchUserRights, saveUserRights, resetRightsState } from '../../features/userRights/userRightsSlice';
+import { fetchEmployees } from '../../../features/employee/employeeSlice';
+import { fetchUserRights, saveUserRights, resetRightsState } from '../../../features/userRights/userRightsSlice';
 import { toast } from 'react-toastify';
 import { Save, RefreshCw, CheckSquare, Square } from 'lucide-react';
 

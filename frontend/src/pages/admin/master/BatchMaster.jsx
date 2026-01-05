@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
     fetchBatches, createBatch, fetchCourses, fetchEmployees, resetMasterStatus 
-} from '../../features/master/masterSlice';
+} from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Clock, Users } from 'lucide-react';
 

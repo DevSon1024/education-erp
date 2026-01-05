@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { registerStudent, resetStatus } from '../../features/student/studentSlice';
-import { fetchCourses, fetchBatches } from '../../features/master/masterSlice';
+import { registerStudent, resetStatus } from '../../../features/student/studentSlice';
+import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Upload, ChevronRight, ChevronLeft, Save } from 'lucide-react';

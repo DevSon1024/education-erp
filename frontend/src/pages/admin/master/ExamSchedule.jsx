@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCourses, fetchExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, resetMasterStatus } from '../../features/master/masterSlice';
+import { fetchCourses, fetchExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, resetMasterStatus } from '../../../features/master/masterSlice';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Plus, Search, RefreshCw, Edit, Trash2, Eye, X, Save } from 'lucide-react';

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
     fetchCourses, createCourse, fetchSubjects, resetMasterStatus 
-} from '../../features/master/masterSlice';
+} from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Edit, Trash2, CheckSquare, Square, Book, List } from 'lucide-react';
 

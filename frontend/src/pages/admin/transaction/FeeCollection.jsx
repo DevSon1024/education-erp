@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { fetchStudents } from '../../features/student/studentSlice';
-import { collectFees, resetTransaction } from '../../features/transaction/transactionSlice';
+import { fetchStudents } from '../../../features/student/studentSlice';
+import { collectFees, resetTransaction } from '../../../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
 import { CreditCard, Search } from 'lucide-react';
 

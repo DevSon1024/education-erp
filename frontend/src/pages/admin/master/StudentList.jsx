@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, toggleActiveStatus } from '../../features/student/studentSlice';
-import { fetchCourses, fetchBatches } from '../../features/master/masterSlice';
+import { fetchStudents, toggleActiveStatus } from '../../../features/student/studentSlice';
+import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
 import { Link } from 'react-router-dom';
 import { Eye, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus } from 'lucide-react';
 

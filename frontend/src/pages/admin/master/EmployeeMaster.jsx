@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEmployees, createEmployee, resetEmployeeStatus } from '../../features/employee/employeeSlice';
+import { fetchEmployees, createEmployee, resetEmployeeStatus } from '../../../features/employee/employeeSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit } from 'lucide-react';
 

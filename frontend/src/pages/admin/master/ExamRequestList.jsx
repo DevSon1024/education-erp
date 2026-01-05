@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchExamRequests, cancelExamRequest, fetchCourses } from '../../features/master/masterSlice';
-import { fetchStudents } from '../../features/student/studentSlice';
+import { fetchExamRequests, cancelExamRequest, fetchCourses } from '../../../features/master/masterSlice';
+import { fetchStudents } from '../../../features/student/studentSlice';
 import { Search, RefreshCw, XCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 
