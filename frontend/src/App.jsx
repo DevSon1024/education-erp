@@ -12,6 +12,14 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminHome from './pages/admin/AdminHome';
+import AboutUsPage from './pages/user/AboutUsPage';
+import CoursePage from './pages/user/CoursePage';
+import FacilitiesPage from './pages/user/FacilitiesPage';
+import GalleryPage from './pages/user/GalleryPage';
+import FranchisePage from './pages/user/FranchisePage';
+import ContactPage from './pages/user/ContactPage';
+import BlogPage from './pages/user/BlogPage';
+import FeedbackPage from './pages/user/FeedbackPage';
 
 // Master Pages
 import StudentList from './pages/admin/master/StudentList';
@@ -90,6 +98,16 @@ function App() {
             <Route path="/transaction/student-admission-fees" element={<PrivateRoute><StudentAdmissionFees /></PrivateRoute>} />
             <Route path="/transaction/student-registration" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
+
+            {/* PUBLIC PAGES */}
+            <Route path="/about-us" element={<AboutUsPage />} />
+            <Route path="/course" element={<CoursePage />} />
+            <Route path="/facilities" element={<FacilitiesPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/franchise" element={<FranchisePage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
 
             {/* CATCH ALL */}
             <Route path="*" element={<Navigate to="/" />} />

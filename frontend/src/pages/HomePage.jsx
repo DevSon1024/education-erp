@@ -15,8 +15,8 @@ import HeroImage1 from '../assets/Gemini_Generated_Image_ds77tjds77tjds77.png'
 const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [
-    'About Us', 'Course', 'Facilities', 'Gallery', 
-    'Why This Institute', 'Franchise', 'Contact', 'Blog', 'Feedback'
+    'Home','About Us', 'Course', 'Facilities', 'Gallery', 
+    'Franchise', 'Contact', 'Blog', 'Feedback'
   ];
 
   return (
@@ -31,13 +31,11 @@ const PublicNavbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-1 w-full justify-center">
             {menuItems.map((item, index) => (
-              <a 
-                key={index} 
-                href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
+              <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`}
                 className="px-4 py-2 text-sm font-medium hover:bg-white/10 hover:text-accent transition-colors rounded-md uppercase tracking-wide"
               >
                 {item}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -54,9 +52,9 @@ const PublicNavbar = () => {
           >
             <div className="flex flex-col p-4 space-y-2">
               {menuItems.map((item, index) => (
-                <a key={index} href="#" className="block py-2 text-sm hover:text-accent border-b border-blue-800 last:border-0">
+                <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`} className="block py-2 text-sm hover:text-accent border-b border-blue-800 last:border-0">
                   {item}
-                </a>
+                </Link>
               ))}
             </div>
           </motion.div>
@@ -194,7 +192,7 @@ const HomePage = () => {
              />
              {/* Slogan with Mirror Effect */}
              <div className="relative">
-                <p className="text-base md:text-lg text-accent font-bold tracking-wide uppercase" 
+                <center><h3 className="text-base md:text-lg text-accent font-bold tracking-wide uppercase" 
                    style={{
                      background: 'linear-gradient(180deg, #f59e0b 60%, transparent 60%)',
                      WebkitBackgroundClip: 'text',
@@ -202,7 +200,7 @@ const HomePage = () => {
                      backgroundClip: 'text'
                    }}>
                   सपने जो SMART बना दे
-                </p>
+                </h3></center>
                 {/* Mirror Reflection */}
                 <p className="text-base md:text-lg font-bold tracking-wide uppercase absolute top-full left-0 opacity-30 blur-[1px]"
                    style={{
