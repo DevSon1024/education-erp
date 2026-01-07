@@ -1,69 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { 
-  Phone, Mail, Facebook, Twitter, Instagram, Linkedin, 
-  LogIn, UserPlus, ChevronLeft, ChevronRight, MapPin, 
-  Star, Trophy, Calendar, ArrowRight, Menu, X
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-// Import logo from assets
-import logoImage from '../assets/logo2.png';
+import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin } from 'lucide-react';
 import HeroImage1 from '../assets/Gemini_Generated_Image_ds77tjds77tjds77.png'
 
-const PublicNavbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuItems = [
-    'Home','About Us', 'Course', 'Facilities', 'Gallery', 
-    'Franchise', 'Contact', 'Blog', 'Feedback'
-  ];
-
-  return (
-    <nav className="bg-primary text-white shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-14">
-          {/* Mobile Menu Button */}
-          <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-1 w-full justify-center">
-            {menuItems.map((item, index) => (
-              <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`}
-                className="px-4 py-2 text-sm font-medium hover:bg-white/10 hover:text-accent transition-colors rounded-md uppercase tracking-wide"
-              >
-                {item}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Dropdown */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-primary border-t border-blue-800 overflow-hidden"
-          >
-            <div className="flex flex-col p-4 space-y-2">
-              {menuItems.map((item, index) => (
-                <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`} className="block py-2 text-sm hover:text-accent border-b border-blue-800 last:border-0">
-                  {item}
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
-  );
-};
-
+// Carousel Component (Keep this as is)
 const Carousel = ({ items, type = "hero" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -75,7 +14,6 @@ const Carousel = ({ items, type = "hero" }) => {
     setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
   };
 
-  // Auto-slide for hero
   useEffect(() => {
     if (type === 'hero') {
       const timer = setInterval(nextSlide, 5000);
@@ -94,7 +32,6 @@ const Carousel = ({ items, type = "hero" }) => {
             {type === 'hero' ? (
               <img src={item.image} alt="Slide" className="w-full h-full object-cover" />
             ) : (
-               // Student Topper Card
                <div className="w-full px-4 flex justify-center">
                  <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center border-t-4 border-accent">
                     <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-gray-100">
@@ -109,23 +46,15 @@ const Carousel = ({ items, type = "hero" }) => {
           </div>
         ))}
       </div>
-
-      {/* Navigation Arrows */}
       <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary">
         <ChevronLeft size={24} />
       </button>
       <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary">
         <ChevronRight size={24} />
       </button>
-
-      {/* Dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
         {items.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrentIndex(idx)}
-            className={`w-3 h-3 rounded-full transition-colors ${idx === currentIndex ? 'bg-accent' : 'bg-gray-300'}`}
-          />
+          <button key={idx} onClick={() => setCurrentIndex(idx)} className={`w-3 h-3 rounded-full transition-colors ${idx === currentIndex ? 'bg-accent' : 'bg-gray-300'}`} />
         ))}
       </div>
     </div>
@@ -133,8 +62,6 @@ const Carousel = ({ items, type = "hero" }) => {
 };
 
 const HomePage = () => {
-  const { user } = useSelector((state) => state.auth);
-
   const heroImages = [
     { image: HeroImage1 },
     { image: "https://placehold.co/1920x600/f59e0b/white?text=Smart+Campus+Facilities" },
@@ -148,85 +75,13 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white font-sans">
-      
-      {/* 1. Slim Top Header */}
-      <div className="bg-blue-900 text-gray-300 py-5 text-xs">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><Phone size={12} /> +91-96017-49300</span>
-            <span className="flex items-center gap-1"><Mail size={12} /> info@smartinstitute.co.in</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex gap-3 pr-4 border-r border-gray-700">
-              <Facebook size={14} className="hover:text-blue-500 cursor-pointer" />
-              <Twitter size={14} className="hover:text-sky-400 cursor-pointer" />
-              <Instagram size={14} className="hover:text-pink-500 cursor-pointer" />
-              <Linkedin size={14} className="hover:text-blue-700 cursor-pointer" />
-            </div>
-            <div className="flex gap-3 font-semibold">
-              {user ? (
-                 <Link to="/home" className="flex items-center gap-1 hover:text-white text-accent">
-                   Dashboard <ArrowRight size={12} />
-                 </Link>
-              ) : (
-                <>
-                  <Link to="/login" className="flex items-center gap-1 text-base hover:text-white"><LogIn size={18} /> Login</Link>
-                  <Link to="/register" className="flex items-center gap-1 text-base hover:text-white"><UserPlus size={18} /> Register</Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Logo & Branding */}
-      <div className="bg-white py-4 shadow-sm relative z-10">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             {/* Logo Image */}
-             <img 
-               src={logoImage} 
-               alt="Smart Institute Logo" 
-               className="h-16 w-auto object-contain"
-             />
-             {/* Slogan with Mirror Effect */}
-             <div className="relative">
-                <center><h3 className="text-base md:text-lg text-accent font-bold tracking-wide uppercase" 
-                   style={{
-                     background: 'linear-gradient(180deg, #f59e0b 60%, transparent 60%)',
-                     WebkitBackgroundClip: 'text',
-                    //  WebkitTextFillColor: 'transparent',
-                     backgroundClip: 'text'
-                   }}>
-                  सपने जो SMART बना दे
-                </h3></center>
-                {/* Mirror Reflection */}
-                <p className="text-base md:text-lg font-bold tracking-wide uppercase absolute top-full left-0 opacity-30 blur-[1px]"
-                   style={{
-                     transform: 'scaleY(-1)',
-                     background: 'linear-gradient(0deg, #f59e0b 0%, transparent 100%)',
-                     WebkitBackgroundClip: 'text',
-                     WebkitTextFillColor: 'transparent',
-                     backgroundClip: 'text'
-                   }}>
-                  सपने जो SMART बना दे
-                </p>
-             </div>
-           </div>
-        </div>
-      </div>
-
-      {/* 3. Public Navbar */}
-      <PublicNavbar />
-
-      {/* 4. Hero Carousel */}
+    <div className="w-full">
+      {/* 1. Hero Carousel */}
       <Carousel items={heroImages} type="hero" />
 
-      {/* 5. Contest & About Section */}
+      {/* 2. Contest & About Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Contest Section */}
           <div className="bg-gradient-to-br from-primary to-blue-800 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl">
              <div className="absolute top-0 right-0 p-4 opacity-10">
                <Trophy size={150} />
@@ -240,7 +95,6 @@ const HomePage = () => {
              </button>
           </div>
 
-          {/* About Section */}
           <div className="flex flex-col justify-center">
             <h4 className="text-accent font-bold uppercase tracking-wider mb-2">Who We Are</h4>
             <h2 className="text-4xl font-bold text-gray-900 mb-6">About <span className="text-primary">Smart Institute</span></h2>
@@ -256,7 +110,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* 6. Quick Contact (Inquiry Form) */}
+      {/* 3. Quick Contact (Inquiry Form) */}
       <div className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
@@ -294,7 +148,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* 7. Our Toppers */}
+      {/* 4. Our Toppers */}
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Our <span className="text-accent">Toppers</span></h2>
@@ -303,7 +157,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* 8. Latest News (Placeholder) */}
+      {/* 5. Latest News */}
       <div className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-end mb-8">
@@ -333,75 +187,6 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-
-      {/* 9. Footer */}
-      <footer className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t-4 border-accent">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-            
-            {/* Disclaimer & Logo */}
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <img src={logoImage} alt="Smart Institute Logo" className="h-10 w-auto object-contain" />
-              </div>
-              <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                Disclaimer Smart Institute © 2026 Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
-              </p>
-              <div className="flex gap-4">
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary transition-colors"><Facebook size={18} /></a>
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-sky-400 transition-colors"><Twitter size={18} /></a>
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-blue-600 transition-colors"><Linkedin size={18} /></a>
-              </div>
-            </div>
-
-            {/* Navigation Links */}
-            <div>
-              <h3 className="text-white font-bold text-lg mb-6 border-l-4 border-accent pl-3">Navigation</h3>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-accent transition-colors">Home</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Courses</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Gallery</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Contact</a></li>
-              </ul>
-            </div>
-
-             {/* Why SMART */}
-             <div>
-              <h3 className="text-white font-bold text-lg mb-6 border-l-4 border-accent pl-3">Why SMART?</h3>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-accent transition-colors">Expert Faculty</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Digital Classrooms</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">100% Placement</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Practical Learning</a></li>
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h3 className="text-white font-bold text-lg mb-6 border-l-4 border-accent pl-3">Contact Us</h3>
-              <ul className="space-y-4 text-sm">
-                <li className="flex items-start gap-3">
-                  <MapPin size={20} className="text-accent shrink-0" />
-                  <span>1st & 2nd Floor, 50-kubernagar, Opp. Baba Baijnath Mandir, Nilgiri Road, Ass-Pass Circle, Godadra Surat - 395010</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone size={18} className="text-accent shrink-0" />
-                  <span>+91-96017-49300</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Mail size={18} className="text-accent shrink-0" />
-                  <span>info@smartinstitute.co.in</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
-             Copyright © 2013 - 2026 Smart Institute. All Rights Reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

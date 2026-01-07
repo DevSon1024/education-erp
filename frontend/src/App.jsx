@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Layout
 import Navbar from './components/layout/Navbar';
+import PublicLayout from './components/layout/PublicLayout';
 
 // Pages
 import HomePage from './pages/HomePage'; 
@@ -64,12 +65,6 @@ function App() {
           {user && <Navbar />}
           
           <Routes>
-            {/* PUBLIC LANDING PAGE: If logged in, go to Admin Dashboard */}
-            <Route path="/" element={user ? <Navigate to="/home" replace /> : <HomePage />} />
-
-            {/* AUTH: If logged in, go to Admin Dashboard */}
-            <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
-            <Route path="/register" element={user ? <Navigate to="/home" replace /> : <RegisterPage />} />
             
             {/* PRIVATE ADMIN ROUTES */}
             <Route path="/home" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
@@ -100,14 +95,19 @@ function App() {
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
 
             {/* PUBLIC PAGES */}
-            <Route path="/about-us" element={<AboutUsPage />} />
-            <Route path="/course" element={<CoursePage />} />
-            <Route path="/facilities" element={<FacilitiesPage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/franchise" element={<FranchisePage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
+           <Route element={<PublicLayout />}>
+              <Route path="/" element={user ? <Navigate to="/home" replace /> : <HomePage />} />
+              <Route path="/about-us" element={<AboutUsPage />} />
+              <Route path="/course" element={<CoursePage />} />
+              <Route path="/facilities" element={<FacilitiesPage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/franchise" element={<FranchisePage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
+              <Route path="/register" element={user ? <Navigate to="/home" replace /> : <RegisterPage />} />
+            </Route>
 
             {/* CATCH ALL */}
             <Route path="*" element={<Navigate to="/" />} />
