@@ -6,17 +6,11 @@ const {
     getCourses, createCourse, deleteCourse,
     getBatches, createBatch, deleteBatch, 
     createEmployee, getEmployees,
-    getSubjects, createSubject
+    getSubjects, createSubject, updateSubject, deleteSubject
 } = require('../controllers/masterController');
-const { getExamRequests, cancelExamRequest, createExamRequest,getPendingExams } = require('../controllers/examController');
-const { 
-    getExamSchedules, createExamSchedule, 
-    updateExamSchedule, deleteExamSchedule, 
-    getExamScheduleDetails 
-} = require('../controllers/examScheduleController');
-const { 
-    getExamResults, createExamResult, updateExamResult 
-} = require('../controllers/examResultController');
+const { getExamRequests, cancelExamRequest, createExamRequest, getPendingExams } = require('../controllers/examController');
+const { getExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, getExamScheduleDetails } = require('../controllers/examScheduleController');
+const { getExamResults, createExamResult, updateExamResult } = require('../controllers/examResultController');
 
 // --- Course Routes ---
 router.route('/course')
@@ -35,20 +29,21 @@ router.route('/subject')
     .get(protect, checkPermission('Subject', 'view'), getSubjects)
     .post(protect, checkPermission('Subject', 'add'), createSubject);
 
-// --- Employee Routes (Dropdown Support) ---
-// Note: We use 'Employee' page permissions here to maintain consistency.
+router.route('/subject/:id')
+    .put(protect, checkPermission('Subject', 'edit'), updateSubject)
+    .delete(protect, checkPermission('Subject', 'delete'), deleteSubject);
+
+// --- Employee Routes ---
 router.route('/employee')
     .get(protect, checkPermission('Employee', 'view'), getEmployees)
     .post(protect, checkPermission('Employee', 'add'), createEmployee);
     
 // --- Exam Request Routes ---
 router.route('/exam-request')
-    .get(protect, getExamRequests) // View Permission handled in UI or add checkPermission('Exam Request List', 'view')
+    .get(protect, getExamRequests)
     .post(protect, createExamRequest);
 
 router.put('/exam-request/:id/cancel', protect, cancelExamRequest);
-
-// Dashboard Route
 router.get('/exam-pending', protect, getPendingExams);
 
 // --- Exam Schedule Routes ---
@@ -61,5 +56,10 @@ router.route('/exam-schedule/:id')
     .delete(protect, deleteExamSchedule);
 
 router.get('/exam-schedule/:id/details', protect, getExamScheduleDetails);
+
+// --- Exam Results ---
+router.route('/exam-result')
+    .get(protect, getExamResults) 
+    .post(protect, createExamResult); 
 
 module.exports = router;

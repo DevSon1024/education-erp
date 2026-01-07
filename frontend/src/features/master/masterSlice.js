@@ -26,6 +26,7 @@ export const fetchBatches = createAsyncThunk('master/fetchBatches', async (param
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+// --- Subject Thunks ---
 export const fetchSubjects = createAsyncThunk('master/fetchSubjects', async (params, thunkAPI) => {
     try {
         const response = await axios.get(API_URL + 'subject', { params });
@@ -38,6 +39,20 @@ export const createSubject = createAsyncThunk('master/createSubject', async (dat
         const response = await axios.post(API_URL + 'subject', data);
         return response.data;
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
+export const updateSubject = createAsyncThunk('master/updateSubject', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}subject/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
+export const deleteSubject = createAsyncThunk('master/deleteSubject', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(`${API_URL}subject/${id}`);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
 export const fetchEmployees = createAsyncThunk('master/fetchEmployees', async (_, thunkAPI) => {
@@ -54,7 +69,6 @@ export const createBatch = createAsyncThunk('master/createBatch', async (data, t
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });
 
-// New: Fetch Exam Requests
 export const fetchExamRequests = createAsyncThunk('master/fetchExamRequests', async (params, thunkAPI) => {
     try {
         const response = await axios.get(API_URL + 'exam-request', { params });
@@ -62,7 +76,6 @@ export const fetchExamRequests = createAsyncThunk('master/fetchExamRequests', as
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
-// New: Cancel Exam Request
 export const cancelExamRequest = createAsyncThunk('master/cancelExamRequest', async (id, thunkAPI) => {
     try {
         await axios.put(`${API_URL}exam-request/${id}/cancel`);
@@ -94,7 +107,7 @@ export const updateExamSchedule = createAsyncThunk('master/updateExamSchedule', 
 export const deleteExamSchedule = createAsyncThunk('master/deleteExamSchedule', async (id, thunkAPI) => {
     try {
         const response = await axios.delete(`${API_URL}exam-schedule/${id}`);
-        return response.data; // Expecting { id: ... }
+        return response.data;
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
@@ -151,20 +164,30 @@ const masterSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // Courses
+            // --- Courses ---
             .addCase(fetchCourses.fulfilled, (state, action) => { state.courses = action.payload; })
             .addCase(createCourse.fulfilled, (state, action) => {
                 state.courses.push(action.payload);
                 state.isSuccess = true;
                 state.message = 'Course Added';
             })
-            // Batches
+            
+            // --- Batches ---
             .addCase(fetchBatches.fulfilled, (state, action) => { 
                 state.batches = action.payload; 
             })
+            .addCase(createBatch.fulfilled, (state, action) => {
+                state.batches.push(action.payload);
+                state.isSuccess = true;
+                state.message = 'Batch Added';
+            })
+            
+            // --- Employees ---
             .addCase(fetchEmployees.fulfilled, (state, action) => {
                 state.employees = action.payload;
             })
+            
+            // --- Subjects (Consolidated) ---
             .addCase(fetchSubjects.pending, (state) => { state.isLoading = true; })
             .addCase(fetchSubjects.fulfilled, (state, action) => {
                 state.isLoading = false;
@@ -179,20 +202,28 @@ const masterSlice = createSlice({
                 state.isLoading = false;
                 state.isSuccess = true;
                 state.message = 'Subject Created Successfully';
-                // INSTANT UPDATE: Add to list immediately
                 state.subjects.unshift(action.payload); 
             })
             .addCase(createSubject.rejected, (state, action) => {
                 state.isLoading = false;
                 state.message = action.payload;
-                state.isSuccess = false; // Ensure it fails gracefully
+                state.isSuccess = false; 
             })
-            .addCase(createBatch.fulfilled, (state, action) => {
-                state.batches.push(action.payload);
+            .addCase(updateSubject.fulfilled, (state, action) => {
+                const index = state.subjects.findIndex(s => s._id === action.payload._id);
+                if (index !== -1) {
+                    state.subjects[index] = action.payload;
+                }
                 state.isSuccess = true;
-                state.message = 'Batch Added';
+                state.message = 'Subject Updated Successfully';
             })
-            // Exam Request Cases
+            .addCase(deleteSubject.fulfilled, (state, action) => {
+                state.subjects = state.subjects.filter(s => s._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'Subject Deleted Successfully';
+            })
+
+            // --- Exam Requests ---
             .addCase(fetchExamRequests.pending, (state) => { state.isLoading = true; })
             .addCase(fetchExamRequests.fulfilled, (state, action) => {
                 state.isLoading = false;
@@ -204,7 +235,8 @@ const masterSlice = createSlice({
                 state.message = 'Exam Cancelled';
                 state.examRequests = state.examRequests.filter(req => req._id !== action.payload);
             })
-            // Exam Schedule
+            
+            // --- Exam Schedules ---
             .addCase(fetchExamSchedules.fulfilled, (state, action) => {
                 state.examSchedules = action.payload;
             })
@@ -219,6 +251,13 @@ const masterSlice = createSlice({
                 state.isSuccess = true;
                 state.message = 'Exam Schedule Updated';
             })
+            .addCase(deleteExamSchedule.fulfilled, (state, action) => {
+                state.examSchedules = state.examSchedules.filter(s => s._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'Exam Schedule Deleted';
+            })
+
+            // --- Exam Results ---
             .addCase(fetchExamResults.fulfilled, (state, action) => {
                 state.examResults = action.payload;
             })
@@ -233,11 +272,8 @@ const masterSlice = createSlice({
                 state.isSuccess = true;
                 state.message = 'Result Updated Successfully';
             })
-            .addCase(deleteExamSchedule.fulfilled, (state, action) => {
-                state.examSchedules = state.examSchedules.filter(s => s._id !== action.payload.id);
-                state.isSuccess = true;
-                state.message = 'Exam Schedule Deleted';
-            })
+            
+            // --- Dashboard/Pending ---
             .addCase(fetchPendingExams.fulfilled, (state, action) => {
                 state.pendingExams = action.payload;
             });
