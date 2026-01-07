@@ -4,10 +4,10 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/master/';
 axios.defaults.withCredentials = true;
 
-// --- Thunks ---
-export const fetchCourses = createAsyncThunk('master/fetchCourses', async (_, thunkAPI) => {
+// --- Course Thunks ---
+export const fetchCourses = createAsyncThunk('master/fetchCourses', async (params, thunkAPI) => {
     try {
-        const response = await axios.get(API_URL + 'course');
+        const response = await axios.get(API_URL + 'course', { params });
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
@@ -17,6 +17,20 @@ export const createCourse = createAsyncThunk('master/createCourse', async (data,
         const response = await axios.post(API_URL + 'course', data);
         return response.data;
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
+export const updateCourse = createAsyncThunk('master/updateCourse', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}course/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
+export const deleteCourse = createAsyncThunk('master/deleteCourse', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(`${API_URL}course/${id}`);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
 // --- Batch Thunks ---
@@ -186,6 +200,17 @@ const masterSlice = createSlice({
                 state.courses.push(action.payload);
                 state.isSuccess = true;
                 state.message = 'Course Added';
+            })
+            .addCase(updateCourse.fulfilled, (state, action) => {
+                const index = state.courses.findIndex(c => c._id === action.payload._id);
+                if (index !== -1) state.courses[index] = action.payload;
+                state.isSuccess = true;
+                state.message = 'Course Updated Successfully';
+            })
+            .addCase(deleteCourse.fulfilled, (state, action) => {
+                state.courses = state.courses.filter(c => c._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'Course Deleted Successfully';
             })
             
             // --- Batches ---

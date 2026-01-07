@@ -4,13 +4,20 @@ const Employee = require('../models/Employee');
 const Subject = require('../models/Subject');
 const asyncHandler = require('express-async-handler');
 
-// --- COURSE CONTROLLERS --- 
+// --- COURSE CONTROLLERS ---
 const getCourses = asyncHandler(async (req, res) => {
     const { courseId, courseType } = req.query;
     let query = { isDeleted: false };
+    
     if (courseId) query._id = courseId;
     if (courseType) query.courseType = courseType;
-    const courses = await Course.find(query).populate('subjects', 'name').sort({ sorting: 1, createdAt: -1 });
+
+    const courses = await Course.find(query)
+        .populate({
+            path: 'subjects.subject',
+            select: 'name printedName'
+        })
+        .sort({ sorting: 1, createdAt: -1 });
     res.json(courses);
 });
 
@@ -19,31 +26,41 @@ const createCourse = asyncHandler(async (req, res) => {
     res.status(201).json(course);
 });
 
-const deleteCourse = asyncHandler(async (req, res) => {
-    const course = await Course.findById(req.params.id);
+const updateCourse = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const course = await Course.findById(id);
+
     if (course) {
-        course.isDeleted = true;
-        await course.save();
-        res.json({ message: 'Course removed' });
+        const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true })
+            .populate({
+                path: 'subjects.subject',
+                select: 'name printedName'
+            });
+        res.json(updatedCourse);
     } else {
         res.status(404); throw new Error('Course not found');
     }
 });
 
-// --- BATCH CONTROLLERS --- 
+const deleteCourse = asyncHandler(async (req, res) => {
+    const course = await Course.findById(req.params.id);
+    if (course) {
+        course.isDeleted = true;
+        await course.save();
+        res.json({ id: req.params.id, message: 'Course removed' });
+    } else {
+        res.status(404); throw new Error('Course not found');
+    }
+});
+
+// --- BATCH CONTROLLERS --- (Kept as is/Updated from previous context)
 const getBatches = asyncHandler(async (req, res) => {
     const { startDate, endDate, searchBy, searchValue } = req.query;
     let query = { isDeleted: false };
-
-    // Date Filter
     if (startDate && endDate) {
-        // Find batches active within this range (overlap logic or strict range)
-        // Here we stick to strict start/end as per typical ERP needs
         query.startDate = { $gte: new Date(startDate) };
         query.endDate = { $lte: new Date(endDate) };
     }
-
-    // Search Logic
     if (searchBy && searchValue) {
         if (searchBy === 'Batch Name') {
             query.name = { $regex: searchValue, $options: 'i' };
@@ -53,9 +70,8 @@ const getBatches = asyncHandler(async (req, res) => {
             query.faculty = { $in: empIds };
         }
     }
-
     const batches = await Batch.find(query)
-        .populate('courses', 'name') // Changed to plural
+        .populate('courses', 'name')
         .populate('faculty', 'name')
         .sort({ createdAt: -1 });
     res.json(batches);
@@ -69,7 +85,6 @@ const createBatch = asyncHandler(async (req, res) => {
 const updateBatch = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const batch = await Batch.findById(id);
-
     if (batch) {
         const updatedBatch = await Batch.findByIdAndUpdate(id, req.body, { new: true })
             .populate('courses', 'name')
@@ -91,7 +106,7 @@ const deleteBatch = asyncHandler(async (req, res) => {
     }
 });
 
-// --- SUBJECT CONTROLLERS ---
+// --- SUBJECT CONTROLLERS --- (Kept as is)
 const getSubjects = asyncHandler(async (req, res) => {
     const { searchBy, searchValue } = req.query;
     let query = { isDeleted: false };
@@ -145,7 +160,7 @@ const getEmployees = asyncHandler(async (req, res) => {
 });
 
 module.exports = { 
-    getCourses, createCourse, deleteCourse, 
+    getCourses, createCourse, updateCourse, deleteCourse, 
     getBatches, createBatch, updateBatch, deleteBatch,
     getSubjects, createSubject, updateSubject, deleteSubject,
     createEmployee, getEmployees 

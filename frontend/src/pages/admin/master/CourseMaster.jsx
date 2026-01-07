@@ -2,59 +2,138 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
-    fetchCourses, createCourse, fetchSubjects, resetMasterStatus 
+    fetchCourses, createCourse, updateCourse, deleteCourse, 
+    fetchSubjects, resetMasterStatus 
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
-import { Search, Plus, X, Edit, Trash2, CheckSquare, Square, Book, List } from 'lucide-react';
+import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye } from 'lucide-react';
 
 const CourseMaster = () => {
   const dispatch = useDispatch();
   const { courses, subjects, isSuccess } = useSelector((state) => state.master);
   
   const [showForm, setShowForm] = useState(false);
-  const [showSubjectModal, setShowSubjectModal] = useState(null); 
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentCourseId, setCurrentCourseId] = useState(null);
+  
+  // Subject Selection State: { subjectId: sortOrder }
+  const [selectedSubjectMap, setSelectedSubjectMap] = useState({});
+  const [viewingSubjects, setViewingSubjects] = useState(null); // For viewing subjects in table
 
-  // Filters
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
+  
+  // Filter State
   const [filters, setFilters] = useState({ courseId: '', courseType: '' });
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm();
-  
-  useEffect(() => { setValue('isActive', true); }, [setValue]);
-
+  // Load Initial Data
   useEffect(() => {
     dispatch(fetchSubjects());
     dispatch(fetchCourses(filters));
-  }, [dispatch, filters]);
+  }, [dispatch]);
 
+  // Handle Search/Filter
+  const handleSearch = () => { dispatch(fetchCourses(filters)); };
+  const handleResetFilters = () => {
+    setFilters({ courseId: '', courseType: '' });
+    dispatch(fetchCourses({}));
+  };
+
+  // Success Handling
   useEffect(() => {
     if (isSuccess && showForm) {
-        toast.success("Course Saved Successfully!");
+        toast.success(isEditing ? "Course Updated" : "Course Created");
         dispatch(resetMasterStatus());
-        reset();
-        setSelectedSubjects([]);
-        setShowForm(false);
+        closeForm();
+        dispatch(fetchCourses(filters));
+    } else if (isSuccess && !showForm) {
+        toast.success("Course Deleted");
+        dispatch(resetMasterStatus());
         dispatch(fetchCourses(filters));
     }
-  }, [isSuccess, showForm, dispatch]);
+  }, [isSuccess, showForm, dispatch, filters]);
 
-  const handleSubjectChange = (subjectId) => {
-    if (selectedSubjects.includes(subjectId)) {
-        setSelectedSubjects(selectedSubjects.filter(id => id !== subjectId));
-    } else {
-        setSelectedSubjects([...selectedSubjects, subjectId]);
-    }
+  const closeForm = () => {
+      reset();
+      setSelectedSubjectMap({});
+      setIsEditing(false);
+      setCurrentCourseId(null);
+      setShowForm(false);
+  };
+
+  // --- Subject Handling ---
+  const handleSubjectToggle = (subjectId) => {
+      const newMap = { ...selectedSubjectMap };
+      if (newMap[subjectId] !== undefined) {
+          delete newMap[subjectId];
+      } else {
+          newMap[subjectId] = 0; // Default sort order
+      }
+      setSelectedSubjectMap(newMap);
+  };
+
+  const handleSubjectSortChange = (subjectId, order) => {
+      const newMap = { ...selectedSubjectMap };
+      if (newMap[subjectId] !== undefined) {
+          newMap[subjectId] = parseInt(order) || 0;
+          setSelectedSubjectMap(newMap);
+      }
+  };
+
+  // --- CRUD Operations ---
+  const handleEdit = (course) => {
+      // Set Form Fields
+      const fields = [
+          'name', 'shortName', 'courseFees', 'admissionFees', 'registrationFees', 
+          'monthlyFees', 'totalInstallment', 'sorting', 'commission', 'duration', 
+          'durationType', 'courseType', 'image', 'smallDescription', 'description', 'isActive'
+      ];
+      fields.forEach(f => setValue(f, course[f]));
+
+      // Set Subjects
+      const subjMap = {};
+      if (course.subjects) {
+          course.subjects.forEach(s => {
+              if (s.subject) {
+                  subjMap[s.subject._id] = s.sortOrder || 0;
+              }
+          });
+      }
+      setSelectedSubjectMap(subjMap);
+
+      setCurrentCourseId(course._id);
+      setIsEditing(true);
+      setShowForm(true);
+  };
+
+  const handleDelete = (id) => {
+      if(window.confirm('Are you sure you want to delete this course?')) {
+          dispatch(deleteCourse(id));
+      }
   };
 
   const onSubmit = (data) => {
-    const finalData = { ...data, subjects: selectedSubjects };
-    dispatch(createCourse(finalData));
+      // Transform Subject Map to Array
+      const subjectsArray = Object.keys(selectedSubjectMap).map(id => ({
+          subject: id,
+          sortOrder: selectedSubjectMap[id]
+      }));
+
+      const payload = { ...data, subjects: subjectsArray };
+
+      if (isEditing) {
+          dispatch(updateCourse({ id: currentCourseId, data: payload }));
+      } else {
+          dispatch(createCourse(payload));
+      }
   };
+
+  // Unique Course Types for Filter
+  const uniqueCourseTypes = [...new Set(courses.map(c => c.courseType))];
 
   return (
     <div className="container mx-auto p-4">
       
-      {/* --- SECTION 1: HEADER & ADD BUTTON (Moved to Top) --- */}
+      {/* --- Header --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Courses</h1>
         <button 
@@ -65,18 +144,18 @@ const CourseMaster = () => {
         </button>
       </div>
 
-      {/* --- SECTION 2: FILTERS --- */}
+      {/* --- Filter Section --- */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-200">
         <h2 className="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2">
-            <Search size={14}/> Search & Filters
+            <Search size={14}/> Filter Courses
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
             <div>
                 <label className="text-xs text-gray-500 font-semibold">Course Name</label>
                 <select 
                     value={filters.courseId} 
-                    onChange={(e) => setFilters({...filters, courseId: e.target.value})}
-                    className="w-full border p-2 rounded text-sm mt-1 focus:ring-2 focus:ring-primary outline-none"
+                    onChange={e => setFilters({...filters, courseId: e.target.value})} 
+                    className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
                 >
                     <option value="">All Courses</option>
                     {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -86,227 +165,268 @@ const CourseMaster = () => {
                 <label className="text-xs text-gray-500 font-semibold">Course Type</label>
                 <select 
                     value={filters.courseType} 
-                    onChange={(e) => setFilters({...filters, courseType: e.target.value})}
-                    className="w-full border p-2 rounded text-sm mt-1 focus:ring-2 focus:ring-primary outline-none"
+                    onChange={e => setFilters({...filters, courseType: e.target.value})} 
+                    className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
                 >
                     <option value="">All Types</option>
-                    <option>Accounting</option>
-                    <option>Designing</option>
-                    <option>Diploma</option>
-                    <option>IT for Beginners</option>
-                    <option>Global IT Certifications</option>
+                    {uniqueCourseTypes.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
             </div>
-            <div>
-                <button 
-                    onClick={() => dispatch(fetchCourses(filters))}
-                    className="bg-primary text-white w-full py-2 rounded shadow hover:bg-blue-800 text-sm font-medium transition-colors"
-                >
-                    Apply Filters
-                </button>
+            <div className="flex gap-2">
+                <button onClick={handleResetFilters} className="bg-gray-100 px-3 py-2 rounded hover:bg-gray-200 text-sm w-full font-medium transition">Reset</button>
+                <button onClick={handleSearch} className="bg-primary text-white px-3 py-2 rounded hover:bg-blue-800 text-sm w-full font-medium transition">Search</button>
             </div>
         </div>
       </div>
 
-      {/* --- SECTION 3: DATA TABLE --- */}
+      {/* --- Course Table --- */}
       <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-4 py-3 w-10"><input type="checkbox" className="rounded"/></th>
-                        <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Course Name</th>
-                        <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Type</th>
-                        <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Fees</th>
-                        <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Duration</th>
-                        <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Active</th>
-                        <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Subjects</th>
-                        <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+                <tr>
+                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Course Name</th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Fees</th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Duration</th>
+                    <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
+                    <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Subjects</th>
+                    <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+                {courses.length > 0 ? courses.map((course) => (
+                    <tr key={course._id} className="hover:bg-blue-50 transition-colors">
+                        <td className="px-4 py-3">
+                            <div className="font-medium text-gray-900">{course.name}</div>
+                            <div className="text-xs text-gray-500">({course.shortName})</div>
+                            <div className="text-xs text-blue-600 mt-0.5">{course.courseType}</div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">₹{course.courseFees}</td>
+                        <td className="px-4 py-3 text-gray-600">{course.duration} {course.durationType}</td>
+                        <td className="px-4 py-3 text-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${course.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {course.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                            <button 
+                                onClick={() => setViewingSubjects(course.subjects)}
+                                className="text-primary hover:bg-blue-100 p-1 rounded transition"
+                            >
+                                <Eye size={16}/>
+                            </button>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                            <button onClick={() => handleEdit(course)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
+                                <Edit2 size={12}/> Edit
+                            </button>
+                            <button onClick={() => handleDelete(course._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
+                                <Trash2 size={12}/> Delete
+                            </button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                    {courses.length > 0 ? courses.map((course) => (
-                        <tr key={course._id} className="hover:bg-blue-50 transition-colors">
-                            <td className="px-4 py-3"><input type="checkbox" className="rounded"/></td>
-                            <td className="px-4 py-3 font-medium text-gray-900">
-                                {course.name}
-                                <span className="block text-xs text-gray-400">({course.shortName})</span>
-                            </td>
-                            <td className="px-4 py-3 text-gray-600">{course.courseType}</td>
-                            <td className="px-4 py-3 text-green-700 font-bold">₹ {course.courseFees}</td>
-                            <td className="px-4 py-3 text-gray-600">{course.duration} {course.durationType}</td>
-                            <td className="px-4 py-3 text-center">
-                                {course.isActive ? 
-                                    <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold">YES</span> : 
-                                    <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold">NO</span>
-                                }
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                                <button 
-                                    onClick={() => setShowSubjectModal(course)}
-                                    className="text-primary hover:bg-blue-100 px-3 py-1 rounded-full text-xs font-medium flex items-center justify-center gap-1 w-fit mx-auto transition-colors"
-                                >
-                                    <List size={14} /> View ({course.subjects?.length || 0})
-                                </button>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                                <div className="flex justify-end gap-2">
-                                    <button className="p-1 text-blue-600 hover:bg-blue-100 rounded transition"><Edit size={16}/></button>
-                                    <button className="p-1 text-red-600 hover:bg-red-100 rounded transition"><Trash2 size={16}/></button>
-                                </div>
-                            </td>
-                        </tr>
-                    )) : (
-                        <tr><td colSpan="8" className="text-center py-8 text-gray-400">No courses found. Add a new one!</td></tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
+                )) : (
+                    <tr><td colSpan="6" className="text-center py-8 text-gray-400">No courses found.</td></tr>
+                )}
+            </tbody>
+        </table>
       </div>
 
-      {/* --- ADD COURSE MODAL (Same logic as before) --- */}
-      {/* ... (Keep the Modal code exactly as it was in the previous response, it is correct) ... */}
+      {/* --- Subject Viewer Modal --- */}
+      {viewingSubjects && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+              <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+                  <div className="bg-gray-100 p-3 flex justify-between items-center border-b">
+                      <h3 className="font-bold text-gray-700">Included Subjects</h3>
+                      <button onClick={() => setViewingSubjects(null)}><X size={20}/></button>
+                  </div>
+                  <div className="p-4 max-h-96 overflow-y-auto">
+                      <table className="min-w-full text-sm">
+                          <thead>
+                              <tr className="text-left text-xs uppercase text-gray-500 border-b">
+                                  <th className="pb-2">Order</th>
+                                  <th className="pb-2">Subject Name</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              {[...viewingSubjects]
+                                  .sort((a, b) => a.sortOrder - b.sortOrder)
+                                  .map((s, idx) => (
+                                      <tr key={idx} className="border-b last:border-0">
+                                          <td className="py-2 text-gray-500 font-mono">{s.sortOrder}</td>
+                                          <td className="py-2 font-medium">{s.subject?.name || 'Unknown'}</td>
+                                      </tr>
+                              ))}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* --- Create/Edit Form Modal --- */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div className="bg-primary text-white p-4 flex justify-between items-center sticky top-0 z-10">
-                    <h2 className="text-lg font-bold flex items-center gap-2"><Book size={20}/> Add New Course</h2>
-                    <button onClick={() => setShowForm(false)} className="text-white hover:text-red-200 transition"><X size={24}/></button>
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl overflow-hidden animate-fadeIn h-[90vh] flex flex-col">
+                <div className="bg-primary text-white p-4 flex justify-between items-center shrink-0">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                        {isEditing ? <Edit2 size={20}/> : <Plus size={20}/>} 
+                        {isEditing ? 'Update Course' : 'Create New Course'}
+                    </h2>
+                    <button onClick={closeForm} className="text-white hover:text-red-200 transition"><X size={24}/></button>
                 </div>
                 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="overflow-y-auto p-6 flex-1">
+                    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         
-                        {/* Section 1: Basic Info */}
-                        <div className="md:col-span-3">
-                            <h3 className="text-sm font-bold text-gray-500 border-b pb-1 mb-3 uppercase">Basic Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold text-gray-700">Course Name *</label>
-                                    <input {...register('name', {required:true})} className="w-full border p-2 rounded text-sm mt-1" placeholder="e.g. Advance Degree of Computer Application"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Short Name *</label>
-                                    <input {...register('shortName', {required:true})} className="w-full border p-2 rounded text-sm mt-1" placeholder="e.g. ADCA"/>
-                                </div>
-                                <div className="md:col-span-3">
-                                    <label className="block text-xs font-bold text-gray-700">Description</label>
-                                    <textarea {...register('description')} className="w-full border p-2 rounded text-sm mt-1" rows="2"></textarea>
-                                </div>
-                            </div>
+                        {/* Row 1: Basic Names */}
+                        <div className="md:col-span-2">
+                            <label className="label">Course Name *</label>
+                            <input {...register('name', {required: true})} className="input-field" placeholder="e.g. Master in Computer Science"/>
+                        </div>
+                        <div>
+                            <label className="label">Short Name *</label>
+                            <input {...register('shortName', {required: true})} className="input-field" placeholder="e.g. MCS"/>
                         </div>
 
-                        {/* Section 2: Type & Duration */}
-                        <div className="md:col-span-3">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Course Type *</label>
-                                    <select {...register('courseType', {required:true})} className="w-full border p-2 rounded text-sm mt-1">
-                                        <option value="">Select Type</option>
-                                        <option>Accounting</option>
-                                        <option>Designing</option>
-                                        <option>Diploma</option>
-                                        <option>IT for Beginners</option>
-                                        <option>Global IT Certifications</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Duration *</label>
-                                    <input type="number" {...register('duration', {required:true})} className="w-full border p-2 rounded text-sm mt-1"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Duration Type *</label>
-                                    <select {...register('durationType', {required:true})} className="w-full border p-2 rounded text-sm mt-1">
-                                        <option>Month</option>
-                                        <option>Year</option>
-                                        <option>Days</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Sorting Order</label>
-                                    <input type="number" {...register('sorting')} className="w-full border p-2 rounded text-sm mt-1" defaultValue="0"/>
-                                </div>
-                            </div>
+                        {/* Row 2: Fees & Config */}
+                        <div>
+                            <label className="label">Total Fees *</label>
+                            <input type="number" {...register('courseFees', {required: true})} className="input-field" placeholder="0"/>
+                        </div>
+                        <div>
+                            <label className="label">Admission Fees</label>
+                            <input type="number" {...register('admissionFees')} className="input-field" placeholder="0"/>
+                        </div>
+                        <div>
+                            <label className="label">Registration Fees</label>
+                            <input type="number" {...register('registrationFees')} className="input-field" placeholder="0"/>
+                        </div>
+                        
+                        <div>
+                            <label className="label">Monthly Fees</label>
+                            <input type="number" {...register('monthlyFees')} className="input-field" placeholder="0"/>
+                        </div>
+                        <div>
+                            <label className="label">Installments</label>
+                            <input type="number" {...register('totalInstallment')} className="input-field" placeholder="1"/>
+                        </div>
+                        <div>
+                            <label className="label">Commission (%)</label>
+                            <input type="number" {...register('commission')} className="input-field" placeholder="0"/>
                         </div>
 
-                        {/* Section 3: Fees & Financials */}
-                        <div className="md:col-span-3">
-                            <h3 className="text-sm font-bold text-gray-500 border-b pb-1 mb-3 uppercase mt-2">Financial Details</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Course Fees *</label>
-                                    <input type="number" {...register('courseFees', {required:true})} className="w-full border p-2 rounded text-sm mt-1"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Admission Fees</label>
-                                    <input type="number" {...register('admissionFees')} className="w-full border p-2 rounded text-sm mt-1" defaultValue="0"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Reg. Fees</label>
-                                    <input type="number" {...register('registrationFees')} className="w-full border p-2 rounded text-sm mt-1" defaultValue="0"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Monthly Fees</label>
-                                    <input type="number" {...register('monthlyFees')} className="w-full border p-2 rounded text-sm mt-1" defaultValue="0"/>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700">Total Installments</label>
-                                    <input type="number" {...register('totalInstallment')} className="w-full border p-2 rounded text-sm mt-1" defaultValue="1"/>
-                                </div>
-                            </div>
+                        {/* Row 3: Duration & Type */}
+                        <div>
+                            <label className="label">Duration *</label>
+                            <input type="number" {...register('duration', {required: true})} className="input-field" placeholder="6"/>
+                        </div>
+                        <div>
+                            <label className="label">Duration Type</label>
+                            <select {...register('durationType')} className="input-field">
+                                <option>Month</option>
+                                <option>Year</option>
+                                <option>Days</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="label">Course Type</label>
+                            <input list="courseTypes" {...register('courseType', {required: true})} className="input-field" placeholder="Select or Type"/>
+                            <datalist id="courseTypes">
+                                {uniqueCourseTypes.map(t => <option key={t} value={t}/>)}
+                            </datalist>
                         </div>
 
-                        {/* Section 4: Subjects */}
-                        <div className="md:col-span-3">
-                            <h3 className="text-sm font-bold text-gray-500 border-b pb-1 mb-3 uppercase mt-2">Subjects</h3>
-                            <div className="h-32 overflow-y-auto border p-3 rounded bg-gray-50 grid grid-cols-2 md:grid-cols-4 gap-2">
-                                {subjects.length > 0 ? subjects.map(sub => (
-                                    <label key={sub._id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-100 p-1 rounded transition">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={selectedSubjects.includes(sub._id)}
-                                            onChange={() => handleSubjectChange(sub._id)}
-                                            className="form-checkbox text-primary rounded"
-                                        />
-                                        {sub.name}
-                                    </label>
-                                )) : <div className="text-gray-400 text-xs">No subjects found. Please add subjects first.</div>}
-                            </div>
+                         {/* Row 4: Sorting & Image */}
+                        <div>
+                            <label className="label">Sort Order</label>
+                            <input type="number" {...register('sorting')} className="input-field" placeholder="0"/>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="label">Image URL</label>
+                            <input {...register('image')} className="input-field" placeholder="https://..."/>
                         </div>
 
-                        {/* Footer Actions */}
-                        <div className="md:col-span-3 flex justify-between items-center border-t pt-4 mt-2">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input type="checkbox" {...register('isActive')} className="w-5 h-5 text-green-600 rounded"/>
-                                <span className="text-sm font-bold text-gray-700">Is Active?</span>
+                        {/* Row 5: Descriptions */}
+                        <div className="md:col-span-3">
+                            <label className="label">Small Description</label>
+                            <input {...register('smallDescription')} className="input-field" placeholder="Brief summary..."/>
+                        </div>
+                        <div className="md:col-span-3">
+                            <label className="label">Full Description</label>
+                            <textarea {...register('description')} className="input-field h-24" placeholder="Detailed details..."></textarea>
+                        </div>
+
+                        {/* Row 6: Is Active */}
+                        <div className="md:col-span-3">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" {...register('isActive')} className="w-4 h-4 text-primary rounded"/>
+                                <span className="text-sm font-bold text-gray-700">Course Is Active</span>
                             </label>
-                            
-                            <div className="flex gap-3">
-                                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
-                                <button type="submit" className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold transition">Save Course</button>
+                        </div>
+
+                        {/* --- Subject Table --- */}
+                        <div className="md:col-span-3 mt-4 border-t pt-4">
+                            <h3 className="font-bold text-gray-700 mb-2 flex items-center gap-2"><Layers size={18}/> Subject Configuration</h3>
+                            <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-100 sticky top-0">
+                                        <tr>
+                                            <th className="px-4 py-2 w-12 text-center">Select</th>
+                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Subject Name</th>
+                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase w-32">Sort Order</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 bg-white">
+                                        {subjects.map(subject => {
+                                            const isSelected = selectedSubjectMap[subject._id] !== undefined;
+                                            return (
+                                                <tr key={subject._id} className={isSelected ? "bg-blue-50" : ""}>
+                                                    <td className="px-4 py-2 text-center">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={isSelected}
+                                                            onChange={() => handleSubjectToggle(subject._id)}
+                                                            className="w-4 h-4 cursor-pointer"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-2 text-sm text-gray-700">{subject.name}</td>
+                                                    <td className="px-4 py-2">
+                                                        {isSelected && (
+                                                            <input 
+                                                                type="number" 
+                                                                value={selectedSubjectMap[subject._id]} 
+                                                                onChange={(e) => handleSubjectSortChange(subject._id, e.target.value)}
+                                                                className="w-full border p-1 rounded text-center text-sm"
+                                                            />
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 
-                    </div>
-                </form>
+                    </form>
+                </div>
+
+                <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 shrink-0">
+                    <button type="button" onClick={closeForm} className="px-4 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
+                    <button type="button" onClick={() => {reset(); setSelectedSubjectMap({})}} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium">Reset</button>
+                    <button onClick={handleSubmit(onSubmit)} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 shadow text-sm font-bold transition">
+                        {isEditing ? 'Update Course' : 'Save Course'}
+                    </button>
+                </div>
             </div>
         </div>
       )}
 
-      {/* --- Subject View Modal --- */}
-      {showSubjectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded p-6 max-w-sm w-full animate-fadeIn">
-                <h3 className="font-bold mb-4 text-gray-800">{showSubjectModal.name} - Subjects</h3>
-                <ul className="list-disc pl-5 text-sm space-y-1 text-gray-600">
-                    {showSubjectModal.subjects?.length > 0 ? showSubjectModal.subjects.map(sub => (
-                        <li key={sub._id}>{sub.name}</li>
-                    )) : <li className="text-gray-400">No subjects assigned</li>}
-                </ul>
-                <button onClick={() => setShowSubjectModal(null)} className="mt-6 w-full bg-gray-200 py-2 rounded text-sm hover:bg-gray-300 font-bold text-gray-700">Close</button>
-            </div>
-        </div>
-      )}
+      <style>{`
+        .label { display: block; font-size: 0.75rem; font-weight: 700; color: #374151; text-transform: uppercase; margin-bottom: 0.25rem; }
+        .input-field { width: 100%; border: 1px solid #e5e7eb; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
+        .input-field:focus { border-color: #2563eb; ring: 2px solid #2563eb; }
+      `}</style>
 
     </div>
   );

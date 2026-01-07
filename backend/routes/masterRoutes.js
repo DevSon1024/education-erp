@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect } = require('../middlewares/authMiddleware');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
 const { 
-    getCourses, createCourse, deleteCourse,
+    getCourses, createCourse, updateCourse, deleteCourse,
     getBatches, createBatch, updateBatch, deleteBatch, 
     createEmployee, getEmployees,
     getSubjects, createSubject, updateSubject, deleteSubject
@@ -16,7 +16,10 @@ const { getExamResults, createExamResult, updateExamResult } = require('../contr
 router.route('/course')
     .get(protect, checkPermission('Course', 'view'), getCourses)
     .post(protect, checkPermission('Course', 'add'), createCourse);
-router.delete('/course/:id', protect, checkPermission('Course', 'delete'), deleteCourse);
+
+router.route('/course/:id')
+    .put(protect, checkPermission('Course', 'edit'), updateCourse)
+    .delete(protect, checkPermission('Course', 'delete'), deleteCourse);
 
 // --- Batch Routes ---
 router.route('/batch')
