@@ -16,9 +16,27 @@ export const createEmployee = createAsyncThunk('employees/create', async (data, 
         const response = await axios.post(API_URL, data);
         return response.data;
     } catch (error) { 
-        // Capture the specific error message from backend
         const message = (error.response && error.response.data && error.response.data.message) || error.message;
         return thunkAPI.rejectWithValue(message); 
+    }
+});
+
+export const updateEmployee = createAsyncThunk('employees/update', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(API_URL + id, data);
+        return response.data;
+    } catch (error) {
+        const message = (error.response && error.response.data && error.response.data.message) || error.message;
+        return thunkAPI.rejectWithValue(message);
+    }
+});
+
+export const deleteEmployee = createAsyncThunk('employees/delete', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(API_URL + id);
+        return response.data; // Expecting { id: ..., message: ... }
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.message);
     }
 });
 
@@ -45,6 +63,19 @@ const employeeSlice = createSlice({
                 state.employees.unshift(action.payload);
                 state.isSuccess = true;
                 state.message = 'Employee Added Successfully';
+            })
+            .addCase(updateEmployee.fulfilled, (state, action) => {
+                const index = state.employees.findIndex(e => e._id === action.payload._id);
+                if (index !== -1) {
+                    state.employees[index] = action.payload;
+                }
+                state.isSuccess = true;
+                state.message = 'Employee Updated Successfully';
+            })
+            .addCase(deleteEmployee.fulfilled, (state, action) => {
+                state.employees = state.employees.filter(e => e._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'Employee Deleted Successfully';
             });
     }
 });

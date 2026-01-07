@@ -8,7 +8,7 @@ const StudentAdmissionFees = () => {
         <div className="flex items-center gap-3 mb-6 border-b pb-4">
           <DollarSign className="text-green-500" size={28} />
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Student Admission Fees</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Pending Admission Fees</h2>
             <p className="text-sm text-gray-500">Manage admission fee collection</p>
           </div>
         </div>

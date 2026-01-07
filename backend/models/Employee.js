@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const employeeSchema = new mongoose.Schema({
     // --- Personal Information ---
     name: { type: String, required: true },
-    regNo: { type: String, unique: true }, // <--- Added Registration Number
+    regNo: { type: String, unique: true }, 
     mobile: { type: String, required: true },
     gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
     type: { 
@@ -12,23 +12,24 @@ const employeeSchema = new mongoose.Schema({
         required: true 
     },
     email: { type: String, required: true, unique: true },
-    duration: { type: String }, // e.g. "2 Years Contract"
+    duration: { type: String }, 
     dob: { type: Date },
+    dateOfJoining: { type: Date }, // <--- Added Field
     education: { type: String },
     qualification: { type: String },
     address: { type: String },
-    photo: { type: String }, // Path to image file
+    photo: { type: String }, 
     isActive: { type: Boolean, default: true },
 
     // --- Work Experience ---
-    experience: { type: String }, // e.g. "5 Years"
-    workingTimePeriod: { type: String }, // e.g. "2018-2023"
+    experience: { type: String }, 
+    workingTimePeriod: { type: String }, 
     companyName: { type: String },
-    role: { type: String },
+    role: { type: String }, // Work role
 
     // --- Login Integration ---
-    userAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Link to Auth User
-    loginUsername: { type: String }, // Stored for display convenience
+    userAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    loginUsername: { type: String }, 
     isLoginActive: { type: Boolean, default: true },
 
     isDeleted: { type: Boolean, default: false }

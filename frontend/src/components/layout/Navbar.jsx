@@ -26,7 +26,7 @@ const TRANSACTION_MENU = [
       { name: 'Visitors', path: '/transaction/visitors' }
     ]
   },
-  { title: 'Student Admission Fees', path: '/transaction/student-admission-fees', hasSubOptions: false },
+  { title: 'Pending Admission Fees', path: '/transaction/student-admission-fees', hasSubOptions: false },
   { title: 'Student Registration', path: '/transaction/student-registration', hasSubOptions: false },
   { title: 'Student Cancellation', path: '/transaction/student-cancellation', hasSubOptions: false },
   { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false }

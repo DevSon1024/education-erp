@@ -3,33 +3,56 @@ const User = require('../models/User');
 const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
 
-// @desc    Get Employees
+// @desc    Get Employees with Filters
 const getEmployees = asyncHandler(async (req, res) => {
     const { joiningFrom, joiningTo, gender, searchBy, searchValue } = req.query;
+    
     let query = { isDeleted: false };
     
+    // 1. Date Range Filter (Joining Date)
     if (joiningFrom && joiningTo) {
-        query.createdAt = { $gte: new Date(joiningFrom), $lte: new Date(joiningTo) };
+        // Set time to start of day for 'from' and end of day for 'to'
+        const startDate = new Date(joiningFrom);
+        startDate.setHours(0, 0, 0, 0);
+        
+        const endDate = new Date(joiningTo);
+        endDate.setHours(23, 59, 59, 999);
+
+        query.dateOfJoining = { 
+            $gte: startDate, 
+            $lte: endDate 
+        };
     }
-    if (gender) query.gender = gender;
+
+    // 2. Gender Filter
+    if (gender && gender !== 'All') {
+        query.gender = gender;
+    }
     
+    // 3. Dynamic Search (Name, Email, Mobile)
     if (searchBy && searchValue) {
-        if (searchBy === 'Employee Name') query.name = { $regex: searchValue, $options: 'i' };
-        else if (searchBy === 'Employee Mobile') query.mobile = { $regex: searchValue, $options: 'i' };
-        else if (searchBy === 'Employee Email') query.email = { $regex: searchValue, $options: 'i' };
+        const regex = { $regex: searchValue, $options: 'i' }; // Case-insensitive
+        
+        if (searchBy === 'name') {
+            query.name = regex;
+        } else if (searchBy === 'email') {
+            query.email = regex;
+        } else if (searchBy === 'mobile') {
+            query.mobile = regex;
+        }
     }
 
     const employees = await Employee.find(query).sort({ createdAt: -1 });
     res.json(employees);
 });
 
+// @desc    Create Employee
 const createEmployee = asyncHandler(async (req, res) => {
     const { 
         name, email, mobile, gender, type, 
         loginUsername, loginPassword, isLoginActive 
     } = req.body;
 
-    // 1. Check if Employee Email exists
     const empExists = await Employee.findOne({ email });
     if (empExists) {
         res.status(400); throw new Error('Employee with this email already exists');
@@ -37,7 +60,6 @@ const createEmployee = asyncHandler(async (req, res) => {
 
     let userId = null;
 
-    // 2. Create User Account
     if (loginUsername && loginPassword) {
         const userExists = await User.findOne({ email: loginUsername });
         if (userExists) {
@@ -54,14 +76,11 @@ const createEmployee = asyncHandler(async (req, res) => {
             });
             userId = newUser._id;
         } catch (error) {
-            console.error("USER CREATION ERROR:", error.message);
             res.status(400); throw new Error('User Login Error: ' + error.message);
         }
     }
 
-    // 3. Create Employee
     try {
-        // Generate Registration Number
         const count = await Employee.countDocuments();
         const regNo = `EMP-${new Date().getFullYear()}-${1001 + count}`;
 
@@ -71,35 +90,53 @@ const createEmployee = asyncHandler(async (req, res) => {
             userAccount: userId
         });
 
-        // --- SMS LOGIC START ---
-        if (userId && loginUsername && loginPassword) {
-            try {
-                // EXACT FORMAT REQUESTED:
-                // Dear, {var1}. Your Registration process has been successfully completed. Reg.No. {var2}, User ID-{var3}, Password-{var4}, smart institute.
-                
-                const message = `Dear, ${name}. Your Registration process has been successfully completed. Reg.No. ${regNo}, User ID-${loginUsername}, Password-${loginPassword}, smart institute.`;
-
-                // Send SMS (Non-blocking)
-                sendSMS(mobile, message);
-                console.log("Employee Welcome SMS Sent to:", mobile);
-
-            } catch (smsError) {
-                console.error("Error sending Employee SMS:", smsError.message);
-            }
+        if (userId && loginUsername) {
+             const message = `Dear, ${name}. Your Registration process has been successfully completed. Reg.No. ${regNo}, User ID-${loginUsername}, Password-${loginPassword}, smart institute.`;
+             sendSMS(mobile, message);
         }
-        // --- SMS LOGIC END ---
 
         res.status(201).json(employee);
 
     } catch (error) {
-        // Cleanup if Employee fails but User was made
         if(userId) await User.findByIdAndDelete(userId);
-        
-        console.error("EMPLOYEE CREATION ERROR:", error.message);
         res.status(400); throw new Error(error.message);
     }
 });
 
+// @desc    Update Employee
+const updateEmployee = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { 
+        name, type, isLoginActive, loginPassword 
+    } = req.body;
+
+    const employee = await Employee.findById(id);
+
+    if (!employee) {
+        res.status(404); throw new Error('Employee not found');
+    }
+
+    if (employee.userAccount) {
+        const userUpdate = { name, role: type, isActive: isLoginActive };
+        if (loginPassword && loginPassword.trim() !== '') {
+            const user = await User.findById(employee.userAccount);
+            if(user) {
+                user.password = loginPassword;
+                user.name = name;
+                user.role = type;
+                user.isActive = isLoginActive;
+                await user.save();
+            }
+        } else {
+            await User.findByIdAndUpdate(employee.userAccount, userUpdate);
+        }
+    }
+
+    const updatedEmployee = await Employee.findByIdAndUpdate(id, req.body, { new: true });
+    res.json(updatedEmployee);
+});
+
+// @desc    Delete Employee
 const deleteEmployee = asyncHandler(async (req, res) => {
     const employee = await Employee.findById(req.params.id);
     if (employee) {
@@ -108,10 +145,10 @@ const deleteEmployee = asyncHandler(async (req, res) => {
             await User.findByIdAndUpdate(employee.userAccount, { isActive: false });
         }
         await employee.save();
-        res.json({ message: 'Employee Removed' });
+        res.json({ id: req.params.id, message: 'Employee Removed' });
     } else {
         res.status(404); throw new Error('Employee not found');
     }
 });
 
-module.exports = { getEmployees, createEmployee, deleteEmployee };
+module.exports = { getEmployees, createEmployee, updateEmployee, deleteEmployee };
