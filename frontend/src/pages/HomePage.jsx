@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin } from 'lucide-react';
 import HeroImage1 from '../assets/Gemini_Generated_Image_ds77tjds77tjds77.png'
+import HeroImage2 from '../assets/Gemini_Generated_Image_j44de9j44de9j44d.png';
+import HeroImage3 from '../assets/Gemini_Generated_Image_k4t3pqk4t3pqk4t3.png';
+import HeroImage4 from '../assets/Gemini_Generated_Image_xdv7jexdv7jexdv7.png';
 
 // Carousel Component (Keep this as is)
 const Carousel = ({ items, type = "hero" }) => {
@@ -64,8 +67,9 @@ const Carousel = ({ items, type = "hero" }) => {
 const HomePage = () => {
   const heroImages = [
     { image: HeroImage1 },
-    { image: "https://placehold.co/1920x600/f59e0b/white?text=Smart+Campus+Facilities" },
-    { image: "https://placehold.co/1920x600/10b981/white?text=Excellence+in+Teaching" },
+    { image: HeroImage2 },
+    { image: HeroImage3 },
+    { image: HeroImage4}
   ];
 
   const toppers = [

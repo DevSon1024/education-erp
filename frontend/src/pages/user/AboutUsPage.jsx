@@ -41,59 +41,6 @@ const AboutUsPage = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      
-      {/* 1. Slim Top Header */}
-      <div className="bg-gray-900 text-gray-300 py-1.5 text-xs">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><Phone size={12} /> +91-96017-49300</span>
-            <span className="flex items-center gap-1"><Mail size={12} /> info@smartinstitute.co.in</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex gap-3 pr-4 border-r border-gray-700">
-              <Facebook size={14} className="hover:text-blue-500 cursor-pointer" />
-              <Twitter size={14} className="hover:text-sky-400 cursor-pointer" />
-              <Instagram size={14} className="hover:text-pink-500 cursor-pointer" />
-              <Linkedin size={14} className="hover:text-blue-700 cursor-pointer" />
-            </div>
-            <div className="flex gap-3 font-semibold">
-              <Link to="/login" className="flex items-center gap-1 hover:text-white">Login</Link>
-              <Link to="/register" className="flex items-center gap-1 hover:text-white">Register</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Logo & Branding */}
-      <div className="bg-white py-4 shadow-sm relative z-10">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             <img src={logoImage} alt="Smart Institute Logo" className="h-16 w-auto object-contain" />
-             <div className="relative">
-                <center><h3 className="text-base md:text-lg text-accent font-bold tracking-wide uppercase">सपने जो SMART बना दे</h3></center>
-             </div>
-           </div>
-        </div>
-      </div>
-
-      {/* 3. Navigation */}
-      <nav className="bg-primary text-white shadow-lg sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center items-center h-14">
-            <div className="hidden md:flex space-x-1">
-              {['Home', 'About Us', 'Course', 'Facilities', 'Gallery', 'Franchise', 'Contact', 'Blog', 'Feedback'].map((item, index) => (
-                <Link 
-                  key={index} 
-                  to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`}
-                  className="px-4 py-2 text-sm font-medium hover:bg-white/10 hover:text-accent transition-colors rounded-md uppercase tracking-wide"
-                >
-                  {item}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* 4. Hero Section */}
       <div className="relative bg-gradient-to-br from-primary to-blue-800 py-32 overflow-hidden">
@@ -288,75 +235,6 @@ const AboutUsPage = () => {
           </div>
         </div>
       </div>
-
-      {/* 10. Footer */}
-      <footer className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t-4 border-accent">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-            
-            {/* Disclaimer & Logo */}
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <img src={logoImage} alt="Smart Institute Logo" className="h-10 w-auto object-contain" />
-              </div>
-              <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                Disclaimer Smart Institute © 2026 Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
-              </p>
-              <div className="flex gap-4">
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary transition-colors"><Facebook size={18} /></a>
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-sky-400 transition-colors"><Twitter size={18} /></a>
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-blue-600 transition-colors"><Linkedin size={18} /></a>
-              </div>
-            </div>
-
-            {/* Navigation Links */}
-            <div>
-              <h3 className="text-white font-bold text-lg mb-6 border-l-4 border-accent pl-3">Navigation</h3>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="/" className="hover:text-accent transition-colors">Home</Link></li>
-                <li><Link to="/about-us" className="hover:text-accent transition-colors">About Us</Link></li>
-                <li><Link to="/course" className="hover:text-accent transition-colors">Courses</Link></li>
-                <li><Link to="/gallery" className="hover:text-accent transition-colors">Gallery</Link></li>
-                <li><Link to="/contact" className="hover:text-accent transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-
-             {/* Why SMART */}
-             <div>
-              <h3 className="text-white font-bold text-lg mb-6 border-l-4 border-accent pl-3">Why SMART?</h3>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-accent transition-colors">Expert Faculty</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Digital Classrooms</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">100% Placement</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors">Practical Learning</a></li>
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h3 className="text-white font-bold text-lg mb-6 border-l-4 border-accent pl-3">Contact Us</h3>
-              <ul className="space-y-4 text-sm">
-                <li className="flex items-start gap-3">
-                  <MapPin size={20} className="text-accent shrink-0" />
-                  <span>1st & 2nd Floor, 50-kubernagar, Opp. Baba Baijnath Mandir, Nilgiri Road, Ass-Pass Circle, Godadra Surat - 395010</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone size={18} className="text-accent shrink-0" />
-                  <span>+91-96017-49300</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Mail size={18} className="text-accent shrink-0" />
-                  <span>info@smartinstitute.co.in</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
-             Copyright © 2013 - 2026 Smart Institute. All Rights Reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
