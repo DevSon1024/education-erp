@@ -10,7 +10,9 @@ const batchSchema = new mongoose.Schema({
 
     // Relations
     faculty: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
-    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+    
+    // Changed from single 'course' to multiple 'courses'
+    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], 
 
     // Duration
     startDate: { type: Date, required: true },

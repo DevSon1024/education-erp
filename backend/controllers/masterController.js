@@ -4,7 +4,7 @@ const Employee = require('../models/Employee');
 const Subject = require('../models/Subject');
 const asyncHandler = require('express-async-handler');
 
-// --- COURSE CONTROLLERS --- (Kept as is)
+// --- COURSE CONTROLLERS --- 
 const getCourses = asyncHandler(async (req, res) => {
     const { courseId, courseType } = req.query;
     let query = { isDeleted: false };
@@ -30,23 +30,34 @@ const deleteCourse = asyncHandler(async (req, res) => {
     }
 });
 
-// --- BATCH CONTROLLERS --- (Kept as is)
+// --- BATCH CONTROLLERS --- 
 const getBatches = asyncHandler(async (req, res) => {
     const { startDate, endDate, searchBy, searchValue } = req.query;
     let query = { isDeleted: false };
+
+    // Date Filter
     if (startDate && endDate) {
-        query.startDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        // Find batches active within this range (overlap logic or strict range)
+        // Here we stick to strict start/end as per typical ERP needs
+        query.startDate = { $gte: new Date(startDate) };
+        query.endDate = { $lte: new Date(endDate) };
     }
+
+    // Search Logic
     if (searchBy && searchValue) {
         if (searchBy === 'Batch Name') {
             query.name = { $regex: searchValue, $options: 'i' };
-        } else if (searchBy === 'Employee Name') {
+        } else if (searchBy === 'Faculty Name') {
             const employees = await Employee.find({ name: { $regex: searchValue, $options: 'i' } }).select('_id');
             const empIds = employees.map(e => e._id);
             query.faculty = { $in: empIds };
         }
     }
-    const batches = await Batch.find(query).populate('course', 'name').populate('faculty', 'name').sort({ createdAt: -1 });
+
+    const batches = await Batch.find(query)
+        .populate('courses', 'name') // Changed to plural
+        .populate('faculty', 'name')
+        .sort({ createdAt: -1 });
     res.json(batches);
 });
 
@@ -55,25 +66,35 @@ const createBatch = asyncHandler(async (req, res) => {
     res.status(201).json(batch);
 });
 
+const updateBatch = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const batch = await Batch.findById(id);
+
+    if (batch) {
+        const updatedBatch = await Batch.findByIdAndUpdate(id, req.body, { new: true })
+            .populate('courses', 'name')
+            .populate('faculty', 'name');
+        res.json(updatedBatch);
+    } else {
+        res.status(404); throw new Error('Batch not found');
+    }
+});
+
 const deleteBatch = asyncHandler(async (req, res) => {
     const batch = await Batch.findById(req.params.id);
     if (batch) {
         batch.isDeleted = true;
         await batch.save();
-        res.json({ message: 'Batch removed' });
+        res.json({ id: req.params.id, message: 'Batch removed' });
     } else {
         res.status(404); throw new Error('Batch not found');
     }
 });
 
 // --- SUBJECT CONTROLLERS ---
-
-// @desc Get All Subjects
 const getSubjects = asyncHandler(async (req, res) => {
     const { searchBy, searchValue } = req.query;
     let query = { isDeleted: false };
-
-    // Search Logic
     if (searchBy && searchValue) {
         if (searchBy === 'Subject Name') {
             query.name = { $regex: searchValue, $options: 'i' };
@@ -81,22 +102,18 @@ const getSubjects = asyncHandler(async (req, res) => {
             query.printedName = { $regex: searchValue, $options: 'i' };
         }
     }
-
     const subjects = await Subject.find(query).sort({ createdAt: -1 });
     res.json(subjects);
 });
 
-// @desc Create Subject
 const createSubject = asyncHandler(async (req, res) => {
     const subject = await Subject.create(req.body);
     res.status(201).json(subject);
 });
 
-// @desc Update Subject
 const updateSubject = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const subject = await Subject.findById(id);
-
     if (subject) {
         const updatedSubject = await Subject.findByIdAndUpdate(id, req.body, { new: true });
         res.json(updatedSubject);
@@ -105,7 +122,6 @@ const updateSubject = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc Delete Subject (Soft Delete)
 const deleteSubject = asyncHandler(async (req, res) => {
     const subject = await Subject.findById(req.params.id);
     if (subject) {
@@ -130,7 +146,7 @@ const getEmployees = asyncHandler(async (req, res) => {
 
 module.exports = { 
     getCourses, createCourse, deleteCourse, 
-    getBatches, createBatch, deleteBatch,
+    getBatches, createBatch, updateBatch, deleteBatch,
     getSubjects, createSubject, updateSubject, deleteSubject,
     createEmployee, getEmployees 
 };

@@ -4,7 +4,7 @@ const { protect } = require('../middlewares/authMiddleware');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
 const { 
     getCourses, createCourse, deleteCourse,
-    getBatches, createBatch, deleteBatch, 
+    getBatches, createBatch, updateBatch, deleteBatch, 
     createEmployee, getEmployees,
     getSubjects, createSubject, updateSubject, deleteSubject
 } = require('../controllers/masterController');
@@ -22,7 +22,10 @@ router.delete('/course/:id', protect, checkPermission('Course', 'delete'), delet
 router.route('/batch')
     .get(protect, checkPermission('Batch', 'view'), getBatches)
     .post(protect, checkPermission('Batch', 'add'), createBatch);
-router.delete('/batch/:id', protect, checkPermission('Batch', 'delete'), deleteBatch);
+
+router.route('/batch/:id')
+    .put(protect, checkPermission('Batch', 'edit'), updateBatch)
+    .delete(protect, checkPermission('Batch', 'delete'), deleteBatch);
 
 // --- Subject Routes ---
 router.route('/subject')
