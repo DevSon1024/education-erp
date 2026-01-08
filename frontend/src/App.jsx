@@ -44,6 +44,7 @@ import TodaysVisitorsList from './pages/admin/transaction/TodaysVisitorsList';
 import TodaysVisitedReport from './pages/admin/transaction/TodaysVisitedReport';
 import Visitors from './pages/admin/transaction/Visitors';
 import StudentAdmissionFees from './pages/admin/transaction/StudentAdmissionFees';
+import PendingAdmissionFeePayment from './pages/admin/transaction/PendingAdmissionFeePayment';
 import StudentCancellation from './pages/admin/transaction/StudentCancellation';
 
 // Private Route Wrapper
@@ -91,6 +92,7 @@ function App() {
             <Route path="/transaction/visitors/todays-report" element={<PrivateRoute><TodaysVisitedReport /></PrivateRoute>} />
             <Route path="/transaction/visitors" element={<PrivateRoute><Visitors /></PrivateRoute>} />
             <Route path="/transaction/student-admission-fees" element={<PrivateRoute><StudentAdmissionFees /></PrivateRoute>} />
+            <Route path="/transaction/admission-payment/:id" element={<PrivateRoute><PendingAdmissionFeePayment /></PrivateRoute>} />
             <Route path="/transaction/student-registration" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
 

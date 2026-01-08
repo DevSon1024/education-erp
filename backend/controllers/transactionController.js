@@ -1,5 +1,6 @@
 const Inquiry = require('../models/Inquiry');
 const FeeReceipt = require('../models/FeeReceipt');
+const Student = require('../models/Student');
 const asyncHandler = require('express-async-handler');
 
 // --- INQUIRY ---
@@ -88,9 +89,19 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
 // --- FEES (Standard) ---
 const createFeeReceipt = asyncHandler(async (req, res) => {
     const { studentId, courseId, amountPaid, paymentMode, remarks } = req.body;
+    
+    // 1. Validation
+    const student = await Student.findById(studentId);
+    if (!student) {
+        res.status(404);
+        throw new Error('Student not found');
+    }
+
+    // 2. Generate Receipt No
     const count = await FeeReceipt.countDocuments();
     const receiptNo = `REC-${1000 + count + 1}`;
 
+    // 3. Create Receipt
     const receipt = await FeeReceipt.create({
         receiptNo,
         student: studentId,
@@ -100,6 +111,11 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
         remarks,
         createdBy: req.user._id
     });
+
+    // 4. Update Student Pending Fees
+    student.pendingFees = student.pendingFees - Number(amountPaid);
+    await student.save();
+
     res.status(201).json(receipt);
 });
 
