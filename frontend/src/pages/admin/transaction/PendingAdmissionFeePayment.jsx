@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentById, resetStatus } from '../../../features/student/studentSlice';
 import { collectFees, resetTransaction } from '../../../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
-import { Save, ArrowLeft, Printer } from 'lucide-react';
+import { Save, ArrowLeft } from 'lucide-react';
 
 const PendingAdmissionFeePayment = () => {
   const { id } = useParams();
@@ -32,13 +32,22 @@ const PendingAdmissionFeePayment = () => {
     };
   }, [id, dispatch]);
 
+  // Set Default Amount based on Admission Fees (once student is loaded)
+  useEffect(() => {
+    if (student && student.course) {
+        // Default to admission fees of the course if available, else 0
+        const defaultFee = student.course.admissionFees || '';
+        setFormData(prev => ({ ...prev, amountPaid: defaultFee }));
+    }
+  }, [student]);
+
   // Handle Success Redirect
   useEffect(() => {
     if (isSuccess) {
       toast.success(message);
-      // Redirect to list after short delay
+      // Redirect to Pending Student Registration as this step completes the admission fee
       setTimeout(() => {
-        navigate('/transaction/pending-admission-fees');
+        navigate('/transaction/pending-student-registration');
       }, 1500);
     }
   }, [isSuccess, message, navigate]);
@@ -78,25 +87,25 @@ const PendingAdmissionFeePayment = () => {
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
           
-          {/* Section 1: Student Details */}
+          {/* Section 1: Student Details (Restricted Fields) */}
           <div className="border-r border-gray-100 pr-4">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Student Information</h3>
             
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4 text-sm">
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Student Name:</span>
                 <span className="col-span-2 font-medium">{student.firstName} {student.lastName}</span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Father Name:</span>
-                <span className="col-span-2 font-medium">{student.middleName}</span>
+                <span className="col-span-2 font-medium">{student.middleName || '-'}</span>
               </div>
               <div className="grid grid-cols-3">
-                <span className="text-gray-500">Mobile:</span>
+                <span className="text-gray-500">Mobile Number:</span>
                 <span className="col-span-2 font-medium">{student.mobileStudent || student.mobileParent}</span>
               </div>
               <div className="grid grid-cols-3">
-                <span className="text-gray-500">Email:</span>
+                <span className="text-gray-500">E-mail ID:</span>
                 <span className="col-span-2 font-medium">{student.email || '-'}</span>
               </div>
               <div className="grid grid-cols-3">
@@ -104,25 +113,13 @@ const PendingAdmissionFeePayment = () => {
                 <span className="col-span-2 font-medium">{new Date(student.admissionDate).toLocaleDateString()}</span>
               </div>
               <div className="grid grid-cols-3">
-                <span className="text-gray-500">DOB:</span>
+                <span className="text-gray-500">Date of Birth:</span>
                 <span className="col-span-2 font-medium">{new Date(student.dob).toLocaleDateString()}</span>
-              </div>
-               <div className="grid grid-cols-3 mt-4">
-                <span className="text-gray-500">Course:</span>
-                <span className="col-span-2 font-bold text-blue-600">{student.course?.name}</span>
-              </div>
-              <div className="grid grid-cols-3">
-                <span className="text-gray-500">Total Fees:</span>
-                <span className="col-span-2 font-medium">₹{student.totalFees}</span>
-              </div>
-              <div className="grid grid-cols-3">
-                <span className="text-gray-500">Pending Fees:</span>
-                <span className="col-span-2 font-bold text-red-600">₹{student.pendingFees}</span>
               </div>
             </div>
           </div>
 
-          {/* Section 2: Payment Details */}
+          {/* Section 2: Payment Receipt */}
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Fee Payment</h3>
             
@@ -150,7 +147,7 @@ const PendingAdmissionFeePayment = () => {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Course</label>
+                <label className="block text-sm text-gray-600 mb-1">Course Name</label>
                 <input 
                   type="text" 
                   disabled 
@@ -164,18 +161,19 @@ const PendingAdmissionFeePayment = () => {
                 <input 
                   type="text" 
                   required
-                  placeholder="Enter Amount"
+                  placeholder="Admission Fees"
                   value={formData.amountPaid}
                   onChange={(e) => {
                     const val = e.target.value;
                     if (!isNaN(val)) setFormData({...formData, amountPaid: val});
                   }}
-                  className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
+                  className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200 font-bold text-gray-800"
                 />
+                <span className="text-xs text-gray-400">Default: Admission Fee</span>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Payment Mode</label>
+                <label className="block text-sm text-gray-600 mb-1">Receipt Type</label>
                 <select 
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
                   value={formData.paymentMode}
@@ -183,8 +181,7 @@ const PendingAdmissionFeePayment = () => {
                 >
                   <option value="Cash">Cash</option>
                   <option value="Cheque">Cheque</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Online">Online</option>
                 </select>
               </div>
 
@@ -195,6 +192,7 @@ const PendingAdmissionFeePayment = () => {
                   value={formData.remarks}
                   onChange={(e) => setFormData({...formData, remarks: e.target.value})}
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
+                  placeholder="Optional"
                 ></textarea>
               </div>
 
@@ -202,9 +200,9 @@ const PendingAdmissionFeePayment = () => {
                 <button 
                   type="submit" 
                   disabled={feeLoading}
-                  className="flex-1 bg-green-600 text-white py-2 rounded shadow hover:bg-green-700 disabled:bg-green-300 flex justify-center items-center gap-2"
+                  className="w-full bg-green-600 text-white py-2 rounded shadow hover:bg-green-700 disabled:bg-green-300 flex justify-center items-center gap-2 font-bold"
                 >
-                  <Save size={18} /> {feeLoading ? 'Saving...' : 'Save & View'}
+                  <Save size={18} /> {feeLoading ? 'Saving...' : 'Save'}
                 </button>
               </div>
 

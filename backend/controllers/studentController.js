@@ -54,7 +54,8 @@ const getStudents = asyncHandler(async (req, res) => {
 
 // @desc    Get Single Student
 const getStudentById = asyncHandler(async (req, res) => {
-    const student = await Student.findById(req.params.id).populate('course', 'name');
+    // UPDATED: Added admissionFees to populate so it can be used in fee payment page
+    const student = await Student.findById(req.params.id).populate('course', 'name admissionFees');
     if (student) res.json(student);
     else { res.status(404); throw new Error('Student not found'); }
 });
@@ -80,13 +81,11 @@ const createStudent = asyncHandler(async (req, res) => {
         const fullName = `${student.firstName} ${student.lastName}`;
 
         // 3. Construct Message
-        // Template: Welcome to Smart Institute, Dear, {Student_Name}. your admission has been successfully completed. Enrollment No. ${var2}, course ${var3}, Batch Time ${var4}
         const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. Your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, Course ${courseName}, Batch Time ${batchTime}`;
 
         // 4. Send SMS to All Contacts
-        const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean); // Remove null/undefined
+        const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean); 
         
-        // Send asynchronously without blocking response
         Promise.all(contacts.map(num => sendSMS(num, smsMessage)))
             .then(() => console.log('Admission SMS sent successfully'))
             .catch(err => console.error('Admission SMS failed', err));
@@ -150,7 +149,6 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     await student.save();
 
     // 5. Send Registration SMS
-    // Template: Dear, ${Stundent_name}. Your Registration process has been successfully completed. Reg.No. ${var2}, User ID-${username}, Password-${password}, smart institute.
     if (student.mobileStudent) {
         const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, Smart Institute.`;
         

@@ -68,7 +68,6 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
         if(req.body.referenceBy !== undefined) inquiry.referenceBy = req.body.referenceBy;
         if(req.body.firstName) inquiry.firstName = req.body.firstName;
         if(req.body.lastName) inquiry.lastName = req.body.lastName;
-        // ... (Other fields can be added as needed, or use Object.assign for full updates if safe)
 
         // Follow Up Updates
         if(req.body.followUpDetails) inquiry.followUpDetails = req.body.followUpDetails;
@@ -112,8 +111,14 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
         createdBy: req.user._id
     });
 
-    // 4. Update Student Pending Fees
+    // 4. Update Student Pending Fees & Status
     student.pendingFees = student.pendingFees - Number(amountPaid);
+    
+    // UPDATED: Mark admission fee as paid so student can move to Registration phase
+    if (!student.isAdmissionFeesPaid) {
+        student.isAdmissionFeesPaid = true;
+    }
+
     await student.save();
 
     res.status(201).json(receipt);
