@@ -174,15 +174,21 @@ const StudentAdmission = () => {
             return;
         }
 
+        // Use primaryCourse (not courseData)
         const primaryCourse = previewCourses[0];
         
         const payload = {
             ...data,
-            course: courseData.courseId,
-            batch: courseData.batch,
-            paymentMode: courseData.paymentType,
-            totalFees: courseData.fees,
+            course: primaryCourse.courseId,
+            batch: primaryCourse.batch,
             
+            // FIXED: paymentMode should be the method (Cash/Online), NOT the plan (One Time/Monthly).
+            // If paying later, send null/undefined so the backend accepts it.
+            paymentMode: payAdmissionFee ? data.receiptPaymentMode : undefined,
+            
+            totalFees: primaryCourse.fees,
+            
+            // This is where 'One Time' or 'Monthly' belongs
             paymentPlan: primaryCourse.paymentType,
             
             // Reference Logic
@@ -195,7 +201,7 @@ const StudentAdmission = () => {
 
             // Fee Logic
             isAdmissionFeesPaid: payAdmissionFee,
-            pendingFees: payAdmissionFee ? (courseData.fees - (Number(data.amountPaid) || 0)) : courseData.fees,
+            pendingFees: payAdmissionFee ? (primaryCourse.fees - (Number(data.amountPaid) || 0)) : primaryCourse.fees,
             
             feeDetails: payAdmissionFee ? {
                 amount: Number(data.amountPaid),
