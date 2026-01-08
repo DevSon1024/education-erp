@@ -24,7 +24,7 @@ import FeedbackPage from './pages/user/FeedbackPage';
 
 // Master Pages
 import StudentList from './pages/admin/master/StudentList';
-import StudentRegistration from './pages/admin/master/StudentRegistration';
+import StudentAdmission from './pages/admin/master/StudentAdmission'; // UPDATED IMPORT
 import CourseMaster from './pages/admin/master/CourseMaster';
 import BatchMaster from './pages/admin/master/BatchMaster';
 import EmployeeMaster from './pages/admin/master/EmployeeMaster';
@@ -48,7 +48,7 @@ import PendingAdmissionFeePayment from './pages/admin/transaction/PendingAdmissi
 import StudentCancellation from './pages/admin/transaction/StudentCancellation';
 import PendingStudentRegistration from './pages/admin/transaction/PendingStudentRegistration';
 import StudentRegistrationProcess from './pages/admin/transaction/StudentRegistrationProcess';
-// Private Route Wrapper
+
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   return user ? children : <Navigate to="/login" />;
@@ -61,19 +61,14 @@ function App() {
     <>
       <Router>
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-          
-          {/* Show Admin Navbar ONLY if user is logged in. 
-              Since we redirect logged-in users away from '/', this logic is safe. */}
           {user && <Navbar />}
-          
           <Routes>
-            
             {/* PRIVATE ADMIN ROUTES */}
             <Route path="/home" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
 
             {/* MASTER ROUTES */}
             <Route path="/master/student" element={<PrivateRoute><StudentList /></PrivateRoute>} />
-            <Route path="/master/student/new" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
+            <Route path="/master/student/new" element={<PrivateRoute><StudentAdmission /></PrivateRoute>} /> 
             <Route path="/master/course" element={<PrivateRoute><CourseMaster /></PrivateRoute>} />
             <Route path="/master/batch" element={<PrivateRoute><BatchMaster /></PrivateRoute>} />
             <Route path="/master/subject" element={<PrivateRoute><SubjectMaster /></PrivateRoute>} />
@@ -94,7 +89,10 @@ function App() {
             <Route path="/transaction/visitors" element={<PrivateRoute><Visitors /></PrivateRoute>} />
             <Route path="/transaction/pending-admission-fees" element={<PrivateRoute><PendingAdmissionFees /></PrivateRoute>} />
             <Route path="/transaction/admission-payment/:id" element={<PrivateRoute><PendingAdmissionFeePayment /></PrivateRoute>} />
-            <Route path="/transaction/student-registration" element={<PrivateRoute><StudentRegistration /></PrivateRoute>} />
+            
+            {/* Updated Route for Student Registration (Admission) */}
+            <Route path="/transaction/student-registration" element={<PrivateRoute><StudentAdmission /></PrivateRoute>} />
+            
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
             <Route path="/transaction/pending-registration" element={<PrivateRoute><PendingStudentRegistration /></PrivateRoute>} />
              <Route path="/transaction/student-registration-process/:id" element={<PrivateRoute><StudentRegistrationProcess /></PrivateRoute>} />
@@ -113,13 +111,10 @@ function App() {
               <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
               <Route path="/register" element={user ? <Navigate to="/home" replace /> : <RegisterPage />} />
             </Route>
-
-            {/* CATCH ALL */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
       </Router>
-      
       <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </>
   );

@@ -3,17 +3,20 @@ const mongoose = require('mongoose');
 const studentSchema = new mongoose.Schema({
     // --- System Fields ---
     enrollmentNo: { type: String, unique: true }, 
-    regNo: { type: String, unique: true, sparse: true }, // Changed: Not required initially
+    regNo: { type: String, unique: true, sparse: true }, 
     isActive: { type: Boolean, default: true },
-    isRegistered: { type: Boolean, default: false }, // New Flag
+    isRegistered: { type: Boolean, default: false }, 
     isDeleted: { type: Boolean, default: false },
+    isAdmissionFeesPaid: { type: Boolean, default: false }, // NEW FLAG
+    
     branchName: { type: String, default: 'Main Branch' },
-    registrationDate: { type: Date }, // Will be set on registration
+    registrationDate: { type: Date }, 
 
     // --- Personal Details ---
     admissionDate: { type: Date, required: true, default: Date.now },
     aadharCard: { type: String, required: true },
     firstName: { type: String, required: true },
+    relationType: { type: String, enum: ['Father', 'Husband'], default: 'Father' }, // NEW
     middleName: { type: String, required: true }, 
     lastName: { type: String, required: true },
     motherName: { type: String },
@@ -37,13 +40,20 @@ const studentSchema = new mongoose.Schema({
     occupationType: { type: String, enum: ['Service', 'Business', 'Student', 'Unemployed'] },
     occupationName: { type: String },
     education: { type: String },
+    
+    // Reference
     reference: { type: String, required: true },
+    referenceDetails: { // NEW: For manually added references
+        name: String,
+        contact: String,
+        address: String
+    },
 
     // --- Academic & Fees ---
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
     batch: { type: String, required: true },
     
-    paymentMode: { type: String, enum: ['Cash', 'Online', 'EMI'], required: true },
+    paymentMode: { type: String, enum: ['One Time', 'Monthly', 'EMI'], required: true },
     totalFees: { type: Number, required: true },
     pendingFees: { type: Number, required: true },
     
@@ -52,9 +62,9 @@ const studentSchema = new mongoose.Schema({
 
     // EMI Details (Optional)
     emiDetails: {
-        downPayment: { type: Number, default: 0 },
-        installments: { type: Number, default: 0 },
-        installmentAmount: { type: Number, default: 0 }
+        registrationFees: Number,
+        monthlyInstallment: Number,
+        months: Number
     }
 
 }, { timestamps: true });
