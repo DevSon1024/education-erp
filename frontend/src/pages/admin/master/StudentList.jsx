@@ -10,7 +10,7 @@ const StudentList = () => {
   const { students, pagination, isLoading } = useSelector((state) => state.students);
   const { courses } = useSelector((state) => state.master);
   
-  // Filter States
+  // Filter States - Defaulting isRegistered to 'true'
   const [filters, setFilters] = useState({
     fromDate: '',
     toDate: '',
@@ -18,18 +18,19 @@ const StudentList = () => {
     studentName: '',
     batch: '',
     pageSize: 10,
-    pageNumber: 1
+    pageNumber: 1,
+    isRegistered: 'true' // ONLY Show Registered Students
   });
 
   useEffect(() => {
     dispatch(fetchCourses());
-    dispatch(fetchBatches()); // Assume existing fetchBatches logic
+    dispatch(fetchBatches()); 
   }, [dispatch]);
 
   // Debounce or Effect trigger
   useEffect(() => {
     dispatch(fetchStudents(filters));
-  }, [dispatch, filters]); // Fetch whenever filters change
+  }, [dispatch, filters]); 
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value, pageNumber: 1 });
@@ -37,7 +38,14 @@ const StudentList = () => {
 
   const resetFilters = () => {
     setFilters({
-        fromDate: '', toDate: '', courseId: '', studentName: '', batch: '', pageSize: 10, pageNumber: 1
+        fromDate: '', 
+        toDate: '', 
+        courseId: '', 
+        studentName: '', 
+        batch: '', 
+        pageSize: 10, 
+        pageNumber: 1,
+        isRegistered: 'true' // Reset back to showing registered only
     });
   };
 
@@ -103,12 +111,12 @@ const StudentList = () => {
             <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                     <tr>
+                        <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Reg No</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Enroll No</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Name</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Father/Husband</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Mobile</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Course</th>
-                        <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase">Branch</th>
                         <th className="px-4 py-3 text-center font-medium text-gray-500 uppercase">Active</th>
                         <th className="px-4 py-3 text-right font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
@@ -116,14 +124,14 @@ const StudentList = () => {
                 <tbody className="divide-y divide-gray-200 bg-white">
                     {students.length > 0 ? students.map((s) => (
                         <tr key={s._id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 whitespace-nowrap font-mono text-xs">{s.enrollmentNo || s.regNo}</td>
+                            <td className="px-4 py-3 font-bold text-blue-800">{s.regNo}</td>
+                            <td className="px-4 py-3 text-gray-500 font-mono text-xs">{s.enrollmentNo}</td>
                             <td className="px-4 py-3 font-medium text-gray-900">{s.firstName} {s.lastName}</td>
                             <td className="px-4 py-3 text-gray-500">{s.middleName}</td>
                             <td className="px-4 py-3 text-gray-500">{s.mobileParent}</td>
                             <td className="px-4 py-3">
                                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">{s.course?.name}</span>
                             </td>
-                            <td className="px-4 py-3 text-gray-500">{s.branchName}</td>
                             <td className="px-4 py-3 text-center">
                                 <button onClick={() => dispatch(toggleActiveStatus(s._id))} className="text-primary hover:scale-110 transition">
                                     {s.isActive ? <CheckSquare className="text-green-600" size={20}/> : <Square className="text-gray-400" size={20}/>}
@@ -132,12 +140,11 @@ const StudentList = () => {
                             <td className="px-4 py-3 text-right flex justify-end gap-2">
                                 <button title="View" className="text-blue-500 hover:bg-blue-50 p-1 rounded"><Eye size={18}/></button>
                                 <button title="Edit" className="text-orange-500 hover:bg-orange-50 p-1 rounded"><Edit size={18}/></button>
-                                <button title="Print Form" className="text-gray-600 hover:bg-gray-100 p-1 rounded"><Printer size={18}/></button>
                                 <button title="Marksheet" className="text-purple-600 hover:bg-purple-50 p-1 rounded"><FileText size={18}/></button>
                             </td>
                         </tr>
                     )) : (
-                        <tr><td colSpan="8" className="text-center py-8 text-gray-400">No students found matching your criteria</td></tr>
+                        <tr><td colSpan="8" className="text-center py-8 text-gray-400">No registered students found</td></tr>
                     )}
                 </tbody>
             </table>

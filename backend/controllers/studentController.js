@@ -1,6 +1,9 @@
 const Student = require('../models/Student');
 const User = require('../models/User'); 
 const FeeReceipt = require('../models/FeeReceipt'); 
+const Course = require('../models/Course');
+const Batch = require('../models/Batch'); // Import Batch for time details
+const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
 
 // @desc    Get Students
@@ -31,6 +34,7 @@ const getStudents = asyncHandler(async (req, res) => {
         query.admissionDate = { $gte: new Date(startDate), $lte: end };
     }
 
+    // Filter by Registration Status
     if (isRegistered !== undefined) {
         query.isRegistered = isRegistered === 'true';
     }
@@ -57,44 +61,40 @@ const getStudentById = asyncHandler(async (req, res) => {
 
 // @desc    Create Student (Admission Phase)
 const createStudent = asyncHandler(async (req, res) => {
-    const { feeDetails, ...studentData } = req.body;
+    const pendingFees = req.body.totalFees;
 
     try {
         // 1. Create Student
         const student = await Student.create({
-            ...studentData,
-            isRegistered: false // Initially false until final registration step
+            ...req.body,
+            pendingFees,
+            isRegistered: false 
         });
 
-        // 2. Handle Conditional Admission Fee Payment
-        if (student && feeDetails && feeDetails.amount > 0) {
-            
-            // Generate Receipt Number
-            const feeCount = await FeeReceipt.countDocuments();
-            const receiptNo = `REC-${new Date().getFullYear()}-${1000 + feeCount + 1}`;
+        // 2. Prepare Data for SMS
+        const courseDoc = await Course.findById(student.course);
+        const batchDoc = await Batch.findOne({ name: student.batch }); // Assuming batch stored as name
+        
+        const courseName = courseDoc ? courseDoc.name : 'N/A';
+        const batchTime = batchDoc ? `${batchDoc.startTime} to ${batchDoc.endTime}` : 'N/A';
+        const fullName = `${student.firstName} ${student.lastName}`;
 
-            // Create Receipt
-            await FeeReceipt.create({
-                receiptNo,
-                student: student._id,
-                course: student.course,
-                amountPaid: feeDetails.amount,
-                paymentMode: feeDetails.paymentMode || 'Cash',
-                remarks: feeDetails.remarks || 'Admission Fee (At Admission)',
-                date: feeDetails.date || new Date(),
-                createdBy: req.user?._id // Requires Auth Middleware
-            });
+        // 3. Construct Message
+        // Template: Welcome to Smart Institute, Dear, {Student_Name}. your admission has been successfully completed. Enrollment No. ${var2}, course ${var3}, Batch Time ${var4}
+        const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. Your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, Course ${courseName}, Batch Time ${batchTime}`;
 
-            // Update Student Status
-            student.pendingFees = student.totalFees - feeDetails.amount;
-            student.isAdmissionFeesPaid = true; 
-            await student.save();
-        }
+        // 4. Send SMS to All Contacts
+        const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean); // Remove null/undefined
+        
+        // Send asynchronously without blocking response
+        Promise.all(contacts.map(num => sendSMS(num, smsMessage)))
+            .then(() => console.log('Admission SMS sent successfully'))
+            .catch(err => console.error('Admission SMS failed', err));
 
         res.status(201).json(student);
     } catch (error) {
         res.status(400);
-        throw new Error('Admission Failed: ' + error.message);
+        throw new Error('Invalid Student Data: ' + error.message);
     }
 });
 
@@ -108,7 +108,7 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     const { 
         regNo, 
         username, password, 
-        feeDetails // Optional if admission fee wasn't paid earlier
+        feeDetails 
     } = req.body;
 
     // 1. Generate Reg No
@@ -121,17 +121,17 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     // 2. Create User Login
     const newUser = await User.create({
         name: `${student.firstName} ${student.lastName}`,
-        email: student.email || `${finalRegNo}@institute.com`,
+        email: student.email || `${finalRegNo}@institute.com`, 
         username: username,
         password: password,
         role: 'Student'
     });
 
-    // 3. Create Fee Receipt (Only if paying now)
+    // 3. Create Fee Receipt
     if (feeDetails && feeDetails.amount > 0) {
         const feeCount = await FeeReceipt.countDocuments();
         await FeeReceipt.create({
-            receiptNo: `REC-${2000 + feeCount + 1}`,
+            receiptNo: `REC-${2000 + feeCount + 1}`, 
             student: student._id,
             course: student.course,
             amountPaid: feeDetails.amount,
@@ -148,6 +148,16 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     student.registrationDate = new Date();
     student.userId = newUser._id;
     await student.save();
+
+    // 5. Send Registration SMS
+    // Template: Dear, ${Stundent_name}. Your Registration process has been successfully completed. Reg.No. ${var2}, User ID-${username}, Password-${password}, smart institute.
+    if (student.mobileStudent) {
+        const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, Smart Institute.`;
+        
+        sendSMS(student.mobileStudent, regMessage)
+            .then(() => console.log('Registration SMS sent'))
+            .catch(err => console.error('Registration SMS failed', err));
+    }
 
     res.json({ message: 'Registration Confirmed', student });
 });

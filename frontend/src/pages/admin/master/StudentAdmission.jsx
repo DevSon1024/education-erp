@@ -46,9 +46,12 @@ const StudentAdmission = () => {
     } = useForm({
         defaultValues: {
             admissionDate: new Date().toISOString().split('T')[0],
+            paymentMode: 'Cash',
             state: 'Gujarat',
             city: 'Surat',
             relationType: 'Father',
+            reference: 'Walk-in',
+            middleName: '',
             receiptDate: new Date().toISOString().split('T')[0]
         }
     });
@@ -167,11 +170,11 @@ const StudentAdmission = () => {
 
     const onSubmit = (data) => {
         if (previewCourses.length === 0) {
-            toast.error("Please add course details");
+            toast.error("Please add at least one course.");
             return;
         }
 
-        const courseData = previewCourses[0];
+        const primaryCourse = previewCourses[0];
         
         const payload = {
             ...data,
@@ -179,6 +182,8 @@ const StudentAdmission = () => {
             batch: courseData.batch,
             paymentMode: courseData.paymentType,
             totalFees: courseData.fees,
+            
+            paymentPlan: primaryCourse.paymentType,
             
             // Reference Logic
             reference: isNewReference ? 'New Reference' : data.reference,

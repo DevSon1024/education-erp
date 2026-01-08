@@ -7,8 +7,6 @@ const studentSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true },
     isRegistered: { type: Boolean, default: false }, 
     isDeleted: { type: Boolean, default: false },
-    isAdmissionFeesPaid: { type: Boolean, default: false }, // NEW FLAG
-    
     branchName: { type: String, default: 'Main Branch' },
     registrationDate: { type: Date }, 
 
@@ -16,8 +14,7 @@ const studentSchema = new mongoose.Schema({
     admissionDate: { type: Date, required: true, default: Date.now },
     aadharCard: { type: String, required: true },
     firstName: { type: String, required: true },
-    relationType: { type: String, enum: ['Father', 'Husband'], default: 'Father' }, // NEW
-    middleName: { type: String, required: true }, 
+    middleName: { type: String }, // CHANGED: Removed required: true to prevent 400 error
     lastName: { type: String, required: true },
     motherName: { type: String },
     
@@ -40,22 +37,19 @@ const studentSchema = new mongoose.Schema({
     occupationType: { type: String, enum: ['Service', 'Business', 'Student', 'Unemployed'] },
     occupationName: { type: String },
     education: { type: String },
-    
-    // Reference
-    reference: { type: String, required: true },
-    referenceDetails: { // NEW: For manually added references
-        name: String,
-        contact: String,
-        address: String
-    },
+    reference: { type: String, default: 'Direct' }, // CHANGED: Added default
 
     // --- Academic & Fees ---
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
     batch: { type: String, required: true },
     
-    paymentMode: { type: String, enum: ['One Time', 'Monthly', 'EMI'], required: true },
+    // CHANGED: Made optional because "Pay Later" has no mode yet
+    paymentMode: { type: String, enum: ['Cash', 'Online', 'EMI', 'Cheque', 'Bank Transfer'] }, 
+    paymentPlan: { type: String, enum: ['One Time', 'Monthly'] }, // New Field
+    
     totalFees: { type: Number, required: true },
-    pendingFees: { type: Number, required: true },
+    pendingFees: { type: Number, default: 0 }, // CHANGED: Added default
+    isAdmissionFeesPaid: { type: Boolean, default: false },
     
     // Link to User Login
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
