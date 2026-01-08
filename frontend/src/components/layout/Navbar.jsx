@@ -26,8 +26,8 @@ const TRANSACTION_MENU = [
       { name: 'Visitors', path: '/transaction/visitors' }
     ]
   },
-  { title: 'Pending Admission Fees', path: '/transaction/student-admission-fees', hasSubOptions: false },
-  { title: 'Student Registration', path: '/transaction/student-registration', hasSubOptions: false },
+  { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees', hasSubOptions: false },
+  { title: 'Pending Student Registration', path: '/transaction/pending-registration', hasSubOptions: false },
   { title: 'Student Cancellation', path: '/transaction/student-cancellation', hasSubOptions: false },
   { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false }
 ];
@@ -48,7 +48,7 @@ const BASE_MENU_ITEMS = [
     path: '/transaction',
     isCustom: true,
     customMenu: TRANSACTION_MENU,
-    subItems: [] // Added empty array to be safe, but code fix below handles it too
+    subItems: []
   },
   { 
     title: 'Reports', 

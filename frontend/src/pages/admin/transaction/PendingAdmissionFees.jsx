@@ -5,7 +5,7 @@ import { fetchStudents } from '../../../features/student/studentSlice';
 import SmartTable from '../../../components/ui/SmartTable';
 import { Filter, Search, RotateCcw, Printer, Eye, CreditCard } from 'lucide-react';
 
-const StudentAdmissionFees = () => {
+const PendingAdmissionFees = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { students, pagination, isLoading } = useSelector((state) => state.students);
@@ -238,4 +238,4 @@ const StudentAdmissionFees = () => {
   );
 };
 
-export default StudentAdmissionFees;
+export default PendingAdmissionFees;

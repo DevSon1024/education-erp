@@ -38,7 +38,7 @@ const PendingAdmissionFeePayment = () => {
       toast.success(message);
       // Redirect to list after short delay
       setTimeout(() => {
-        navigate('/transaction/student-admission-fees');
+        navigate('/transaction/pending-admission-fees');
       }, 1500);
     }
   }, [isSuccess, message, navigate]);

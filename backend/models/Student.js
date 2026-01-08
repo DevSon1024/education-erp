@@ -3,17 +3,18 @@ const mongoose = require('mongoose');
 const studentSchema = new mongoose.Schema({
     // --- System Fields ---
     enrollmentNo: { type: String, unique: true }, 
-    regNo: { type: String, required: true, unique: true },
+    regNo: { type: String, unique: true, sparse: true }, // Changed: Not required initially
     isActive: { type: Boolean, default: true },
+    isRegistered: { type: Boolean, default: false }, // New Flag
     isDeleted: { type: Boolean, default: false },
     branchName: { type: String, default: 'Main Branch' },
-    registrationDate: { type: Date, default: Date.now }, // Added as per requirement
+    registrationDate: { type: Date }, // Will be set on registration
 
     // --- Personal Details ---
     admissionDate: { type: Date, required: true, default: Date.now },
     aadharCard: { type: String, required: true },
     firstName: { type: String, required: true },
-    middleName: { type: String, required: true }, // Father/Husband Name
+    middleName: { type: String, required: true }, 
     lastName: { type: String, required: true },
     motherName: { type: String },
     
@@ -46,6 +47,9 @@ const studentSchema = new mongoose.Schema({
     totalFees: { type: Number, required: true },
     pendingFees: { type: Number, required: true },
     
+    // Link to User Login
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
     // EMI Details (Optional)
     emiDetails: {
         downPayment: { type: Number, default: 0 },
@@ -57,7 +61,7 @@ const studentSchema = new mongoose.Schema({
 
 // Middleware for Enrollment No
 studentSchema.pre('save', async function() {
-    if (!this.enrollmentNo) {
+    if (this.isNew && !this.enrollmentNo) {
         const count = await mongoose.model('Student').countDocuments();
         this.enrollmentNo = `ENR${new Date().getFullYear()}${String(count + 1).padStart(4, '0')}`;
     }
