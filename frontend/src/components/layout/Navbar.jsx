@@ -30,7 +30,15 @@ const TRANSACTION_MENU = [
   { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees', hasSubOptions: false },
   { title: 'Pending Student Registration', path: '/transaction/pending-registration', hasSubOptions: false },
   { title: 'Student Cancellation', path: '/transaction/student-cancellation', hasSubOptions: false },
-  { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false }
+  { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false },
+  {
+    title: 'Attendance',
+    hasSubOptions: true,
+    subOptions: [
+        { name: 'Student', path: '/transaction/attendance/student' },
+        { name: 'Employee', path: '#' } // Placeholder
+    ]
+  }
 ];
 
 const BASE_MENU_ITEMS = [
