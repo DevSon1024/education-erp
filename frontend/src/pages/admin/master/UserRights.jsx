@@ -8,7 +8,7 @@ import { Save, RefreshCw, CheckSquare, Square } from 'lucide-react';
 // Map Menu Titles to the specific Page Names used in the DB
 const SECTIONS = {
   'Master': ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'User Rights'],
-  'Transaction': ['Admission', 'Fees Receipt', 'Attendance', 'Inquiry'],
+  'Transaction': ['Admission', 'Fees Receipt', 'Inquiry'],
   'Reports': ['Ledger', 'Monthly Report', 'Admission Form'],
   'Blog': ['Manage Blogs', 'Comments'],
   'Connect': ['Video Call', 'Inquiry List'],

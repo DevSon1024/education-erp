@@ -49,7 +49,7 @@ import PendingAdmissionFeePayment from './pages/admin/transaction/PendingAdmissi
 import StudentCancellation from './pages/admin/transaction/StudentCancellation';
 import PendingStudentRegistration from './pages/admin/transaction/PendingStudentRegistration';
 import StudentRegistrationProcess from './pages/admin/transaction/StudentRegistrationProcess';
-import StudentAttendance from './pages/admin/transaction/attendance/StudentAttendance';
+
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -99,7 +99,7 @@ function App() {
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
             <Route path="/transaction/pending-registration" element={<PrivateRoute><PendingStudentRegistration /></PrivateRoute>} />
             <Route path="/transaction/student-registration-process/:id" element={<PrivateRoute><StudentRegistrationProcess /></PrivateRoute>} />
-            <Route path="/transaction/attendance/student" element={<PrivateRoute><StudentAttendance /></PrivateRoute>} />
+
 
             {/* PUBLIC PAGES */}
            <Route element={<PublicLayout />}>
