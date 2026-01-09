@@ -60,7 +60,7 @@ const getStudents = asyncHandler(async (req, res) => {
 // @desc    Get Single Student
 const getStudentById = asyncHandler(async (req, res) => {
     // UPDATED: Added admissionFees to populate so it can be used in fee payment page
-    const student = await Student.findById(req.params.id).populate('course', 'name admissionFees');
+    const student = await Student.findById(req.params.id).populate('course', 'name admissionFees registrationFees');
     if (student) res.json(student);
     else { res.status(404); throw new Error('Student not found'); }
 });
@@ -90,8 +90,8 @@ const createStudent = asyncHandler(async (req, res) => {
         // 2. Create Receipt if paying now
         if (feeDetails && feeDetails.amount > 0) {
             const feeCount = await FeeReceipt.countDocuments();
-            // Use Transaction Logic for Receipt No (Standardized)
-            const receiptNo = `REC-${1000 + feeCount + 1}`; // Ensure this logic matches transactionController
+            // Use Sequential Numbering
+            const receiptNo = String(feeCount + 1);
 
             await FeeReceipt.create({
                 receiptNo,
@@ -114,7 +114,7 @@ const createStudent = asyncHandler(async (req, res) => {
         const fullName = `${student.firstName} ${student.lastName}`;
 
         // 4. Construct Message
-        const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. Your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, Course ${courseName}, Batch Time ${batchTime}`;
+        const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. Your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
 
         // 5. Send SMS to All Contacts
         const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean); 
@@ -162,8 +162,10 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     // 3. Create Fee Receipt
     if (feeDetails && feeDetails.amount > 0) {
         const feeCount = await FeeReceipt.countDocuments();
+        const receiptNo = String(feeCount + 1);
+        
         await FeeReceipt.create({
-            receiptNo: `REC-${2000 + feeCount + 1}`, 
+            receiptNo,  
             student: student._id,
             course: student.course,
             amountPaid: feeDetails.amount,
@@ -183,7 +185,7 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
 
     // 5. Send Registration SMS
     if (student.mobileStudent) {
-        const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, Smart Institute.`;
+        const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, smart institute.`;
         
         sendSMS(student.mobileStudent, regMessage)
             .then(() => console.log('Registration SMS sent'))

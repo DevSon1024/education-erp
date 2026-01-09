@@ -141,7 +141,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
 
     // 2. Generate Receipt No
     const count = await FeeReceipt.countDocuments();
-    const receiptNo = `REC-${1000 + count + 1}`;
+    const receiptNo = String(count + 1);
 
     // 3. Create Receipt
     const receipt = await FeeReceipt.create({

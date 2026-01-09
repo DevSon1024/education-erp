@@ -46,6 +46,13 @@ const StudentRegistrationProcess = () => {
     }
   }, [isSuccess, message, navigate]);
 
+  // AUTO-FILL Registration Fees
+  useEffect(() => {
+      if (student && student.course && student.course.registrationFees) {
+          setFeeData(prev => ({ ...prev, amount: student.course.registrationFees }));
+      }
+  }, [student]);
+
   const handleContinue = (e) => {
     e.preventDefault();
     if(!regData.username || !regData.password) {
@@ -148,7 +155,7 @@ const StudentRegistrationProcess = () => {
         {/* SECTION 3: Fees Details (Shown after Continue) */}
         {step === 2 && (
           <div className="p-6 border-t animate-fade-in">
-             <h3 className="text-lg font-semibold text-gray-700 mb-4">Registration Fees Details</h3>
+             <h3 className="text-lg font-semibold text-gray-700 mb-4">Registration Fees Receipt</h3>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Receipt No</label>
