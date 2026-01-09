@@ -56,14 +56,12 @@ const updateExamSchedule = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Delete Exam Schedule
+// @desc    Delete Exam Schedule Permanently
 // @route   DELETE /api/master/exam-schedule/:id
 const deleteExamSchedule = asyncHandler(async (req, res) => {
-    const schedule = await ExamSchedule.findById(req.params.id);
+    const schedule = await ExamSchedule.findByIdAndDelete(req.params.id);
     if (schedule) {
-        schedule.isDeleted = true;
-        await schedule.save();
-        res.json({ id: req.params.id });
+        res.json({ id: req.params.id, message: 'Exam Schedule removed permanently' });
     } else {
         res.status(404); throw new Error('Schedule not found');
     }

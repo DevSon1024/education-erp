@@ -195,13 +195,14 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     res.json({ message: 'Registration Confirmed', student });
 });
 
-// @desc    Soft Delete Student
+// @desc    Permanent Delete Student
 const deleteStudent = asyncHandler(async (req, res) => {
-    const student = await Student.findById(req.params.id);
+    const student = await Student.findByIdAndDelete(req.params.id);
     if (student) {
-        student.isDeleted = true;
-        await student.save();
-        res.json({ message: 'Student removed' });
+        if(student.userId) {
+            await User.findByIdAndDelete(student.userId);
+        }
+        res.json({ message: 'Student removed permanently' });
     } else {
         res.status(404); throw new Error('Student not found');
     }

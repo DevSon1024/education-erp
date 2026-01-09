@@ -24,7 +24,7 @@ import FeedbackPage from './pages/user/FeedbackPage';
 
 // Master Pages
 import StudentList from './pages/admin/master/StudentList';
-import StudentAdmission from './pages/admin/master/StudentAdmission'; // UPDATED IMPORT
+import StudentAdmission from './pages/admin/master/StudentAdmission';
 import CourseMaster from './pages/admin/master/CourseMaster';
 import BatchMaster from './pages/admin/master/BatchMaster';
 import EmployeeMaster from './pages/admin/master/EmployeeMaster';

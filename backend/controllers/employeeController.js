@@ -137,15 +137,14 @@ const updateEmployee = asyncHandler(async (req, res) => {
 });
 
 // @desc    Delete Employee
+// @desc    Delete Employee Permanently
 const deleteEmployee = asyncHandler(async (req, res) => {
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findByIdAndDelete(req.params.id);
     if (employee) {
-        employee.isDeleted = true;
         if(employee.userAccount) {
-            await User.findByIdAndUpdate(employee.userAccount, { isActive: false });
+            await User.findByIdAndDelete(employee.userAccount);
         }
-        await employee.save();
-        res.json({ id: req.params.id, message: 'Employee Removed' });
+        res.json({ id: req.params.id, message: 'Employee Removed Permanently' });
     } else {
         res.status(404); throw new Error('Employee not found');
     }

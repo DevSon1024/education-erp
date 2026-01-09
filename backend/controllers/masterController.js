@@ -43,11 +43,9 @@ const updateCourse = asyncHandler(async (req, res) => {
 });
 
 const deleteCourse = asyncHandler(async (req, res) => {
-    const course = await Course.findById(req.params.id);
+    const course = await Course.findByIdAndDelete(req.params.id);
     if (course) {
-        course.isDeleted = true;
-        await course.save();
-        res.json({ id: req.params.id, message: 'Course removed' });
+        res.json({ id: req.params.id, message: 'Course removed permanently' });
     } else {
         res.status(404); throw new Error('Course not found');
     }
@@ -96,11 +94,9 @@ const updateBatch = asyncHandler(async (req, res) => {
 });
 
 const deleteBatch = asyncHandler(async (req, res) => {
-    const batch = await Batch.findById(req.params.id);
+    const batch = await Batch.findByIdAndDelete(req.params.id);
     if (batch) {
-        batch.isDeleted = true;
-        await batch.save();
-        res.json({ id: req.params.id, message: 'Batch removed' });
+        res.json({ id: req.params.id, message: 'Batch removed permanently' });
     } else {
         res.status(404); throw new Error('Batch not found');
     }
@@ -138,11 +134,9 @@ const updateSubject = asyncHandler(async (req, res) => {
 });
 
 const deleteSubject = asyncHandler(async (req, res) => {
-    const subject = await Subject.findById(req.params.id);
+    const subject = await Subject.findByIdAndDelete(req.params.id);
     if (subject) {
-        subject.isDeleted = true;
-        await subject.save();
-        res.json({ id: req.params.id, message: 'Subject Removed' });
+        res.json({ id: req.params.id, message: 'Subject Removed Permanently' });
     } else {
         res.status(404); throw new Error('Subject not found');
     }

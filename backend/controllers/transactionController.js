@@ -75,8 +75,11 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
         if(req.body.nextVisitingDate) inquiry.nextVisitingDate = req.body.nextVisitingDate;
         if(req.body.visitReason) inquiry.visitReason = req.body.visitReason;
 
-        // Soft Delete
-        if(req.body.isDeleted !== undefined) inquiry.isDeleted = req.body.isDeleted;
+        // Permanent Delete Signal
+        if(req.body.isDeleted === true) {
+             await Inquiry.findByIdAndDelete(req.params.id);
+             return res.json({ id: req.params.id, message: 'Inquiry Removed Permanently' });
+        }
 
         await inquiry.save();
         res.json(inquiry);
