@@ -4,7 +4,8 @@ const { protect } = require('../middlewares/authMiddleware');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
 const { 
     getInquiries, createInquiry, updateInquiryStatus,
-    createFeeReceipt, getStudentFees 
+    createFeeReceipt, getStudentFees,
+    getFeeReceipts, updateFeeReceipt, deleteFeeReceipt
 } = require('../controllers/transactionController');
 
 // --- Inquiry Routes ---
@@ -17,9 +18,14 @@ router.route('/inquiry/:id')
 
 // --- Fees Receipt Routes ---
 router.route('/fees')
+    .get(protect, checkPermission('Fees Receipt', 'view'), getFeeReceipts)
     .post(protect, checkPermission('Fees Receipt', 'add'), createFeeReceipt);
 
-router.route('/fees/:studentId')
+router.route('/fees/:id')
+    .put(protect, checkPermission('Fees Receipt', 'edit'), updateFeeReceipt)
+    .delete(protect, checkPermission('Fees Receipt', 'delete'), deleteFeeReceipt);
+
+router.route('/fees/student/:studentId')
     // Viewing fees requires 'view' permission on Fees Receipt
     .get(protect, checkPermission('Fees Receipt', 'view'), getStudentFees);
 

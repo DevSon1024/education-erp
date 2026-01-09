@@ -36,6 +36,30 @@ export const collectFees = createAsyncThunk('transaction/collectFees', async (da
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+// Fetch Receipts
+export const fetchFeeReceipts = createAsyncThunk('transaction/fetchFeeReceipts', async (filters = {}, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'fees', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+// Update Receipt
+export const updateFeeReceipt = createAsyncThunk('transaction/updateFeeReceipt', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}fees/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+// Delete Receipt
+export const deleteFeeReceipt = createAsyncThunk('transaction/deleteFeeReceipt', async (id, thunkAPI) => {
+    try {
+        await axios.delete(`${API_URL}fees/${id}`);
+        return id;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 const transactionSlice = createSlice({
     name: 'transaction',
     initialState: {
@@ -68,6 +92,21 @@ const transactionSlice = createSlice({
             .addCase(collectFees.fulfilled, (state, action) => {
                 state.isSuccess = true;
                 state.message = `Fee Receipt Generated: ${action.payload.receiptNo}`;
+                state.receipts.unshift(action.payload);
+            })
+            .addCase(fetchFeeReceipts.fulfilled, (state, action) => {
+                state.receipts = action.payload;
+            })
+            .addCase(updateFeeReceipt.fulfilled, (state, action) => {
+                const index = state.receipts.findIndex(r => r._id === action.payload._id);
+                if(index !== -1) state.receipts[index] = action.payload;
+                state.isSuccess = true;
+                state.message = 'Receipt Updated Successfully';
+            })
+            .addCase(deleteFeeReceipt.fulfilled, (state, action) => {
+                state.receipts = state.receipts.filter(r => r._id !== action.payload);
+                state.isSuccess = true;
+                state.message = 'Receipt Deleted Successfully';
             });
     }
 });

@@ -4,12 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { registerStudent, fetchStudents, resetStatus } from '../../../features/student/studentSlice';
 import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
 import { fetchInquiries } from '../../../features/transaction/transactionSlice';
-import { fetchEmployees } from '../../../features/employee/employeeSlice'; 
+import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { 
     Upload, ChevronRight, ChevronLeft, Save, 
-    Search, AlertCircle, Trash2, Plus, X, UserCheck
+    Search, AlertCircle, Trash2, Plus, X, UserCheck, 
+    CreditCard, CheckCircle 
 } from 'lucide-react';
 
 const LOCATION_DATA = {
@@ -18,16 +19,21 @@ const LOCATION_DATA = {
     "Delhi": ["New Delhi", "Noida", "Gurgaon"]
 };
 
+// Helper to get unique education list from existing students
+const getUniqueEducation = (students) => {
+    const methods = new Set(["10th Pass", "12th Pass", "Graduate", "Post Graduate"]);
+    students?.forEach(s => { if(s.education) methods.add(s.education); });
+    return Array.from(methods);
+};
+
 const StudentAdmission = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     
-    // Redux State
-    const { isSuccess, students } = useSelector((state) => state.students);
+    // Redux
+    const { isSuccess, students, isLoading, message } = useSelector((state) => state.students);
     const { inquiries } = useSelector((state) => state.transaction);
     const { courses, batches } = useSelector((state) => state.master);
-    
-    // FIXED: Changed state.employee to state.employees to match store.js
     const { employees } = useSelector((state) => state.employees) || { employees: [] };
 
     // Local State
@@ -36,22 +42,20 @@ const StudentAdmission = () => {
     const [previewCourses, setPreviewCourses] = useState([]); 
     const [foundInquiry, setFoundInquiry] = useState(null);
     const [duplicateStudent, setDuplicateStudent] = useState(null);
-    const [payAdmissionFee, setPayAdmissionFee] = useState(false);
+    const [payAdmissionFee, setPayAdmissionFee] = useState(null); // null, true, false
     const [isNewReference, setIsNewReference] = useState(false);
+    
+    const [educationOptions, setEducationOptions] = useState([]);
 
-    // Form Setup
-    const { 
-        register, handleSubmit, watch, setValue, trigger, getValues,
-        formState: { errors } 
-    } = useForm({
+    // Form
+    const { register, handleSubmit, watch, setValue, trigger, getValues, formState: { errors } } = useForm({
         defaultValues: {
             admissionDate: new Date().toISOString().split('T')[0],
-            paymentMode: 'Cash',
             state: 'Gujarat',
             city: 'Surat',
-            relationType: 'Father',
-            reference: 'Walk-in',
-            middleName: '',
+            relationType: 'Father', // Default
+            reference: 'Direct',
+            receiptPaymentMode: 'Cash',
             receiptDate: new Date().toISOString().split('T')[0]
         }
     });
@@ -63,7 +67,7 @@ const StudentAdmission = () => {
     const watchState = watch('state');
     const watchRelation = watch('relationType');
 
-    // --- 1. INITIALIZATION ---
+    // --- INITIALIZATION ---
     useEffect(() => {
         dispatch(fetchCourses());
         dispatch(fetchBatches());
@@ -73,27 +77,32 @@ const StudentAdmission = () => {
     }, [dispatch]);
 
     useEffect(() => {
+        if(students) setEducationOptions(getUniqueEducation(students));
+    }, [students]);
+
+    useEffect(() => {
         if (isSuccess) {
             toast.success(payAdmissionFee ? "Student Admitted & Fees Paid!" : "Admission Draft Created!");
             dispatch(resetStatus());
             navigate(payAdmissionFee ? '/transaction/pending-student-registration' : '/transaction/pending-admission-fees');
         }
-    }, [isSuccess, dispatch, navigate, payAdmissionFee]);
+        if (message && !isSuccess && !isLoading) {
+             toast.error(message);
+             dispatch(resetStatus());
+        }
+    }, [isSuccess, message, isLoading, dispatch, navigate, payAdmissionFee]);
 
-    // Reference Logic
-    useEffect(() => {
-        setIsNewReference(watchReference === 'NEW_REF');
-    }, [watchReference]);
-
-    // Duplicate & Inquiry Check
+    // --- LOGIC: Inquiry & Duplicate ---
     useEffect(() => {
         if (watchFirstName && watchLastName) {
+            // Check Inquiry
             const inquiry = inquiries.find(i => 
                 i.firstName?.toLowerCase() === watchFirstName.toLowerCase() && 
                 i.lastName?.toLowerCase() === watchLastName.toLowerCase()
             );
             setFoundInquiry(inquiry || null);
 
+            // Check Duplicate Student
             const student = students.find(s => 
                 s.firstName?.toLowerCase() === watchFirstName.toLowerCase() && 
                 s.lastName?.toLowerCase() === watchLastName.toLowerCase()
@@ -102,6 +111,8 @@ const StudentAdmission = () => {
         }
     }, [watchFirstName, watchLastName, inquiries, students]);
 
+     useEffect(() => { setIsNewReference(watchReference === 'NEW_REF'); }, [watchReference]);
+
     const handleAutofillInquiry = () => {
         if (foundInquiry) {
             setValue('firstName', foundInquiry.firstName);
@@ -109,12 +120,13 @@ const StudentAdmission = () => {
             setValue('middleName', foundInquiry.middleName || '');
             setValue('email', foundInquiry.email || '');
             setValue('gender', foundInquiry.gender || 'Male');
-            setValue('mobileParent', foundInquiry.contactParent || foundInquiry.mobileParent || '');
-            setValue('mobileStudent', foundInquiry.contactStudent || foundInquiry.mobileStudent || '');
+            setValue('mobileParent', foundInquiry.contactParent || '');
+            setValue('mobileStudent', foundInquiry.contactStudent || '');
             setValue('address', foundInquiry.address || '');
             setValue('state', foundInquiry.state || 'Gujarat');
             setValue('city', foundInquiry.city || 'Surat');
-            toast.info("Inquiry Data Autofilled");
+            setValue('education', foundInquiry.education || '');
+            toast.info("Data Autofilled from Inquiry");
             setFoundInquiry(null);
         }
     };
@@ -127,6 +139,7 @@ const StudentAdmission = () => {
         }
     };
 
+    // --- LOGIC: Course & Fees ---
     const handleAddCourseToList = () => {
         const courseId = getValues('selectedCourseId');
         const batchName = getValues('selectedBatch');
@@ -134,22 +147,30 @@ const StudentAdmission = () => {
         const paymentType = getValues('paymentType');
 
         if (!courseId || !batchName || !startDate) {
-            toast.error("Select Course, Batch and Date");
+            toast.error("Please select Course, Batch and Start Date");
             return;
         }
 
         const courseObj = courses.find(c => c._id === courseId);
         const batchObj = batches.find(b => b.name === batchName);
 
-        // Financials
+        // Calculate Fees
         let finalFees = courseObj.courseFees;
         let emiConfig = null;
 
         if (paymentType === 'Monthly') {
             const regFees = courseObj.registrationFees || 0;
             const installments = courseObj.totalInstallment || 1;
-            const monthlyAmt = Math.ceil((finalFees - regFees) / installments);
-            emiConfig = { registrationFees: regFees, monthlyInstallment: monthlyAmt, months: installments };
+            // Fee Breakdown Logic
+            const remaining = finalFees - regFees;
+            const monthlyAmt = Math.ceil(remaining / installments);
+            
+            emiConfig = {
+                registrationFees: regFees,
+                monthlyInstallment: monthlyAmt,
+                months: installments,
+                admissionFees: courseObj.admissionFees || 500
+            };
         }
 
         const newEntry = {
@@ -164,45 +185,34 @@ const StudentAdmission = () => {
             paymentType,
             emiConfig
         };
-
         setPreviewCourses([newEntry]); 
+        setValue('selectedCourseId', null); // Reset selection to allow viewing batch logic again if needed, though strictly we act on preview
     };
 
     const onSubmit = (data) => {
         if (previewCourses.length === 0) {
-            toast.error("Please add at least one course.");
+            toast.error("Please add a course first.");
             return;
         }
 
-        // Use primaryCourse (not courseData)
         const primaryCourse = previewCourses[0];
         
         const payload = {
             ...data,
             course: primaryCourse.courseId,
             batch: primaryCourse.batch,
-            
-            // FIXED: paymentMode should be the method (Cash/Online), NOT the plan (One Time/Monthly).
-            // If paying later, send null/undefined so the backend accepts it.
-            paymentMode: payAdmissionFee ? data.receiptPaymentMode : undefined,
-            
             totalFees: primaryCourse.fees,
             
-            // This is where 'One Time' or 'Monthly' belongs
+            // Payment Plan
             paymentPlan: primaryCourse.paymentType,
             
-            // Reference Logic
+            // Reference
             reference: isNewReference ? 'New Reference' : data.reference,
             referenceDetails: isNewReference ? {
-                name: data.refName,
-                contact: data.refMobile,
-                address: data.refAddress
+                name: data.refName, mobile: data.refMobile, address: data.refAddress
             } : null,
 
             // Fee Logic
-            isAdmissionFeesPaid: payAdmissionFee,
-            pendingFees: payAdmissionFee ? (primaryCourse.fees - (Number(data.amountPaid) || 0)) : primaryCourse.fees,
-            
             feeDetails: payAdmissionFee ? {
                 amount: Number(data.amountPaid),
                 paymentMode: data.receiptPaymentMode,
@@ -214,352 +224,433 @@ const StudentAdmission = () => {
         dispatch(registerStudent(payload));
     };
 
-    const renderStepIndicator = () => (
-        <div className="flex justify-between items-center mb-8 px-10">
+    // --- RENDER HELPERS ---
+    const renderStepHeader = () => (
+        <div className="flex justify-center items-center mb-8">
             {[1, 2, 3].map(i => (
-                <div key={i} className={`flex flex-col items-center ${step >= i ? 'text-blue-600' : 'text-gray-300'}`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 
+                <div key={i} className={`flex items-center ${step === i ? 'text-blue-700 font-bold' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mr-2 
                         ${step >= i ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-300'}`}>
-                        {i}
+                        {step > i ? <CheckCircle size={16}/> : i}
                     </div>
-                    <span className="text-xs font-bold mt-1 uppercase">
-                        {i === 1 ? "Personal" : i === 2 ? "Course" : "Fees"}
-                    </span>
+                    {i !== 3 && <div className={`w-12 h-1 bg-gray-300 mr-2 ${step > i ? 'bg-blue-600' : ''}`}></div>}
                 </div>
             ))}
         </div>
     );
 
     return (
-        <div className="bg-gray-50 min-h-screen p-6">
-            <div className="max-w-7xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
-                <div className="bg-blue-900 p-4 flex justify-between items-center text-white">
-                    <h1 className="text-xl font-bold flex items-center gap-2"><UserCheck/> New Student Admission</h1>
-                    <button onClick={() => navigate('/master/student')} className="hover:bg-blue-800 p-1 rounded"><X/></button>
+        <div className="bg-gray-100 min-h-screen p-6 font-sans">
+            <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-900 to-indigo-800 p-4 flex justify-between items-center text-white shadow-md">
+                    <h1 className="text-xl font-bold flex items-center gap-2"><UserCheck size={24}/> New Student Admission</h1>
+                    <button type="button" onClick={() => navigate('/master/student')} className="hover:bg-white/20 p-2 rounded-full transition"><X size={20}/></button>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-8">
-                    {renderStepIndicator()}
+                    {renderStepHeader()}
 
                     {/* ALERTS */}
                     {foundInquiry && step === 1 && (
-                        <div className="bg-green-50 p-3 mb-4 rounded border border-green-200 flex justify-between items-center animate-pulse">
-                            <span className="text-green-800 font-medium flex items-center gap-2">
-                                <Search size={16}/> Inquiry found for <b>{foundInquiry.firstName}</b>.
-                            </span>
-                            <button type="button" onClick={handleAutofillInquiry} className="text-xs bg-green-600 text-white px-3 py-1 rounded">Autofill</button>
+                        <div className="bg-green-50 border border-green-200 p-3 mb-6 rounded-lg flex justify-between items-center shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-green-100 p-2 rounded-full"><Search className="text-green-600"/></div>
+                                <div>
+                                    <p className="text-green-800 font-bold text-sm">Inquiry Found!</p>
+                                    <p className="text-green-700 text-xs">Matching Name: <b>{foundInquiry.firstName} {foundInquiry.lastName}</b></p>
+                                </div>
+                            </div>
+                            <button type="button" onClick={handleAutofillInquiry} className="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded shadow transition">
+                                Use Inquiry Data
+                            </button>
                         </div>
                     )}
-                    {duplicateStudent && step === 1 && (
-                         <div className="bg-red-50 p-3 mb-4 rounded border border-red-200 flex items-center gap-2">
-                            <AlertCircle className="text-red-600" size={16}/>
-                            <span className="text-red-800 font-medium">Duplicate Student Found (ID: {duplicateStudent.enrollmentNo})</span>
-                         </div>
-                    )}
 
-                    {/* --- STEP 1: PERSONAL DETAILS --- */}
+                    {/* STEP 1: PERSONAL DETAILS */}
                     {step === 1 && (
-                        <div className="grid grid-cols-12 gap-4 animate-fadeIn">
+                        <div className="grid grid-cols-12 gap-5 animate-fade-in-up">
                             {/* Row 1 */}
-                            <div className="col-span-6 md:col-span-4">
-                                <label className="label">Admission Date</label>
+                            <div className="col-span-12 md:col-span-4">
+                                <label className="label">1. Admission Date</label>
                                 <input type="date" {...register('admissionDate')} className="input" />
                             </div>
-                            <div className="col-span-6 md:col-span-4">
-                                <label className="label">Aadhar Card *</label>
-                                <input {...register('aadharCard', {required:true})} className="input" placeholder="XXXX XXXX XXXX" />
-                            </div>
-                            
-                            {/* Row 2 */}
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">Student First Name *</label>
-                                <input {...register('firstName', {required:true})} className="input" />
+                                <label className="label">1. Aadhar Card No *</label>
+                                <input {...register('aadharCard', {required:true, minLength:12})} placeholder="12 Digit Number" className="input" />
+                            </div>
+                            <div className="col-span-12 md:col-span-4 flex justify-center">
+                                {/* Photo */}
+                                <label className="relative cursor-pointer group">
+                                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 group-hover:border-blue-500 transition">
+                                        {previewImage ? <img src={previewImage} className="w-full h-full object-cover"/> : <Upload className="text-gray-400"/>}
+                                    </div>
+                                    <input type="file" className="hidden" onChange={handleImageChange} accept="image/*"/>
+                                    <span className="block text-center text-xs text-blue-600 font-bold mt-1">Upload Photo</span>
+                                </label>
+                            </div>
+
+                            {/* Row 2 */}
+                            <div className="col-span-12 md:col-span-3">
+                                <label className="label">2. First Name *</label>
+                                <input {...register('firstName', {required:true})} className="input" placeholder="Student Name" />
                             </div>
                             <div className="col-span-6 md:col-span-2">
-                                <label className="label">Relation</label>
-                                <select {...register('relationType')} className="input">
+                                <label className="label">2. Relation</label>
+                                <select {...register('relationType')} className="input bg-gray-50">
                                     <option value="Father">Father</option>
                                     <option value="Husband">Husband</option>
                                 </select>
                             </div>
-                             <div className="col-span-6 md:col-span-2">
-                                <label className="label">{watchRelation} Name</label>
-                                <input {...register('middleName')} className="input" />
+                            <div className="col-span-6 md:col-span-3">
+                                <label className="label">2. {watchRelation} Name</label>
+                                <input {...register('middleName')} className="input" placeholder={`${watchRelation}'s Name`} />
                             </div>
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">Last Name *</label>
-                                <input {...register('lastName', {required:true})} className="input" />
+                                <label className="label">2. Last Name *</label>
+                                <input {...register('lastName', {required:true})} className="input" placeholder="Surname" />
                             </div>
 
                             {/* Row 3 */}
                             <div className="col-span-6 md:col-span-3">
-                                <label className="label">Occupation Type</label>
+                                <label className="label">3. Occupation Type</label>
                                 <select {...register('occupationType')} className="input">
                                     <option value="Student">Student</option>
                                     <option value="Service">Service</option>
                                     <option value="Business">Business</option>
+                                    <option value="Unemployed">Unemployed</option>
                                 </select>
                             </div>
                             <div className="col-span-6 md:col-span-3">
-                                <label className="label">Occupation Name</label>
+                                <label className="label">3. Occupation Name</label>
                                 <input {...register('occupationName')} className="input" />
                             </div>
                             <div className="col-span-12 md:col-span-6">
-                                <label className="label">Mother Name</label>
+                                <label className="label">3. Mother Name</label>
                                 <input {...register('motherName')} className="input" />
                             </div>
 
                             {/* Row 4 */}
-                            <div className="col-span-12 md:col-span-4">
-                                <label className="label">Email</label>
-                                <input type="email" {...register('email')} className="input" />
+                            <div className="col-span-12 md:col-span-5">
+                                <label className="label">4. E-mail</label>
+                                <input type="email" {...register('email')} className="input" placeholder="examle@mail.com" />
                             </div>
-                            <div className="col-span-6 md:col-span-4">
-                                <label className="label">Date of Birth</label>
+                            <div className="col-span-6 md:col-span-3">
+                                <label className="label">4. Date of Birth *</label>
                                 <input type="date" {...register('dob', {required:true})} className="input" />
                             </div>
                             <div className="col-span-6 md:col-span-4">
-                                <label className="label">Gender</label>
+                                <label className="label">4. Gender *</label>
                                 <div className="flex gap-4 mt-2">
-                                    <label className="flex items-center gap-2"><input type="radio" value="Male" {...register('gender')} /> Male</label>
-                                    <label className="flex items-center gap-2"><input type="radio" value="Female" {...register('gender')} /> Female</label>
+                                    <label className="flex items-center gap-2 cursor-pointer"><input type="radio" value="Male" {...register('gender', {required:true})} className="text-blue-600"/> Male</label>
+                                    <label className="flex items-center gap-2 cursor-pointer"><input type="radio" value="Female" {...register('gender', {required:true})} className="text-pink-600"/> Female</label>
                                 </div>
                             </div>
 
                             {/* Row 5 */}
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">Home Contact</label>
-                                <input {...register('contactHome', {maxLength:10})} className="input" />
+                                <label className="label">5. Home Contact</label>
+                                <input {...register('contactHome', {maxLength:10})} className="input" placeholder="Landline/Other" />
                             </div>
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">Student Mobile</label>
+                                <label className="label">5. Student Contact (10 Digits)</label>
                                 <input {...register('mobileStudent', {maxLength:10})} className="input" />
                             </div>
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">Parent Mobile *</label>
-                                <input {...register('mobileParent', {required:true, maxLength:10})} className="input border-l-4 border-blue-500" />
+                                <label className="label text-blue-700">5. Parent Contact *</label>
+                                <input {...register('mobileParent', {required:true, maxLength:10, minLength:10})} className="input border-blue-300 bg-blue-50" />
                             </div>
 
-                            {/* Row 6 - Education */}
+                            {/* Row 6 */}
                             <div className="col-span-12">
-                                <label className="label">Education</label>
-                                <input list="eduOptions" {...register('education')} className="input" placeholder="Select or type..." />
+                                <label className="label">6. Education</label>
+                                <input list="eduOptions" {...register('education')} className="input" placeholder="Select or type to add new..." />
                                 <datalist id="eduOptions">
-                                    <option value="10th Pass"/><option value="12th Pass"/><option value="Graduate"/><option value="Post Graduate"/>
+                                    {educationOptions.map((opt, i) => <option key={i} value={opt} />)}
                                 </datalist>
                             </div>
 
-                            {/* Row 7 - Address */}
+                            {/* Row 7 */}
                             <div className="col-span-12">
-                                <label className="label">Full Address</label>
-                                <textarea {...register('address')} rows="1" className="input"></textarea>
+                                <label className="label">7. Address (House No, Building, Street) *</label>
+                                <textarea {...register('address', {required:true})} rows="2" className="input"></textarea>
                             </div>
 
-                            {/* Row 8 - Location */}
+                            {/* Row 8 */}
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">State</label>
-                                <select {...register('state')} className="input">
+                                <label className="label">8. State *</label>
+                                <select {...register('state', {required:true})} className="input">
                                     {Object.keys(LOCATION_DATA).map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">City</label>
-                                <select {...register('city')} className="input">
+                                <label className="label">8. City *</label>
+                                <select {...register('city', {required:true})} className="input">
                                     {LOCATION_DATA[watchState]?.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
                             <div className="col-span-12 md:col-span-4">
-                                <label className="label">Pincode</label>
+                                <label className="label">8. Pincode</label>
                                 <input {...register('pincode')} className="input" />
                             </div>
 
-                            {/* Row 9 - Reference */}
-                            <div className="col-span-12 md:col-span-8 bg-gray-50 p-3 rounded border">
-                                <label className="label text-blue-800">Reference</label>
-                                <select {...register('reference')} className="input mb-2">
-                                    <option value="Direct">Direct / Walk-in</option>
-                                    <optgroup label="Employees">
-                                        {employees?.map(e => <option key={e._id} value={e.name}>{e.name}</option>)}
-                                    </optgroup>
-                                    <option value="NEW_REF">+ Add New Reference</option>
-                                </select>
-                                {isNewReference && (
-                                    <div className="grid grid-cols-3 gap-2 animate-fadeIn">
-                                        <input {...register('refName')} placeholder="Ref Name" className="input text-sm" />
-                                        <input {...register('refMobile')} placeholder="Mobile" className="input text-sm" />
-                                        <input {...register('refAddress')} placeholder="Address" className="input text-sm" />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Photo Upload */}
-                            <div className="col-span-12 md:col-span-4 flex justify-center items-center border-2 border-dashed rounded-lg p-2 bg-gray-50">
-                                <label className="cursor-pointer text-center">
-                                    {previewImage ? (
-                                        <img src={previewImage} className="h-20 w-20 rounded-full mx-auto object-cover border" />
-                                    ) : (
-                                        <div className="h-20 w-20 bg-gray-200 rounded-full mx-auto flex items-center justify-center"><Upload className="text-gray-400"/></div>
+                            {/* Row 9 */}
+                            <div className="col-span-12 bg-gray-50 p-4 rounded border-dashed border-2 border-gray-200">
+                                <label className="label text-purple-700">9. Reference Details</label>
+                                <div className="flex gap-4 items-center">
+                                    <select {...register('reference')} className="input w-1/3">
+                                        <option value="Direct">Direct / Walk-in</option>
+                                        <optgroup label="Staff/Faculty">
+                                            {employees?.map(e => <option key={e._id} value={e.name}>{e.name}</option>)}
+                                        </optgroup>
+                                        <option value="NEW_REF">+ Add New External Reference</option>
+                                    </select>
+                                    {isNewReference && (
+                                        <div className="flex-1 grid grid-cols-3 gap-2">
+                                            <input {...register('refName')} placeholder="Name" className="input text-sm"/>
+                                            <input {...register('refMobile')} placeholder="Mobile" className="input text-sm"/>
+                                            <input {...register('refAddress')} placeholder="City/Area" className="input text-sm"/>
+                                        </div>
                                     )}
-                                    <span className="text-xs text-blue-600 font-bold block mt-1">Upload Photo</span>
-                                    <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
-                                </label>
+                                </div>
                             </div>
 
-                            <div className="col-span-12 flex justify-end mt-6">
+                            <div className="col-span-12 flex justify-end mt-4">
                                 <button type="button" onClick={async () => { if (await trigger()) setStep(2); }} className="btn-primary">
-                                    Next: Course <ChevronRight size={18}/>
+                                    Next: Course Details <ChevronRight size={18}/>
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* --- STEP 2: COURSE & BATCH --- */}
+                    {/* STEP 2: COURSE & BATCH */}
                     {step === 2 && (
-                        <div className="space-y-6 animate-fadeIn">
-                            <div className="overflow-x-auto border rounded-lg max-h-60 overflow-y-auto">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-gray-100 uppercase sticky top-0">
-                                        <tr>
-                                            <th className="p-3">Select</th>
-                                            <th className="p-3">Course Name</th>
-                                            <th className="p-3">Fees</th>
-                                            <th className="p-3">Duration</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {courses.map((course) => (
-                                            <tr key={course._id} className={watchCourseSelection === course._id ? 'bg-blue-50' : ''}>
-                                                <td className="p-3"><input type="radio" value={course._id} {...register('selectedCourseId')} /></td>
-                                                <td className="p-3 font-medium">{course.name}</td>
-                                                <td className="p-3">₹ {course.courseFees}</td>
-                                                <td className="p-3">{course.duration} {course.durationType}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                        <div className="animate-fade-in-up space-y-6">
+                            {/* Course List */}
+                            <div className="border rounded-lg overflow-hidden">
+                                <div className="bg-gray-100 p-3 font-bold text-gray-700 border-b">A. Select Course</div>
+                                <div className="max-h-60 overflow-y-auto">
+                                    {courses.length === 0 ? <p className="p-4 text-center text-gray-500">No Courses Found</p> : (
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-50 text-left sticky top-0">
+                                                <tr><th className="p-2">Name</th><th className="p-2">Fees</th><th className="p-2">Duration</th><th className="p-2">Select</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {courses.map(c => (
+                                                    <tr key={c._id} className={`border-b hover:bg-blue-50 cursor-pointer ${watchCourseSelection===c._id ? 'bg-blue-100':''}`} onClick={()=>setValue('selectedCourseId', c._id)}>
+                                                        <td className="p-2 font-medium">{c.name}</td>
+                                                        <td className="p-2">₹{c.courseFees}</td>
+                                                        <td className="p-2">{c.duration} {c.durationType}</td>
+                                                        <td className="p-2"><input type="radio" value={c._id} {...register('selectedCourseId')} checked={watchCourseSelection === c._id}/></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
                             </div>
 
+                            {/* Batch & Config */}
                             {watchCourseSelection && (
-                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded border">
-                                    <div className="col-span-2">
-                                        <label className="label">Select Batch</label>
-                                        <select {...register('selectedBatch')} className="input">
-                                            <option value="">-- Choose --</option>
-                                            {batches.filter(b =>
-                                            b.course === watchCourseSelection || 
-                                            b.courses?.some(c => (c._id || c) === watchCourseSelection))
-                                                .map(b => <option key={b._id} value={b.name}>{b.name} ({b.startTime} - {b.endTime})</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="label">Start Date</label>
-                                        <input type="date" {...register('batchStartDate')} className="input" defaultValue={new Date().toISOString().split('T')[0]} />
-                                    </div>
-                                    <div>
-                                        <label className="label">Payment Plan</label>
-                                        <select {...register('paymentType')} className="input">
-                                            <option value="One Time">One Time</option>
-                                            <option value="Monthly">Monthly</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex items-end">
-                                        <button type="button" onClick={handleAddCourseToList} className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-bold flex justify-center gap-1">
-                                            <Plus size={16}/> Add
-                                        </button>
+                                <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                                    <div className="font-bold text-slate-700 mb-3">B. Batch & Fee Config</div>
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        <div className="col-span-2">
+                                            <label className="label">Select Batch</label>
+                                            <select {...register('selectedBatch')} className="input">
+                                                <option value="">-- Choose Batch --</option>
+                                                {batches.filter(b => b.course === watchCourseSelection || b.courses?.some(c => (c._id || c) === watchCourseSelection))
+                                                    .map(b => <option key={b._id} value={b.name}>{b.name} ({b.startTime} - {b.endTime}) ({b.studentCount || 0} Students)</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="label">Start Date</label>
+                                            <input type="date" {...register('batchStartDate')} className="input" defaultValue={new Date().toISOString().split('T')[0]} />
+                                        </div>
+                                        <div>
+                                            <label className="label">Payment Plan</label>
+                                            <select {...register('paymentType')} className="input">
+                                                <option value="One Time">One Time</option>
+                                                <option value="Monthly">Monthly</option>
+                                            </select>
+                                        </div>
+                                        <div className="col-span-4 flex justify-end">
+                                            <button type="button" onClick={handleAddCourseToList} className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black">
+                                                <Plus size={16}/> Add to List
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
+                            {/* Preview Table */}
                             {previewCourses.length > 0 && (
-                                <div className="border rounded bg-white mt-4">
-                                    <div className="bg-gray-800 text-white p-2 text-sm font-bold">Selected Course Preview</div>
+                                <div className="border rounded-lg overflow-hidden shadow-sm">
+                                    <div className="bg-slate-800 text-white p-3 font-bold text-sm">C. Admission Preview</div>
                                     <table className="w-full text-sm">
-                                        <thead className="bg-gray-100 border-b">
+                                        <thead className="bg-gray-100 border-b text-left">
                                             <tr>
-                                                <th className="p-2">Course</th>
-                                                <th className="p-2">Batch</th>
-                                                <th className="p-2">Time</th>
-                                                <th className="p-2">Fees</th>
-                                                <th className="p-2">Type</th>
-                                                <th className="p-2 text-right">Action</th>
+                                                <th className="p-3">Course</th>
+                                                <th className="p-3">Batch</th>
+                                                <th className="p-3">Fees</th>
+                                                <th className="p-3">Admsn Fee</th>
+                                                <th className="p-3">Plan</th>
+                                                <th className="p-3 text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {previewCourses.map((item, idx) => (
-                                                <tr key={idx} className="border-b">
-                                                    <td className="p-2">{item.courseName}</td>
-                                                    <td className="p-2">{item.batch}</td>
-                                                    <td className="p-2">{item.batchTime}</td>
-                                                    <td className="p-2">{item.fees}</td>
-                                                    <td className="p-2">{item.paymentType}</td>
-                                                    <td className="p-2 text-right"><button onClick={() => setPreviewCourses([])} className="text-red-500"><Trash2 size={16}/></button></td>
+                                            {previewCourses.map((item) => (
+                                                <tr key={item.id} className="border-b bg-white">
+                                                    <td className="p-3 font-medium">{item.courseName}</td>
+                                                    <td className="p-3">{item.batch}<br/><span className="text-xs text-gray-500">{item.batchTime}</span></td>
+                                                    <td className="p-3">₹{item.fees}</td>
+                                                    <td className="p-3">₹{item.admissionFees}</td>
+                                                    <td className="p-3">
+                                                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{item.paymentType}</span>
+                                                        {item.paymentType === 'Monthly' && (
+                                                            <div className="text-xs text-gray-500 mt-1">
+                                                                EMI: ₹{item.emiConfig?.monthlyInstallment}/mo
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-3 text-right"><button onClick={()=>setPreviewCourses([])} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button></td>
                                                 </tr>
                                             ))}
                                         </tbody>
+                                        {previewCourses[0].paymentType === 'Monthly' && (
+                                             <tfoot className="bg-yellow-50 text-xs text-yellow-800">
+                                                <tr>
+                                                    <td colSpan="6" className="p-3">
+                                                        <strong>Monthly Breakdown:</strong> Total: ₹{previewCourses[0].fees} | 
+                                                        Registration: ₹{previewCourses[0].emiConfig.registrationFees} |
+                                                        EMI: ₹{previewCourses[0].emiConfig.monthlyInstallment} x {previewCourses[0].emiConfig.months} Months
+                                                    </td>
+                                                </tr>
+                                             </tfoot>
+                                        )}
                                     </table>
-                                    {previewCourses[0].paymentType === 'Monthly' && (
-                                        <div className="p-3 bg-yellow-50 text-xs text-yellow-800 font-mono">
-                                            Reg Fees: ₹{previewCourses[0].emiConfig?.registrationFees} | EMI: ₹{previewCourses[0].emiConfig?.monthlyInstallment}/mo
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
-                            <div className="border-t pt-4 mt-4">
-                                <h3 className="font-bold text-gray-800 mb-2">Do you want to add admission fee detail?</h3>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 border p-3 rounded w-1/3 cursor-pointer hover:bg-blue-50">
-                                        <input type="radio" checked={payAdmissionFee === true} onChange={() => setPayAdmissionFee(true)} className="w-5 h-5"/>
-                                        <span className="font-bold text-blue-700">YES, Pay Now</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 border p-3 rounded w-1/3 cursor-pointer hover:bg-red-50">
-                                        <input type="radio" checked={payAdmissionFee === false} onChange={() => setPayAdmissionFee(false)} className="w-5 h-5"/>
-                                        <span className="font-bold text-gray-700">NO, Pay Later</span>
-                                    </label>
-                                </div>
-                            </div>
+                            {/* Decision: Pay Now? */}
+                            {previewCourses.length > 0 && (
+                                <div className="bg-white p-6 rounded border shadow-sm mt-6">
+                                    <h3 className="font-bold text-lg text-gray-800 mb-4 border-b pb-2">Admission Fee Payment</h3>
+                                    <p className="text-gray-600 text-sm mb-4">Do you want to add admission fee detail now?</p>
+                                    
+                                    <div className="flex gap-6">
+                                        <div 
+                                            onClick={() => setPayAdmissionFee(true)}
+                                            className={`flex-1 border-2 p-4 rounded-lg cursor-pointer transition flex items-center justify-between
+                                            ${payAdmissionFee === true ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'}`}>
+                                            <div>
+                                                <h4 className="font-bold text-green-700">YES, Pay Now</h4>
+                                                <p className="text-xs text-green-600">Enter receipt details immediately.</p>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${payAdmissionFee===true?'border-green-600 bg-green-600 text-white':'border-gray-300'}`}>
+                                                {payAdmissionFee===true && <CheckCircle size={14}/>}
+                                            </div>
+                                        </div>
 
-                            <div className="flex justify-between mt-6">
-                                <button type="button" onClick={() => setStep(1)} className="btn-secondary"><ChevronLeft/> Back</button>
-                                {payAdmissionFee ? (
-                                    <button type="button" onClick={() => previewCourses.length > 0 ? setStep(3) : toast.error("Add Course")} className="btn-primary">Next <ChevronRight/></button>
-                                ) : (
-                                    <button type="submit" disabled={previewCourses.length===0} className="bg-green-600 text-white px-6 py-2 rounded flex gap-2 font-bold hover:bg-green-700">
-                                        <Save size={18}/> Admit Student
+                                        <div 
+                                            onClick={() => setPayAdmissionFee(false)}
+                                            className={`flex-1 border-2 p-4 rounded-lg cursor-pointer transition flex items-center justify-between
+                                            ${payAdmissionFee === false ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
+                                            <div>
+                                                <h4 className="font-bold text-orange-700">NO, Pay Later</h4>
+                                                <p className="text-xs text-orange-600">Save to 'Pending Admission Fees'.</p>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${payAdmissionFee===false?'border-orange-600 bg-orange-600 text-white':'border-gray-300'}`}>
+                                                {payAdmissionFee===false && <CheckCircle size={14}/>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between mt-8">
+                                <button type="button" onClick={() => setStep(1)} className="btn-secondary"><ChevronLeft size={16}/> Back to Personal</button>
+                                
+                                {payAdmissionFee === true && (
+                                    <button type="button" onClick={() => setStep(3)} className="btn-primary">
+                                        Proceed to Fees <ChevronRight size={16}/>
+                                    </button>
+                                )}
+                                
+                                {payAdmissionFee === false && (
+                                    <button type="submit" disabled={isLoading} className="bg-orange-600 text-white px-6 py-2 rounded font-bold hover:bg-orange-700 flex items-center gap-2 shadow opacity-90 hover:opacity-100">
+                                        <Save size={18}/> {isLoading ? 'Saving...' : 'Save & Admit (Pay Later)'}
                                     </button>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    {/* --- STEP 3: FEES --- */}
-                    {step === 3 && (
-                        <div className="max-w-2xl mx-auto animate-fadeIn border rounded p-6 bg-blue-50">
-                            <h3 className="text-xl font-bold text-blue-900 mb-4 border-b border-blue-200 pb-2">Fee Receipt</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><label className="label">Receipt No</label><input className="input bg-gray-200" value="AUTO-GEN" disabled /></div>
-                                <div><label className="label">Date</label><input type="date" {...register('receiptDate')} className="input" /></div>
-                                <div><label className="label">Total Fees</label><div className="text-2xl font-bold text-gray-800">₹ {previewCourses[0]?.fees}</div></div>
-                                <div><label className="label">Amount Paid *</label><input type="number" {...register('amountPaid', {required:true})} className="input border-green-500 border-2" /></div>
-                                <div><label className="label">Mode</label><select {...register('receiptPaymentMode')} className="input"><option>Cash</option><option>Online</option><option>Cheque</option></select></div>
-                                <div><label className="label">Remarks</label><input {...register('remarks')} className="input" placeholder="Optional" /></div>
-                            </div>
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setStep(2)} className="btn-secondary">Back</button>
-                                <button type="submit" className="bg-green-600 text-white px-8 py-2 rounded font-bold hover:bg-green-700 flex gap-2"><Save size={18}/> Confirm & Print</button>
+                    {/* STEP 3: FEE RECEIPT */}
+                    {step === 3 && payAdmissionFee === true && (
+                        <div className="animate-fade-in-up">
+                            <div className="max-w-2xl mx-auto border rounded-xl shadow-lg bg-white overflow-hidden">
+                                <div className="bg-gray-800 text-white p-4 font-bold flex justify-between items-center">
+                                    <span><CreditCard className="inline mr-2"/> Fee Receipt Details</span>
+                                    <span className="text-xs bg-gray-700 px-2 py-1 rounded">Step 3 of 3</span>
+                                </div>
+                                <div className="p-6 grid grid-cols-2 gap-6">
+                                    <div className="col-span-2 bg-blue-50 p-3 rounded text-blue-800 text-sm">
+                                        <strong>Total Course Fees:</strong> ₹{previewCourses[0]?.fees}
+                                        <br/>
+                                        <strong>Suggested Admission Fee:</strong> ₹{previewCourses[0]?.admissionFees}
+                                    </div>
+
+                                    <div>
+                                        <label className="label">Receipt No</label>
+                                        <input className="input bg-gray-100 text-gray-500 cursor-not-allowed" value="AUTO-GENERATED" disabled />
+                                    </div>
+                                    <div>
+                                        <label className="label">Receipt Date</label>
+                                        <input type="date" {...register('receiptDate')} className="input" />
+                                    </div>
+                                    <div>
+                                        <label className="label">Amount Paid (₹) *</label>
+                                        <input type="number" {...register('amountPaid', {required:true})} className="input border-l-4 border-green-500 text-lg font-bold" />
+                                    </div>
+                                    <div>
+                                        <label className="label">Payment Mode</label>
+                                        <select {...register('receiptPaymentMode')} className="input">
+                                            <option value="Cash">Cash</option>
+                                            <option value="UPI">Online / UPI</option>
+                                            <option value="Cheque">Cheque</option>
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="label">Remarks</label>
+                                        <input {...register('remarks')} className="input" placeholder="e.g. Google Pay Trans ID..." />
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-gray-50 flex justify-between border-t">
+                                    <button type="button" onClick={() => setStep(2)} className="btn-secondary">Back to Course</button>
+                                    <button type="submit" disabled={isLoading} className="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700 flex gap-2 shadow items-center">
+                                        <Save size={18}/> {isLoading ? 'Processing...' : 'Confirm Admission & Pay'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
                 </form>
             </div>
+            
             <style>{`
-                .label { display:block; font-size:0.7rem; font-weight:700; color:#4b5563; text-transform:uppercase; margin-bottom:0.25rem; }
-                .input { width:100%; border:1px solid #d1d5db; padding:0.4rem; border-radius:0.3rem; outline:none; font-size:0.9rem; }
-                .input:focus { border-color:#2563eb; ring:2px; }
-                .btn-primary { background:#2563eb; color:white; padding:0.5rem 1.5rem; border-radius:0.3rem; display:flex; align-items:center; gap:0.5rem; font-weight:600; }
-                .btn-secondary { background:white; border:1px solid #9ca3af; padding:0.5rem 1.5rem; border-radius:0.3rem; display:flex; align-items:center; gap:0.5rem; }
+                .label { display:block; font-size:0.75rem; font-weight:700; color:#4b5563; text-transform:uppercase; margin-bottom:0.3rem; letter-spacing:0.02em; }
+                .input { width:100%; border:1px solid #d1d5db; padding:0.5rem; border-radius:0.375rem; outline:none; transition: all 0.2s; font-size:0.9rem; }
+                .input:focus { border-color:#2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+                .btn-primary { background:#2563eb; color:white; padding:0.5rem 1.5rem; border-radius:0.375rem; display:flex; align-items:center; gap:0.5rem; font-weight:600; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); transition: background 0.2s;}
+                .btn-primary:hover { background:#1d4ed8; }
+                .btn-secondary { background:white; color:#374151; border:1px solid #d1d5db; padding:0.5rem 1.25rem; border-radius:0.375rem; display:flex; align-items:center; gap:0.5rem; font-weight:500; transition: background 0.2s; }
+                .btn-secondary:hover { background:#f3f4f6; }
+                @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+                .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
             `}</style>
         </div>
     );
 };
+
 export default StudentAdmission;

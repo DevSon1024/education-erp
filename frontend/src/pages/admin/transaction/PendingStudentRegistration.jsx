@@ -15,7 +15,8 @@ const PendingStudentRegistration = () => {
     reference: '',
     startDate: new Date().toISOString().split('T')[0], // Default Today
     endDate: '',
-    isRegistered: 'false' // IMPORTANT: Only fetch unregistered
+    isRegistered: 'false', // Only unregistered
+    isAdmissionFeesPaid: 'true' // Only those who paid admission fees
   });
 
   useEffect(() => {
@@ -32,9 +33,10 @@ const PendingStudentRegistration = () => {
       reference: '',
       startDate: '',
       endDate: '',
-      isRegistered: 'false'
+      isRegistered: 'false',
+      isAdmissionFeesPaid: 'true'
     });
-    dispatch(fetchStudents({ isRegistered: 'false', pageNumber: 1 }));
+    dispatch(fetchStudents({ isRegistered: 'false', isAdmissionFeesPaid: 'true', pageNumber: 1 }));
   };
 
   const handleRegister = (id) => {

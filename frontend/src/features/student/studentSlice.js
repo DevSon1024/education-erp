@@ -106,6 +106,11 @@ const studentSlice = createSlice({
         state.isSuccess = true;
         state.message = "Admission Created Successfully";
       })
+      .addCase(registerStudent.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.message = action.payload;
+      })
       .addCase(confirmRegistration.pending, (state) => { state.isLoading = true; })
       .addCase(confirmRegistration.fulfilled, (state) => {
         state.isLoading = false;

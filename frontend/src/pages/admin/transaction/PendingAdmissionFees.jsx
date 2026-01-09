@@ -16,7 +16,7 @@ const PendingAdmissionFees = () => {
     reference: '',
     startDate: '',
     endDate: '',
-    hasPendingFees: 'true' // Default to showing only pending
+    isAdmissionFeesPaid: 'false' // Show only those who haven't paid admission fees
   });
 
   // Load Data
@@ -30,7 +30,7 @@ const PendingAdmissionFees = () => {
   };
 
   const handleReset = () => {
-    const resetFilters = { studentName: '', reference: '', startDate: '', endDate: '', hasPendingFees: 'true' };
+    const resetFilters = { studentName: '', reference: '', startDate: '', endDate: '', isAdmissionFeesPaid: 'false' };
     setFilters(resetFilters);
     dispatch(fetchStudents({ ...resetFilters, pageNumber: 1 }));
   };

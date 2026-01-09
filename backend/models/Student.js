@@ -14,6 +14,7 @@ const studentSchema = new mongoose.Schema({
     admissionDate: { type: Date, required: true, default: Date.now },
     aadharCard: { type: String, required: true },
     firstName: { type: String, required: true },
+    relationType: { type: String, enum: ['Father', 'Husband'], default: 'Father' }, // Added for Marksheet logic
     middleName: { type: String }, // CHANGED: Removed required: true to prevent 400 error
     lastName: { type: String, required: true },
     motherName: { type: String },
