@@ -25,6 +25,7 @@ import FeedbackPage from './pages/user/FeedbackPage';
 // Master Pages
 import StudentList from './pages/admin/master/StudentList';
 import StudentAdmission from './pages/admin/master/StudentAdmission';
+import StudentUpdate from './pages/admin/master/StudentUpdate';
 import CourseMaster from './pages/admin/master/CourseMaster';
 import BatchMaster from './pages/admin/master/BatchMaster';
 import EmployeeMaster from './pages/admin/master/EmployeeMaster';
@@ -70,6 +71,7 @@ function App() {
             {/* MASTER ROUTES */}
             <Route path="/master/student" element={<PrivateRoute><StudentList /></PrivateRoute>} />
             <Route path="/master/student/new" element={<PrivateRoute><StudentAdmission /></PrivateRoute>} /> 
+            <Route path="/master/student/edit/:id" element={<PrivateRoute><StudentUpdate /></PrivateRoute>} />
             <Route path="/master/course" element={<PrivateRoute><CourseMaster /></PrivateRoute>} />
             <Route path="/master/batch" element={<PrivateRoute><BatchMaster /></PrivateRoute>} />
             <Route path="/master/subject" element={<PrivateRoute><SubjectMaster /></PrivateRoute>} />

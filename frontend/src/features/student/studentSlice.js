@@ -45,7 +45,53 @@ export const registerStudent = createAsyncThunk(
   "students/register",
   async (studentData, thunkAPI) => {
     try {
-      const response = await axios.post(API_URL, studentData);
+      // Check if data contains file -> Convert to FormData
+      let payload = studentData;
+      let headers = {};
+
+      if (studentData.studentPhoto instanceof File) {
+          const formData = new FormData();
+          Object.keys(studentData).forEach(key => {
+              if (studentData[key] !== null && studentData[key] !== undefined) {
+                  // Handle Nested Objects (like feeDetails)
+                  if(typeof studentData[key] === 'object' && !(studentData[key] instanceof File) && !(studentData[key] instanceof Date)) {
+                      formData.append(key, JSON.stringify(studentData[key])); // Stringify objects for backend
+                  } else {
+                       formData.append(key, studentData[key]);
+                  }
+              }
+          });
+          payload = formData;
+          headers = { "Content-Type": "multipart/form-data" };
+      }
+
+      const response = await axios.post(API_URL, payload, { headers });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// New Action: Update Student
+export const updateStudent = createAsyncThunk(
+  "students/update",
+  async ({ id, data }, thunkAPI) => {
+    try {
+      let payload = data;
+      let headers = {};
+
+      // Check for File in Update
+      if (data.studentPhoto instanceof File) {
+         const formData = new FormData();
+         Object.keys(data).forEach(key => {
+             if (data[key] !== null) formData.append(key, data[key]);
+         });
+         payload = formData;
+         headers = { "Content-Type": "multipart/form-data" }; 
+      }
+      
+      const response = await axios.put(`${API_URL}${id}`, payload, { headers });
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
@@ -107,6 +153,17 @@ const studentSlice = createSlice({
         state.message = "Admission Created Successfully";
       })
       .addCase(registerStudent.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.message = action.payload;
+      })
+      .addCase(updateStudent.pending, (state) => { state.isLoading = true; })
+      .addCase(updateStudent.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = "Student Updated Successfully";
+      })
+      .addCase(updateStudent.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.message = action.payload;

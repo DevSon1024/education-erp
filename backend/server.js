@@ -18,6 +18,9 @@ app.use(cors({
     credentials: true // Allow cookies
 }));
 
+// Static Folder for Uploads
+app.use('/uploads', express.static('uploads'));
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/students', require('./routes/studentRoutes'));

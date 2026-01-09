@@ -139,7 +139,7 @@ const StudentList = () => {
                             </td>
                             <td className="px-4 py-3 text-right flex justify-end gap-2">
                                 <button title="View" className="text-blue-500 hover:bg-blue-50 p-1 rounded"><Eye size={18}/></button>
-                                <button title="Edit" className="text-orange-500 hover:bg-orange-50 p-1 rounded"><Edit size={18}/></button>
+                                <Link to={`/master/student/edit/${s._id}`} title="Edit" className="text-orange-500 hover:bg-orange-50 p-1 rounded flex items-center justify-center"><Edit size={18}/></Link>
                                 <button title="Marksheet" className="text-purple-600 hover:bg-purple-50 p-1 rounded"><FileText size={18}/></button>
                             </td>
                         </tr>

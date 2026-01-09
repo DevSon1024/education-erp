@@ -82,6 +82,7 @@ const createStudent = asyncHandler(async (req, res) => {
         // 1. Create Student
         const student = await Student.create({
             ...req.body,
+            studentPhoto: req.file ? req.file.path.replace(/\\/g, "/") : null, // Store path
             pendingFees,
             isAdmissionFeesPaid,
             isRegistered: false 
@@ -220,4 +221,54 @@ const toggleStudentStatus = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { getStudents, getStudentById, createStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus };
+// @desc    Update Student
+const updateStudent = asyncHandler(async (req, res) => {
+    const student = await Student.findById(req.params.id);
+
+    if (student) {
+        // Update Personal Info fields
+        student.firstName = req.body.firstName || student.firstName;
+        student.middleName = req.body.middleName || student.middleName;
+        student.lastName = req.body.lastName || student.lastName;
+        student.email = req.body.email || student.email;
+        student.dob = req.body.dob || student.dob;
+        student.gender = req.body.gender || student.gender;
+        student.address = req.body.address || student.address;
+        student.state = req.body.state || student.state;
+        student.city = req.body.city || student.city;
+        student.pincode = req.body.pincode || student.pincode;
+        student.mobileStudent = req.body.mobileStudent || student.mobileStudent;
+        student.mobileParent = req.body.mobileParent || student.mobileParent;
+        student.contactHome = req.body.contactHome || student.contactHome;
+        student.education = req.body.education || student.education;
+        
+        // Update Relations & Occupation
+        student.relationType = req.body.relationType || student.relationType;
+        student.occupationType = req.body.occupationType || student.occupationType;
+        student.occupationName = req.body.occupationName || student.occupationName;
+        student.motherName = req.body.motherName || student.motherName;
+        
+        // Update Batch (Only if provided)
+        if(req.body.batch) {
+            student.batch = req.body.batch;
+        }
+
+        // Update Photo
+        if (req.file) {
+            student.studentPhoto = req.file.path.replace(/\\/g, "/");
+        }
+
+        // NOTE: Course & Fee details are intentionally NOT updated here.
+        // Admission details (admissionDate) can be updated if necessary but usually fixed.
+        if(req.body.admissionDate) {
+            student.admissionDate = req.body.admissionDate;
+        }
+
+        const updatedStudent = await student.save();
+        res.json(updatedStudent);
+    } else {
+        res.status(404); throw new Error('Student not found');
+    }
+});
+
+module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus };

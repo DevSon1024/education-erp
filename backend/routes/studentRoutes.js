@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middlewares/authMiddleware');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
+const upload = require('../middlewares/uploadMiddleware');
 const { 
     getStudents, 
     getStudentById,
     createStudent, 
+    updateStudent,
     deleteStudent, 
     toggleStudentStatus,
     confirmStudentRegistration // Imported
@@ -13,10 +15,11 @@ const {
 
 router.route('/')
     .get(protect, checkPermission('Student', 'view'), getStudents)
-    .post(protect, checkPermission('Student', 'add'), createStudent);
+    .post(protect, checkPermission('Student', 'add'), upload.single('studentPhoto'), createStudent);
 
 router.route('/:id')
     .get(protect, checkPermission('Student', 'view'), getStudentById)
+    .put(protect, checkPermission('Student', 'edit'), upload.single('studentPhoto'), updateStudent)
     .delete(protect, checkPermission('Student', 'delete'), deleteStudent);
 
 // Registration Confirmation Route
