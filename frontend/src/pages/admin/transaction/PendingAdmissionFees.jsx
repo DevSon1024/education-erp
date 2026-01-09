@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchStudents } from '../../../features/student/studentSlice';
-import SmartTable from '../../../components/ui/SmartTable';
+import { fetchEmployees } from '../../../features/employee/employeeSlice';
+// import SmartTable from '../../../components/ui/SmartTable';
 import { Filter, Search, RotateCcw, Printer, Eye, CreditCard } from 'lucide-react';
 
 const PendingAdmissionFees = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { students, pagination, isLoading } = useSelector((state) => state.students);
+  const { employees } = useSelector((state) => state.employees) || { employees: [] }; // Select Employees
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -22,6 +24,7 @@ const PendingAdmissionFees = () => {
   // Load Data
   useEffect(() => {
     dispatch(fetchStudents({ ...filters, pageNumber: 1 }));
+    dispatch(fetchEmployees()); // Fetch Employees
   }, [dispatch]); // Initial load
 
   // Handlers

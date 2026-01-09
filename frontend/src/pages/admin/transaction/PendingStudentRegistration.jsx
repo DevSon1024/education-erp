@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchStudents } from '../../../features/student/studentSlice';
+import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import { Search, RotateCcw, Printer, UserPlus, Eye, Edit } from 'lucide-react';
 
 const PendingStudentRegistration = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { students, pagination, isLoading } = useSelector((state) => state.students);
+  const { employees } = useSelector((state) => state.employees) || { employees: [] };
 
   // Filters
   const [filters, setFilters] = useState({
@@ -21,6 +23,7 @@ const PendingStudentRegistration = () => {
 
   useEffect(() => {
     dispatch(fetchStudents({ ...filters, pageNumber: 1 }));
+    dispatch(fetchEmployees());
   }, [dispatch]); // Initial Load
 
   const handleSearch = () => {
@@ -70,8 +73,9 @@ const PendingStudentRegistration = () => {
             onChange={(e) => setFilters({...filters, reference: e.target.value})}
           >
             <option value="">-- Reference --</option>
-            <option value="Admin">Admin</option>
-            <option value="Faculty">Faculty</option>
+            {employees?.map(emp => (
+                <option key={emp._id} value={emp.name}>{emp.name}</option>
+            ))}
           </select>
           <input 
             type="date" 

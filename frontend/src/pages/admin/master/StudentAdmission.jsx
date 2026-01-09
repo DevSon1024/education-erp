@@ -399,9 +399,7 @@ const StudentAdmission = () => {
                                 <div className="flex gap-4 items-center">
                                     <select {...register('reference')} className="input w-1/3">
                                         <option value="Direct">Direct / Walk-in</option>
-                                        <optgroup label="Staff/Faculty">
-                                            {employees?.map(e => <option key={e._id} value={e.name}>{e.name}</option>)}
-                                        </optgroup>
+                                        {employees?.map(e => <option key={e._id} value={e.name}>{e.name} ({e.type})</option>)}
                                         <option value="NEW_REF">+ Add New External Reference</option>
                                     </select>
                                     {isNewReference && (
