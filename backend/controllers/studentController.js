@@ -114,7 +114,7 @@ const createStudent = asyncHandler(async (req, res) => {
         const fullName = `${student.firstName} ${student.lastName}`;
 
         // 4. Construct Message
-        const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. Your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
+        const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
 
         // 5. Send SMS to All Contacts
         const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean); 
