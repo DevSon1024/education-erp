@@ -59,15 +59,21 @@ const StudentRegistrationProcess = () => {
         toast.error("Username and Password are required");
         return;
     }
-    setStep(2); // Show Fee Section
+    // For One Time payment, skip fee section (already paid)
+    if (student.paymentPlan === 'One Time') {
+        handleFinalSubmit(); // Submit directly
+    } else {
+        setStep(2); // Show Fee Section for Monthly payment
+    }
   };
 
   const handleFinalSubmit = () => {
+    // For One Time payment, no fee details needed (already paid)
     const payload = {
         id: student._id,
         data: {
             ...regData,
-            feeDetails: { ...feeData, amount: Number(feeData.amount) || 0 }
+            feeDetails: student.paymentPlan === 'One Time' ? null : { ...feeData, amount: Number(feeData.amount) || 0 }
         }
     };
     dispatch(confirmRegistration(payload));
@@ -145,78 +151,87 @@ const StudentRegistrationProcess = () => {
            </div>
            
            {step === 1 && (
-             <div className="mt-6 flex gap-4">
-               <button onClick={handleContinue} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Continue</button>
-               <button onClick={() => navigate(-1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">Cancel</button>
-             </div>
-           )}
+              <div className="mt-6 flex gap-4">
+                {student.paymentPlan === 'One Time' ? (
+                  <button onClick={handleContinue} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                    <Save size={18} /> Save & Register
+                  </button>
+                ) : (
+                  <button onClick={handleContinue} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Continue</button>
+                )}
+                <button onClick={() => navigate(-1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">Cancel</button>
+              </div>
+            )}
         </div>
 
-        {/* SECTION 3: Fees Details (Shown after Continue) */}
-        {step === 2 && (
-          <div className="p-6 border-t animate-fade-in">
-             <h3 className="text-lg font-semibold text-gray-700 mb-4">Registration Fees Receipt</h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Receipt No</label>
-                    <input type="text" disabled value={feeData.receiptNo} className="w-full bg-gray-100 border rounded px-3 py-2" />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                    <input 
-                        type="date" 
-                        value={feeData.date} 
-                        onChange={(e) => setFeeData({...feeData, date: e.target.value})}
-                        className="w-full border rounded px-3 py-2" 
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
-                    <input type="text" disabled value={student.course?.name} className="w-full bg-gray-100 border rounded px-3 py-2" />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                    <input 
-                        type="number" 
-                        value={feeData.amount} 
-                        onChange={(e) => setFeeData({...feeData, amount: e.target.value})}
-                        placeholder="0.00"
-                        className="w-full border rounded px-3 py-2" 
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Receipt Type</label>
-                    <select 
-                        value={feeData.paymentMode} 
-                        onChange={(e) => setFeeData({...feeData, paymentMode: e.target.value})}
-                        className="w-full border rounded px-3 py-2"
-                    >
-                        <option value="Cash">Cash</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="Online">Online</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
-                    <textarea 
-                        value={feeData.remarks} 
-                        onChange={(e) => setFeeData({...feeData, remarks: e.target.value})}
-                        className="w-full border rounded px-3 py-2"
-                        rows="1"
-                    ></textarea>
-                </div>
-             </div>
+        {/* SECTION 3: Fees Details (Only for Monthly Payment - Shown after Continue) */}
+         {step === 2 && student.paymentPlan !== 'One Time' && (
+           <div className="p-6 border-t animate-fade-in">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Registration Fees Receipt</h3>
+              <div className="bg-orange-50 border border-orange-200 p-3 mb-4 rounded text-sm text-orange-800">
+                <strong>Note:</strong> Registration fees payment (part of course fees). Admission fees were paid during admission.
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Receipt No</label>
+                     <input type="text" disabled value={feeData.receiptNo} className="w-full bg-gray-100 border rounded px-3 py-2" />
+                 </div>
+                 <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                     <input 
+                         type="date" 
+                         value={feeData.date} 
+                         onChange={(e) => setFeeData({...feeData, date: e.target.value})}
+                         className="w-full border rounded px-3 py-2" 
+                     />
+                 </div>
+                 <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
+                     <input type="text" disabled value={student.course?.name} className="w-full bg-gray-100 border rounded px-3 py-2" />
+                 </div>
+                 <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                     <input 
+                         type="number" 
+                         value={feeData.amount} 
+                         onChange={(e) => setFeeData({...feeData, amount: e.target.value})}
+                         placeholder="0.00"
+                         className="w-full border rounded px-3 py-2" 
+                     />
+                 </div>
+                 <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Receipt Type</label>
+                     <select 
+                         value={feeData.paymentMode} 
+                         onChange={(e) => setFeeData({...feeData, paymentMode: e.target.value})}
+                         className="w-full border rounded px-3 py-2"
+                     >
+                         <option value="Cash">Cash</option>
+                         <option value="Cheque">Cheque</option>
+                         <option value="Online">Online</option>
+                     </select>
+                 </div>
+                 <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
+                     <textarea 
+                         value={feeData.remarks} 
+                         onChange={(e) => setFeeData({...feeData, remarks: e.target.value})}
+                         className="w-full border rounded px-3 py-2"
+                         rows="1"
+                     ></textarea>
+                 </div>
+              </div>
 
-             <div className="mt-8 flex gap-4">
-                <button onClick={handleFinalSubmit} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
-                    <Save size={18} /> Save & Register
-                </button>
-                <button onClick={() => setStep(1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
-                    Cancel
-                </button>
-             </div>
-          </div>
-        )}
+              <div className="mt-8 flex gap-4">
+                 <button onClick={handleFinalSubmit} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                     <Save size={18} /> Save & Register
+                 </button>
+                 <button onClick={() => setStep(1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                     Cancel
+                 </button>
+              </div>
+           </div>
+         )}
       </div>
     </div>
   );

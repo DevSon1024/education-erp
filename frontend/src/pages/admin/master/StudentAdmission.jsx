@@ -157,6 +157,7 @@ const StudentAdmission = () => {
         // Calculate Fees
         let finalFees = courseObj.courseFees;
         let emiConfig = null;
+        const admissionFee = courseObj.admissionFees || 500;
 
         if (paymentType === 'Monthly') {
             const regFees = courseObj.registrationFees || 0;
@@ -169,7 +170,7 @@ const StudentAdmission = () => {
                 registrationFees: regFees,
                 monthlyInstallment: monthlyAmt,
                 months: installments,
-                admissionFees: courseObj.admissionFees || 500
+                admissionFees: admissionFee
             };
         }
 
@@ -181,12 +182,12 @@ const StudentAdmission = () => {
             batchTime: batchObj ? `${batchObj.startTime} - ${batchObj.endTime}` : 'N/A',
             startDate,
             fees: finalFees,
-            admissionFees: courseObj.admissionFees || 0,
+            admissionFees: admissionFee,
             paymentType,
             emiConfig
         };
         setPreviewCourses([newEntry]); 
-        setValue('selectedCourseId', null); // Reset selection to allow viewing batch logic again if needed, though strictly we act on preview
+        setValue('selectedCourseId', null);
     };
 
     const onSubmit = (data) => {
@@ -569,7 +570,14 @@ const StudentAdmission = () => {
                                 <button type="button" onClick={() => setStep(1)} className="btn-secondary"><ChevronLeft size={16}/> Back to Personal</button>
                                 
                                 {payAdmissionFee === true && (
-                                    <button type="button" onClick={() => setStep(3)} className="btn-primary">
+                                    <button type="button" onClick={() => {
+                                        // Auto-fill amount based on payment type
+                                        const amountToSet = previewCourses[0].paymentType === 'One Time' 
+                                            ? previewCourses[0].fees + previewCourses[0].admissionFees
+                                            : previewCourses[0].admissionFees;
+                                        setValue('amountPaid', amountToSet);
+                                        setStep(3);
+                                    }} className="btn-primary">
                                         Proceed to Fees <ChevronRight size={16}/>
                                     </button>
                                 )}
@@ -593,9 +601,23 @@ const StudentAdmission = () => {
                                 </div>
                                 <div className="p-6 grid grid-cols-2 gap-6">
                                     <div className="col-span-2 bg-blue-50 p-3 rounded text-blue-800 text-sm">
-                                        <strong>Total Course Fees:</strong> ₹{previewCourses[0]?.fees}
+                                        <strong>Course Fees:</strong> ₹{previewCourses[0]?.fees}
                                         <br/>
-                                        <strong>Suggested Admission Fee:</strong> ₹{previewCourses[0]?.admissionFees}
+                                        <strong>Admission Fees:</strong> ₹{previewCourses[0]?.admissionFees}
+                                        {previewCourses[0]?.paymentType === 'One Time' && (
+                                            <>
+                                                <br/>
+                                                <strong className="text-green-700">Total Payable Now:</strong> ₹{previewCourses[0]?.fees + previewCourses[0]?.admissionFees}
+                                            </>
+                                        )}
+                                        {previewCourses[0]?.paymentType === 'Monthly' && (
+                                            <>
+                                                <br/>
+                                                <strong className="text-orange-700">Pay Admission Now:</strong> ₹{previewCourses[0]?.admissionFees}
+                                                <br/>
+                                                <span className="text-xs">Registration fees (₹{previewCourses[0]?.emiConfig?.registrationFees}) will be paid during registration</span>
+                                            </>
+                                        )}
                                     </div>
 
                                     <div>

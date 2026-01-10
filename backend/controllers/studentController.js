@@ -67,15 +67,25 @@ const getStudentById = asyncHandler(async (req, res) => {
 
 // @desc    Create Student (Admission Phase)
 const createStudent = asyncHandler(async (req, res) => {
-    const { totalFees, feeDetails } = req.body;
+    const { totalFees, feeDetails, paymentPlan } = req.body;
     
     let pendingFees = totalFees;
     let isAdmissionFeesPaid = false;
+    let admissionFeeAmount = 0;
 
-    // If paying immediately, calculate pending fees
+    // If paying immediately, calculate pending fees based on payment plan
     if (feeDetails && feeDetails.amount > 0) {
-        pendingFees = totalFees - Number(feeDetails.amount);
-        isAdmissionFeesPaid = true; // Assuming any payment at this stage covers admission
+        admissionFeeAmount = Number(feeDetails.amount);
+        isAdmissionFeesPaid = true;
+        
+        // For "One Time" payment, all fees are paid upfront (course fees + admission fees)
+        // For "Monthly" payment, only admission fees are paid now, registration fees pending
+        if (paymentPlan === 'One Time') {
+            pendingFees = 0; // All fees paid
+        } else {
+            // Monthly: Only admission fee paid, course fees still pending
+            pendingFees = totalFees - admissionFeeAmount;
+        }
     }
 
     try {
@@ -85,6 +95,7 @@ const createStudent = asyncHandler(async (req, res) => {
             studentPhoto: req.file ? req.file.path.replace(/\\/g, "/") : null, // Store path
             pendingFees,
             isAdmissionFeesPaid,
+            admissionFeeAmount,
             isRegistered: false 
         });
 
@@ -94,13 +105,17 @@ const createStudent = asyncHandler(async (req, res) => {
             // Use Sequential Numbering
             const receiptNo = String(feeCount + 1);
 
+            const receiptRemarks = paymentPlan === 'One Time' 
+                ? 'Full Payment (Admission + Course Fees)' 
+                : feeDetails.remarks || 'Admission Fee';
+
             await FeeReceipt.create({
                 receiptNo,
                 student: student._id,
                 course: student.course,
                 amountPaid: feeDetails.amount,
                 paymentMode: feeDetails.paymentMode,
-                remarks: feeDetails.remarks || 'Admission Fee',
+                remarks: receiptRemarks,
                 date: feeDetails.date || new Date(),
                 createdBy: req.user._id
             });
@@ -160,8 +175,9 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         role: 'Student'
     });
 
-    // 3. Create Fee Receipt
-    if (feeDetails && feeDetails.amount > 0) {
+    // 3. Create Fee Receipt ONLY for Monthly payment plan
+    // For "One Time", all fees were already paid during admission
+    if (student.paymentPlan !== 'One Time' && feeDetails && feeDetails.amount > 0) {
         const feeCount = await FeeReceipt.countDocuments();
         const receiptNo = String(feeCount + 1);
         
@@ -175,6 +191,9 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
             date: feeDetails.date || new Date(),
             createdBy: req.user._id
         });
+
+        // Update pending fees for monthly payment
+        student.pendingFees = Math.max(0, student.pendingFees - feeDetails.amount);
     }
 
     // 4. Update Student
