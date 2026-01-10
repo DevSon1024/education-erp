@@ -14,7 +14,7 @@ const { getExamResults, createExamResult, updateExamResult } = require('../contr
 
 // --- Course Routes ---
 router.route('/course')
-    .get(protect, checkPermission('Course', 'view'), getCourses)
+    .get(getCourses) // Public Access
     .post(protect, checkPermission('Course', 'add'), createCourse);
 
 router.route('/course/:id')

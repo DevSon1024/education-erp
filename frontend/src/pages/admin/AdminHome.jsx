@@ -23,10 +23,10 @@ const AdminHome = () => {
     minPendingDays: ''
   });
 
-  // Initial Fetch (Fetch ALL inquiries initially or filtered by recent if needed)
+  // Initial Fetch
   useEffect(() => {
-    // Fetching all for dashboard - in real app might want pagination or limit
-    dispatch(fetchInquiries({})); 
+    // Fetching ONLY "QuickContact" for dashboard as per requirements
+    dispatch(fetchInquiries({ source: 'QuickContact' })); 
     dispatch(fetchPendingExams());
     dispatch(fetchCourses());
   }, [dispatch]);
@@ -94,26 +94,32 @@ const AdminHome = () => {
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn">
             <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <AlertCircle size={20} className="text-blue-500"/> Recent Inquiries
+                    <AlertCircle size={20} className="text-blue-500"/> Recent Quick Contact Inquiries
                 </h3>
-                <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                    Total: {inquiries?.length || 0}
-                </span>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                        Total: {inquiries?.length || 0}
+                    </span>
+                    <button onClick={() => dispatch(fetchInquiries({ source: 'QuickContact' }))} className="p-1 hover:bg-gray-200 rounded-full transition-colors" title="Refresh">
+                        <RefreshCw size={16} className="text-gray-500"/>
+                    </button>
+                </div>
             </div>
             
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Sr No.</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Serial No</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Contact Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Person</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Contact Person</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Mobile</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Email</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">State</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">City</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Subject</th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Message</th>
-                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Action</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Course</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Contact Detail</th>
+                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Online Inquiry</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -121,38 +127,36 @@ const AdminHome = () => {
                             <tr key={inq._id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 text-sm text-gray-500">{index + 1}</td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {inq.inquiryDate ? new Date(inq.inquiryDate).toLocaleDateString() : '-'}
+                                    {inq.createdAt ? new Date(inq.createdAt).toLocaleDateString() : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-sm font-medium text-blue-900">
                                     {inq.firstName} {inq.lastName}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{inq.contactStudent}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{inq.email || '-'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{inq.state || '-'}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{inq.city || '-'}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">
                                     {inq.interestedCourse?.name || 'General'}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">
-                                    {inq.followUpDetails || inq.remarks || '-'}
+                                    {inq.remarks || '-'}
                                 </td>
                                 <td className="px-6 py-4 text-center">
-                                    {inq.source === 'Online' ? (
-                                        <span className="text-xs text-green-600 font-bold border border-green-200 bg-green-50 px-2 py-1 rounded">
-                                            Online
-                                        </span>
-                                    ) : (
-                                        <button 
-                                            onClick={() => handleAddToOnline(inq)}
-                                            className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded text-xs font-bold flex items-center gap-1 mx-auto"
-                                            title="Transfer to Online Inquiry List"
-                                        >
-                                            Add to Online <ExternalLink size={12}/>
-                                        </button>
-                                    )}
+                                    <button 
+                                        onClick={() => handleAddToOnline(inq)}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1 mx-auto shadow-sm transition-all"
+                                        title="Add to Online Inquiry"
+                                    >
+                                        <CheckCircle size={12}/> Add Now
+                                    </button>
                                 </td>
                             </tr>
                         )) : (
-                            <tr><td colSpan="9" className="text-center py-10 text-gray-500">No inquiries found.</td></tr>
+                            <tr><td colSpan="10" className="text-center py-10 text-gray-500 flex flex-col items-center justify-center w-full">
+                                <AlertCircle size={32} className="mb-2 opacity-50"/>
+                                No Quick Contact inquiries found.
+                            </td></tr>
                         )}
                     </tbody>
                 </table>

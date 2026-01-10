@@ -9,9 +9,10 @@ const {
 } = require('../controllers/transactionController');
 
 // --- Inquiry Routes ---
+// --- Inquiry Routes ---
 router.route('/inquiry')
     .get(protect, checkPermission('Inquiry', 'view'), getInquiries)
-    .post(protect, checkPermission('Inquiry', 'add'), createInquiry);
+    .post(createInquiry); // Public Access for Quick Contact
 
 router.route('/inquiry/:id')
     .put(protect, checkPermission('Inquiry', 'edit'), updateInquiryStatus);

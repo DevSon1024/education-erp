@@ -85,7 +85,9 @@ const transactionSlice = createSlice({
             })
             .addCase(updateInquiry.fulfilled, (state, action) => {
                 const index = state.inquiries.findIndex(i => i._id === action.payload._id);
-                if (index !== -1) state.inquiries[index] = action.payload;
+                if (index !== -1) {
+                    state.inquiries[index] = action.payload; // Update data
+                }
                 state.isSuccess = true;
                 state.message = 'Inquiry Updated';
             })

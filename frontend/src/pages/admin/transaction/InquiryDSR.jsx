@@ -79,20 +79,17 @@ const InquiryDSR = () => {
       { header: 'Status', render: r => <span className={`px-2 py-0.5 rounded text-xs font-bold ${r.status==='Open'?'bg-green-100 text-green-800':'bg-gray-100'}`}>{r.status}</span> },
       { header: 'Next Follow Up', render: r => r.followUpDate ? new Date(r.followUpDate).toLocaleDateString() : '-' },
       { header: 'Details', accessor: 'followUpDetails' },
+      { header: 'Details', accessor: 'followUpDetails' },
       { header: 'Action', render: r => <button onClick={() => setModal({type:'followup', data:r})} className="text-purple-600 border border-purple-200 px-2 py-1 rounded bg-purple-50 text-xs font-bold hover:bg-purple-100"><PhoneCall size={14}/> Update</button>},
-      { header: 'Actions', render: r => (
-          <div className="flex gap-2">
-            <button onClick={() => setModal({type:'form', data:r})}><Edit size={16} className="text-green-600"/></button>
-            <button onClick={() => handleDelete(r._id)}><Trash2 size={16} className="text-red-600"/></button>
-          </div>
-      )}
   ];
 
   return (
     <div className="container mx-auto p-4 max-w-full animate-fadeIn">
         <div className="flex justify-between mb-4 items-center">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2"><FileText className="text-purple-600"/> DSR Inquiry Report</h2>
-            <button onClick={() => setModal({type:'form'})} className="bg-primary text-white px-4 py-2 rounded shadow flex items-center gap-2 hover:bg-blue-800"><Plus size={18}/> New DSR</button>
+            <button onClick={() => setModal({type:'form'})} className="bg-blue-600 text-white px-4 py-2 rounded shadow flex items-center gap-2 hover:bg-blue-700 font-bold transition-all transform hover:scale-105">
+                <Plus size={18}/> Add DSR Inquiry
+            </button>
         </div>
         
         {/* Filter Bar */}
@@ -104,7 +101,12 @@ const InquiryDSR = () => {
              <button onClick={() => dispatch(fetchInquiries(filters))} className="bg-gray-800 text-white px-4 rounded hover:bg-black"><Search size={18}/></button>
         </div>
 
-        <SmartTable columns={columns} data={inquiries} />
+        <SmartTable 
+            columns={columns} 
+            data={inquiries} 
+            onEdit={(row) => setModal({type:'form', data:row})}
+            onDelete={(id) => handleDelete(id)}
+        />
 
         {/* Reusable Form Modal */}
         {modal.type === 'form' && (

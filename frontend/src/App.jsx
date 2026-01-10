@@ -63,7 +63,7 @@ function App() {
   return (
     <>
       <Router>
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pt-20">
           {user && <Navbar />}
           <Routes>
             {/* PRIVATE ADMIN ROUTES */}
@@ -101,6 +101,10 @@ function App() {
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
             <Route path="/transaction/pending-registration" element={<PrivateRoute><PendingStudentRegistration /></PrivateRoute>} />
             <Route path="/transaction/student-registration-process/:id" element={<PrivateRoute><StudentRegistrationProcess /></PrivateRoute>} />
+            
+            {/* Added Connect -> Inquiry List route (Aliased to InquiryPage) */}
+            <Route path="/connect/inquiry-list" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
+
 
 
             {/* PUBLIC PAGES */}

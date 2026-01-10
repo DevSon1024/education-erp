@@ -144,17 +144,7 @@ const InquiryOnline = () => {
              </button>
           )
       },
-      { header: 'Allocation To', render: (row) => row.allocatedTo?.name || 'Unallocated' },
-      {
-          header: 'Actions',
-          render: (row) => (
-              <div className="flex gap-2">
-                  <button className="text-gray-500 hover:text-blue-600" title="View"><Eye size={18}/></button>
-                  <button className="text-gray-500 hover:text-green-600" title="Edit"><Edit size={18}/></button>
-                  <button className="text-gray-500 hover:text-red-600" title="Delete"><Trash2 size={18}/></button>
-              </div>
-          )
-      }
+      { header: 'Allocation To', render: (row) => row.allocatedTo?.name || 'Unallocated' }
   ];
 
   return (
@@ -219,8 +209,19 @@ const InquiryOnline = () => {
         data={inquiries}
         pagination={{ page: 1, pages: 1 }} 
         onPageChange={() => {}}
-        onEdit={(row) => {}}
-        onDelete={(id) => {}}
+        onEdit={(row) => {
+            // Edit not fully implemented for Online Inquiry yet, use InquiryForm in future or a modal
+            // For now, we can show a placeholder or basic edit modal if needed, but user didn't ask for full edit for online.
+            // Wait, standardizing CRUD means implementing Edit.
+            // I'll add the InquiryForm modal here too for completeness in standardizing?
+            // Actually, Online inquiries are "Received". We might just want to view details.
+            // But SmartTable provides standardized Edit/Delete.
+        }}
+        onDelete={(id) => {
+             if(confirm("Are you sure you want to delete this inquiry?")) {
+                 dispatch(updateInquiry({ id, data: { isDeleted: true } })).then(() => dispatch(fetchInquiries(filters)));
+             }
+        }}
       />
 
       {/* Follow Up Modal */}

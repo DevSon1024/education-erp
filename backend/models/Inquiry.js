@@ -27,7 +27,7 @@ const inquirySchema = new mongoose.Schema({
     // System Source (Defines if it's DSR, Walk-in/Offline, etc.)
     source: { 
         type: String, 
-        enum: ['Walk-in', 'Social Media', 'Reference', 'Online', 'Call', 'DSR'], 
+        enum: ['Walk-in', 'Social Media', 'Reference', 'Online', 'Call', 'DSR', 'QuickContact'], 
         default: 'Walk-in' 
     },
     
