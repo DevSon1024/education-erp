@@ -10,7 +10,8 @@ const {
     updateStudent,
     deleteStudent, 
     toggleStudentStatus,
-    confirmStudentRegistration // Imported
+    confirmStudentRegistration,
+    resetStudentLogin // Imported
 } = require('../controllers/studentController');
 
 router.route('/')
@@ -28,5 +29,8 @@ router.route('/:id/confirm-registration')
 
 router.route('/:id/toggle')
     .put(protect, checkPermission('Student', 'edit'), toggleStudentStatus);
+
+router.route('/:id/reset-login')
+    .put(protect, checkPermission('Student', 'edit'), resetStudentLogin);
 
 module.exports = router;

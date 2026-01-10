@@ -49,7 +49,7 @@ const getStudents = asyncHandler(async (req, res) => {
     const count = await Student.countDocuments(query);
 
     const students = await Student.find(query)
-        .populate('course', 'name duration')
+        .populate('course', 'name duration shortName durationType')
         .limit(limit)
         .skip(limit * (page - 1))
         .sort({ createdAt: -1 });
@@ -271,4 +271,39 @@ const updateStudent = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus };
+// @desc    Reset Student Login (Username/Password)
+const resetStudentLogin = asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
+    const student = await Student.findById(req.params.id);
+
+    if (!student) {
+        res.status(404); throw new Error('Student not found');
+    }
+
+    if (!student.userId) {
+        // If student is not registered yet, we cannot reset login
+        res.status(400); throw new Error('Student is not registered yet. Please confirm registration first.');
+    }
+
+    const user = await User.findById(student.userId);
+    if (!user) {
+        res.status(404); throw new Error('Associated User account not found');
+    }
+
+    // Update User credentials
+    user.username = username || user.username;
+    if (password) {
+        user.password = password; // Will be hashed by User model middleware
+    }
+    await user.save();
+
+    // Send SMS Notification
+    if (student.mobileStudent) {
+        const msg = `Dear ${student.firstName}, your login details have been updated. User ID: ${user.username}, Password: ${password || '(Unchanged)'}. Smart Institute.`;
+        sendSMS(student.mobileStudent, msg).catch(err => console.error('Reset Login SMS failed', err));
+    }
+
+    res.json({ message: 'Login details updated successfully', username: user.username });
+});
+
+module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin };

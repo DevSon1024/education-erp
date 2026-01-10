@@ -111,6 +111,18 @@ export const toggleActiveStatus = createAsyncThunk(
   }
 );
 
+export const resetStudentLogin = createAsyncThunk(
+  "students/resetLogin",
+  async ({ id, data }, thunkAPI) => {
+    try {
+      const response = await axios.put(`${API_URL}${id}/reset-login`, data);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const studentSlice = createSlice({
   name: "students",
   initialState: {
@@ -182,6 +194,17 @@ const studentSlice = createSlice({
       .addCase(toggleActiveStatus.fulfilled, (state, action) => {
         const student = state.students.find((s) => s._id === action.payload);
         if (student) student.isActive = !student.isActive;
+      })
+      .addCase(resetStudentLogin.pending, (state) => { state.isLoading = true; })
+      .addCase(resetStudentLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = "Login Credentials Updated & SMS Sent";
+      })
+      .addCase(resetStudentLogin.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.message = action.payload;
       });
   },
 });
