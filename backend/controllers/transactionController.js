@@ -188,7 +188,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
 
              const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
              
-             const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean);
+             const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))];
              await Promise.all(contacts.map(num => sendSMS(num, smsMessage)));
              console.log('Admission SMS sent via Fee Receipt');
         } catch (error) {

@@ -118,7 +118,7 @@ const createStudent = asyncHandler(async (req, res) => {
         const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
 
         // 5. Send SMS to All Contacts
-        const contacts = [student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean); 
+        const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))]; 
         
         Promise.all(contacts.map(num => sendSMS(num, smsMessage)))
             .then(() => console.log('Admission SMS sent successfully'))
