@@ -16,22 +16,27 @@ const PublicNavbar = () => {
   ];
 
   return (
-    <nav className="bg-primary text-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-primary text-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-14">
-          <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+        <div className="flex justify-between items-center h-16">
+           {/* Mobile Menu Button */}
+          <button className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
 
-          <div className="hidden md:flex space-x-1 w-full justify-center">
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center justify-center w-full gap-1">
             {menuItems.map((item, index) => (
               <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`}
-                className="px-4 py-2 text-sm font-medium hover:bg-white/10 hover:text-accent transition-colors rounded-md uppercase tracking-wide"
+                className="px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md"
               >
                 {item}
               </Link>
             ))}
           </div>
+          
+           {/* Mobile Right Spacer (optional balance) */}
+           <div className="md:hidden w-10"></div> 
         </div>
       </div>
 
@@ -43,9 +48,9 @@ const PublicNavbar = () => {
             exit={{ height: 0, opacity: 0 }}
             className="md:hidden bg-primary border-t border-blue-800 overflow-hidden"
           >
-            <div className="flex flex-col p-4 space-y-2">
+            <div className="flex flex-col p-4 space-y-1">
               {menuItems.map((item, index) => (
-                <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`} className="block py-2 text-sm hover:text-accent border-b border-blue-800 last:border-0">
+                <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`} className="block px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors">
                   {item}
                 </Link>
               ))}
@@ -63,28 +68,28 @@ const PublicLayout = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       {/* 1. Slim Top Header */}
-      <div className="bg-blue-900 text-gray-300 py-5 text-xs">
+      <div className="bg-gray-900 text-gray-300 py-3 text-xs border-b border-gray-800">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><Phone size={12} /> +91-96017-49300</span>
-            <span className="flex items-center gap-1"><Mail size={12} /> info@smartinstitute.co.in</span>
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-2 hover:text-white transition-colors"><Phone size={14} className="text-accent" /> +91-96017-49300</span>
+            <span className="flex items-center gap-2 hover:text-white transition-colors"><Mail size={14} className="text-accent" /> info@smartinstitute.co.in</span>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex gap-3 pr-4 border-r border-gray-700">
-              <Facebook size={14} className="hover:text-blue-500 cursor-pointer" />
-              <Twitter size={14} className="hover:text-sky-400 cursor-pointer" />
-              <Instagram size={14} className="hover:text-pink-500 cursor-pointer" />
-              <Linkedin size={14} className="hover:text-blue-700 cursor-pointer" />
+          <div className="flex items-center gap-6">
+            <div className="flex gap-4 pr-6 border-r border-gray-700">
+              <Facebook size={16} className="hover:text-blue-500 cursor-pointer transition-transform hover:scale-110" />
+              <Twitter size={16} className="hover:text-sky-400 cursor-pointer transition-transform hover:scale-110" />
+              <Instagram size={16} className="hover:text-pink-500 cursor-pointer transition-transform hover:scale-110" />
+              <Linkedin size={16} className="hover:text-blue-700 cursor-pointer transition-transform hover:scale-110" />
             </div>
-            <div className="flex gap-3 font-semibold">
+            <div className="flex gap-4 font-bold tracking-wide">
               {user ? (
-                 <Link to="/home" className="flex items-center gap-1 hover:text-white text-accent">
-                   Dashboard <ArrowRight size={12} />
+                 <Link to="/home" className="flex items-center gap-2 hover:text-accent transition-colors">
+                   DASHBOARD <ArrowRight size={14} />
                  </Link>
               ) : (
                 <>
-                  <Link to="/login" className="flex items-center gap-1 text-base hover:text-white"><LogIn size={18} /> Login</Link>
-                  <Link to="/register" className="flex items-center gap-1 text-base hover:text-white"><UserPlus size={18} /> Register</Link>
+                  <Link to="/login" className="flex items-center gap-1 hover:text-white transition-colors"><LogIn size={16} /> LOGIN</Link>
+                  <Link to="/register" className="flex items-center gap-1 hover:text-white transition-colors"><UserPlus size={16} /> REGISTER</Link>
                 </>
               )}
             </div>
@@ -93,19 +98,27 @@ const PublicLayout = () => {
       </div>
 
       {/* 2. Logo & Branding */}
-      <div className="bg-white py-4 shadow-sm relative z-10">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             <img src={logoImage} alt="Smart Institute Logo" className="h-16 w-auto object-contain" />
-             <div className="relative">
-                <center><h3 className="text-base md:text-lg text-accent font-bold tracking-wide uppercase" 
-                   style={{ background: 'linear-gradient(180deg, #f59e0b 60%, transparent 60%)', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}>
+      <div className="bg-white py-6 shadow-sm relative z-20">
+        <div className="container mx-auto px-4">
+           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+             {/* Logo */}
+             <div className="flex-shrink-0">
+                <img src={logoImage} alt="Smart Institute Logo" className="h-24 md:h-28 w-auto object-contain drop-shadow-sm hover:scale-105 transition-transform duration-300" />
+             </div>
+             
+             {/* Centered Slogan with Mirror Effect */}
+             <div className="flex-grow flex justify-center items-center py-2">
+                <h3 className="text-2xl md:text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 uppercase text-center"
+                    style={{ 
+                        WebkitBoxReflect: 'below -12px linear-gradient(transparent, rgba(0,0,0,0.2))' 
+                    }}>
                   सपने जो SMART बना दे
-                </h3></center>
-                <p className="text-base md:text-lg font-bold tracking-wide uppercase absolute top-full left-0 opacity-30 blur-[1px]"
-                   style={{ transform: 'scaleY(-1)', background: 'linear-gradient(0deg, #f59e0b 0%, transparent 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                  सपने जो SMART बना दे
-                </p>
+                </h3>
+             </div>
+
+             {/* Right Side Spacer/Visual (Optional, keeps Logo left and Slogan center-ish) */}
+             <div className="hidden md:block w-32">
+                 {/* Placeholder or Call to Action could go here */}
              </div>
            </div>
         </div>

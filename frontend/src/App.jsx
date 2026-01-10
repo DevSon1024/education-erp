@@ -63,7 +63,7 @@ function App() {
   return (
     <>
       <Router>
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pt-20">
+        <div className={`min-h-screen bg-gray-50 text-gray-900 font-sans ${user ? 'pt-20' : ''}`}>
           {user && <Navbar />}
           <Routes>
             {/* PRIVATE ADMIN ROUTES */}
