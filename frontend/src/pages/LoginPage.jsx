@@ -31,17 +31,39 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-primary">
-        <div className="text-center mb-8">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-primary relative animate-fadeIn">
+        {/* Back Option */}
+        <button onClick={() => navigate('/')} className="absolute top-4 right-4 text-xs font-bold text-gray-500 hover:text-primary transition-colors">
+            &larr; Back to Home
+        </button>
+
+        <div className="text-center mb-6">
            <h1 className="text-3xl font-bold text-primary">Smart Institute</h1>
-           <p className="text-gray-500 text-sm mt-1">Management Analysis of Technocrats</p>
+           <p className="text-gray-500 text-sm mt-1">Authentic Login Portal</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           
+          {/* Role Selection */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Select Role</label>
+            <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-gray-50"
+                {...register('role', { required: 'Please select a role' })}
+            >
+                <option value="">-- Select Role --</option>
+                <option value="Super Admin">Super Admin</option>
+                <option value="Admin">Admin</option>
+                <option value="Counselor">Counselor</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Student">Student</option>
+            </select>
+            {errors.role && <span className="text-xs text-red-500 mt-1">{errors.role.message}</span>}
+          </div>
+
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User size={18} className="text-gray-400" />
@@ -49,7 +71,7 @@ const LoginPage = () => {
               <input
                 type="email"
                 className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="admin@smartinstitute.com"
+                placeholder="user@smartinstitute.com"
                 {...register('email', { required: 'Email is required' })}
               />
             </div>
@@ -58,7 +80,7 @@ const LoginPage = () => {
 
           {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock size={18} className="text-gray-400" />
@@ -76,14 +98,26 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
+            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-primary hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all transform hover:scale-[1.02]"
           >
-            {isLoading ? <Loader className="animate-spin" size={20} /> : 'Login to Dashboard'}
+            {isLoading ? <Loader className="animate-spin" size={20} /> : 'Secure Login'}
           </button>
         </form>
         
-        <div className="mt-6 text-center text-xs text-gray-400">
-          &copy; 2026 Smart Institute. All rights reserved.
+        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+            <p className="text-sm text-gray-600">
+                Don't have an account?{' '}
+                <span 
+                    onClick={() => navigate('/register')} 
+                    className="text-primary font-bold cursor-pointer hover:underline"
+                >
+                    Register Now
+                </span>
+            </p>
+        </div>
+
+        <div className="mt-4 text-center text-[10px] text-gray-400">
+          From Smart Institute
         </div>
       </div>
     </div>

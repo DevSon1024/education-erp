@@ -108,7 +108,12 @@ function App() {
 
 
             {/* PUBLIC PAGES */}
-           <Route element={<PublicLayout />}>
+            {/* AUTH PAGES (Standalone Layout) */}
+            <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
+            <Route path="/register" element={user ? <Navigate to="/home" replace /> : <RegisterPage />} />
+
+            {/* PUBLIC PAGES */}
+            <Route element={<PublicLayout />}>
               <Route path="/" element={user ? <Navigate to="/home" replace /> : <HomePage />} />
               <Route path="/about-us" element={<AboutUsPage />} />
               <Route path="/course" element={<CoursePage />} />
@@ -118,8 +123,6 @@ function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
-              <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
-              <Route path="/register" element={user ? <Navigate to="/home" replace /> : <RegisterPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

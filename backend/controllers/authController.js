@@ -36,11 +36,18 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // @desc Login
 // @route POST /api/auth/login
+// @route POST /api/auth/login
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+        // Enforce Role Check if provided (Security Level)
+        if (role && user.role !== role) {
+            res.status(401);
+            throw new Error(`Access Denied: You are not authorized as ${role}`);
+        }
+
         generateToken(res, user._id);
         res.json({
             _id: user._id, name: user.name, email: user.email, role: user.role

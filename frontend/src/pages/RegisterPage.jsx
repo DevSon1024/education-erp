@@ -31,7 +31,12 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-green-600">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-green-600 relative animate-fadeIn">
+        {/* Back Option */}
+        <button onClick={() => navigate('/')} className="absolute top-4 right-4 text-xs font-bold text-gray-500 hover:text-green-600 transition-colors">
+            &larr; Back to Home
+        </button>
+
         <div className="text-center mb-8">
            <h1 className="text-3xl font-bold text-gray-800">Admin Setup</h1>
            <p className="text-gray-500 text-sm mt-1">Create your first Super Admin account</p>
