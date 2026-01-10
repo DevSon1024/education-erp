@@ -2,6 +2,7 @@ const Course = require('../models/Course');
 const Batch = require('../models/Batch');
 const Employee = require('../models/Employee');
 const Subject = require('../models/Subject');
+const Student = require('../models/Student'); // Imported Student model for aggregation
 const asyncHandler = require('express-async-handler');
 
 // --- COURSE CONTROLLERS ---
@@ -51,7 +52,7 @@ const deleteCourse = asyncHandler(async (req, res) => {
     }
 });
 
-// --- BATCH CONTROLLERS --- (Kept as is/Updated from previous context)
+// --- BATCH CONTROLLERS ---
 const getBatches = asyncHandler(async (req, res) => {
     const { startDate, endDate, searchBy, searchValue } = req.query;
     let query = { isDeleted: false };
@@ -68,11 +69,38 @@ const getBatches = asyncHandler(async (req, res) => {
             query.faculty = { $in: empIds };
         }
     }
+
+    // 1. Fetch Batches (Use .lean() to get plain JS objects for modification)
     const batches = await Batch.find(query)
         .populate('courses', 'name')
         .populate('faculty', 'name')
-        .sort({ createdAt: -1 });
-    res.json(batches);
+        .sort({ createdAt: -1 })
+        .lean();
+
+    // 2. Aggregate Active Students Count Grouped by Batch and Course
+    const stats = await Student.aggregate([
+        { $match: { isDeleted: false, isActive: true } }, // Only active students
+        { $group: { _id: { batch: "$batch", course: "$course" }, count: { $sum: 1 } } }
+    ]);
+
+    // 3. Map Stats for Easy Lookup: { "BatchName": { "CourseID": Count, ... }, ... }
+    const batchStats = {};
+    stats.forEach(s => {
+        const bName = s._id.batch;
+        const cId = s._id.course ? s._id.course.toString() : 'unknown';
+        
+        if (!batchStats[bName]) batchStats[bName] = {};
+        batchStats[bName][cId] = s.count;
+    });
+
+    // 4. Attach Course-Specific Counts to Each Batch
+    const result = batches.map(b => ({
+        ...b,
+        // b.courseCounts[courseId] will give the count of active students for that course in this batch
+        courseCounts: batchStats[b.name] || {} 
+    }));
+
+    res.json(result);
 });
 
 const createBatch = asyncHandler(async (req, res) => {
@@ -102,7 +130,7 @@ const deleteBatch = asyncHandler(async (req, res) => {
     }
 });
 
-// --- SUBJECT CONTROLLERS --- (Kept as is)
+// --- SUBJECT CONTROLLERS ---
 const getSubjects = asyncHandler(async (req, res) => {
     const { searchBy, searchValue } = req.query;
     let query = { isDeleted: false };

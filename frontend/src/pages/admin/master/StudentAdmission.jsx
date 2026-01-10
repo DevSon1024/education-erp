@@ -63,6 +63,7 @@ const StudentAdmission = () => {
     const watchFirstName = watch('firstName');
     const watchLastName = watch('lastName');
     const watchCourseSelection = watch('selectedCourseId');
+    const watchSelectedBatch = watch('selectedBatch'); // Needed for Radio Button re-render
     const watchReference = watch('reference');
     const watchState = watch('state');
     const watchRelation = watch('relationType');
@@ -453,14 +454,62 @@ const StudentAdmission = () => {
                                 <div className="bg-slate-50 p-4 rounded border border-slate-200">
                                     <div className="font-bold text-slate-700 mb-3">B. Batch & Fee Config</div>
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <div className="col-span-2">
-                                            <label className="label">Select Batch</label>
-                                            <select {...register('selectedBatch')} className="input">
-                                                <option value="">-- Choose Batch --</option>
-                                                {batches.filter(b => b.course === watchCourseSelection || b.courses?.some(c => (c._id || c) === watchCourseSelection))
-                                                    .map(b => <option key={b._id} value={b.name}>{b.name} ({b.startTime} - {b.endTime}) ({b.studentCount || 0} Students)</option>)}
-                                            </select>
+                                        
+                                        {/* TABLE BASED BATCH SELECTION */}
+                                        <div className="col-span-1 md:col-span-4 mb-2">
+                                            <label className="label mb-2">Select Batch *</label>
+                                            <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto bg-white shadow-sm">
+                                                <table className="w-full text-sm">
+                                                    <thead className="bg-gray-100 text-left sticky top-0 border-b">
+                                                        <tr>
+                                                            <th className="p-3 w-12 text-center">#</th>
+                                                            <th className="p-3">Batch Name</th>
+                                                            <th className="p-3">Batch Time</th>
+                                                            <th className="p-3 text-center text-blue-800">Active Students <br/><span className="text-xs font-normal">(In Selected Course)</span></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {batches.filter(b => b.course === watchCourseSelection || b.courses?.some(c => (c._id || c) === watchCourseSelection))
+                                                            .map((b) => {
+                                                                // Use the optional chaining to safely access counts
+                                                                const activeCount = b.courseCounts?.[watchCourseSelection] || 0;
+                                                                const isSelected = watchSelectedBatch === b.name;
+                                                                
+                                                                return (
+                                                                    <tr 
+                                                                        key={b._id} 
+                                                                        onClick={() => setValue('selectedBatch', b.name)}
+                                                                        className={`border-b cursor-pointer transition ${isSelected ? 'bg-blue-100 border-blue-200' : 'hover:bg-gray-50'}`}
+                                                                    >
+                                                                        <td className="p-3 text-center">
+                                                                            <input 
+                                                                                type="radio" 
+                                                                                name="batchSelectGroup" // Just for visual grouping logic
+                                                                                checked={isSelected}
+                                                                                onChange={() => setValue('selectedBatch', b.name)}
+                                                                                className="cursor-pointer w-4 h-4 text-blue-600"
+                                                                            />
+                                                                        </td>
+                                                                        <td className="p-3 font-medium text-gray-800">{b.name}</td>
+                                                                        <td className="p-3 text-gray-600">{b.startTime} - {b.endTime}</td>
+                                                                        <td className="p-3 text-center">
+                                                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${activeCount > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                                                                                {activeCount}
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                        })}
+                                                        {batches.filter(b => b.course === watchCourseSelection || b.courses?.some(c => (c._id || c) === watchCourseSelection)).length === 0 && (
+                                                            <tr>
+                                                                <td colSpan="4" className="p-4 text-center text-gray-500">No batches available for this course.</td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
+
                                         <div>
                                             <label className="label">Start Date</label>
                                             <input type="date" {...register('batchStartDate')} className="input" defaultValue={new Date().toISOString().split('T')[0]} />
@@ -472,8 +521,8 @@ const StudentAdmission = () => {
                                                 <option value="Monthly">Monthly</option>
                                             </select>
                                         </div>
-                                        <div className="col-span-4 flex justify-end">
-                                            <button type="button" onClick={handleAddCourseToList} className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black">
+                                        <div className="col-span-2 flex justify-end items-end">
+                                            <button type="button" onClick={handleAddCourseToList} className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black h-10 w-full justify-center">
                                                 <Plus size={16}/> Add to List
                                             </button>
                                         </div>
