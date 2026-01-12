@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
-  Phone, Mail, Facebook, Twitter, Instagram, Linkedin, 
+  Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Youtube,
   LogIn, UserPlus, ArrowRight, Menu, X, MapPin, ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -179,10 +179,18 @@ const PublicLayout = () => {
           </div>
           <div className="flex items-center gap-6">
             <div className="flex gap-4 pr-6 border-r border-gray-700">
-              <Facebook size={16} className="hover:text-blue-500 cursor-pointer transition-transform hover:scale-110" />
-              <Twitter size={16} className="hover:text-sky-400 cursor-pointer transition-transform hover:scale-110" />
-              <Instagram size={16} className="hover:text-pink-500 cursor-pointer transition-transform hover:scale-110" />
-              <Linkedin size={16} className="hover:text-blue-700 cursor-pointer transition-transform hover:scale-110" />
+              <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 cursor-pointer transition-transform hover:scale-110">
+                <Facebook size={16} />
+              </a>
+              <a href="#" className="hover:text-sky-400 cursor-pointer transition-transform hover:scale-110">
+                <span className="font-bold text-xs" style={{ fontFamily: 'sans-serif' }}>X</span>
+              </a>
+              <a href="#" className="hover:text-pink-500 cursor-pointer transition-transform hover:scale-110">
+                <Instagram size={16} />
+              </a>
+              <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 cursor-pointer transition-transform hover:scale-110">
+                <Youtube size={16} />
+              </a>
             </div>
             <div className="flex gap-4 font-bold tracking-wide">
               {user ? (
@@ -247,9 +255,10 @@ const PublicLayout = () => {
                 Disclaimer Smart Institute © 2026 Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
               </p>
               <div className="flex gap-4">
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-primary transition-colors"><Facebook size={18} /></a>
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-sky-400 transition-colors"><Twitter size={18} /></a>
-                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-blue-600 transition-colors"><Linkedin size={18} /></a>
+                 <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-lg hover:bg-primary transition-colors"><Facebook size={18} /></a>
+                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-sky-400 transition-colors flex items-center justify-center font-bold text-white w-[34px] h-[34px]">X</a>
+                 <a href="#" className="p-2 bg-gray-800 rounded-lg hover:bg-pink-500 transition-colors"><Instagram size={18} /></a>
+                 <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-lg hover:bg-red-600 transition-colors"><Youtube size={18} /></a>
               </div>
             </div>
 
