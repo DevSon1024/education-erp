@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, Search, FileText, X, Edit, Trash2, Calendar, Clock, BookOpen, User as UserIcon } from 'lucide-react';
+import { Users, Plus, Search, FileText, X, Edit, Trash2, Calendar, Clock, BookOpen, User as UserIcon, ArrowRightCircle } from 'lucide-react';
 import visitorService from '../../../services/visitorService';
-import axios from 'axios'; // For specific dropdown fetches if needed, or better to use services
+import axios from 'axios'; 
+import { useNavigate } from 'react-router-dom';
 
 const Visitors = () => {
+    const navigate = useNavigate();
     // State
     const [visitors, setVisitors] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -290,6 +292,15 @@ const Visitors = () => {
                                         <td className="p-3">{visitor.attendedBy?.name || visitor.attendedBy?.username || '-'}</td>
                                         <td className="p-3">
                                             <div className="flex gap-2">
+                                                {!visitor.inquiryId && (
+                                                    <button 
+                                                        onClick={() => navigate('/transaction/inquiry/offline', { state: { visitorData: visitor } })} 
+                                                        className="text-orange-500 hover:text-orange-700 p-1" 
+                                                        title="Convert to Inquiry"
+                                                    >
+                                                        <ArrowRightCircle size={16} />
+                                                    </button>
+                                                )}
                                                 <button onClick={() => handleEdit(visitor)} className="text-blue-500 hover:text-blue-700 p-1">
                                                     <Edit size={16} />
                                                 </button>

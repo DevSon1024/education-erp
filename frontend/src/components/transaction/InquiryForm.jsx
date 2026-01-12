@@ -20,16 +20,31 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
 
     useEffect(() => {
         if (initialData) {
-            // Populate form for Edit
-            const formattedData = {
-                ...initialData,
-                interestedCourse: initialData.interestedCourse?._id,
-                inquiryDate: initialData.inquiryDate ? initialData.inquiryDate.split('T')[0] : '',
-                dob: initialData.dob ? initialData.dob.split('T')[0] : '',
-                followUpDate: initialData.followUpDate ? initialData.followUpDate.split('T')[0] : '',
-                // Keep the source as is if editing, or enforce mode if new
-            };
-            reset(formattedData);
+            // Check if this is a visitor conversion
+            if (initialData.isConversion) {
+                reset({
+                    firstName: initialData.studentName, // Assuming full name, user might need to adjust
+                    contactStudent: initialData.mobileNumber,
+                    contactParent: '',
+                    interestedCourse: initialData.course?._id || initialData.course,
+                    referenceBy: initialData.reference,
+                    inquiryDate: initialData.visitingDate ? new Date(initialData.visitingDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    source: 'Walk-in',
+                    visitorId: initialData._id, // Pass visitor ID for linking
+                    city: 'Surat',
+                    state: 'Gujarat'
+                });
+            } else {
+                // Normal Edit Mode
+                const formattedData = {
+                    ...initialData,
+                    interestedCourse: initialData.interestedCourse?._id,
+                    inquiryDate: initialData.inquiryDate ? initialData.inquiryDate.split('T')[0] : '',
+                    dob: initialData.dob ? initialData.dob.split('T')[0] : '',
+                    followUpDate: initialData.followUpDate ? initialData.followUpDate.split('T')[0] : '',
+                };
+                reset(formattedData);
+            }
         } else {
             // Reset for New Entry
             reset({

@@ -57,6 +57,9 @@ const inquirySchema = new mongoose.Schema({
     // Assets
     studentPhoto: { type: String }, 
 
+    // Link to Visitor
+    visitorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' },
+
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 

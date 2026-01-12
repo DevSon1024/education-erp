@@ -51,6 +51,15 @@ const getInquiries = asyncHandler(async (req, res) => {
 // @desc Create Inquiry
 const createInquiry = asyncHandler(async (req, res) => {
     const inquiry = await Inquiry.create(req.body);
+
+    // If this inquiry came from a visitor conversion, update the visitor record
+    if (req.body.visitorId) {
+        const Visitor = require('../models/Visitor');
+        await Visitor.findByIdAndUpdate(req.body.visitorId, { 
+            inquiryId: inquiry._id 
+        });
+    }
+
     res.status(201).json(inquiry);
 });
 

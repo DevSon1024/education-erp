@@ -20,6 +20,9 @@ const visitorSchema = new mongoose.Schema({
     
     remarks: { type: String },
     
+    // Link to converted Inquiry
+    inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Inquiry' },
+
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 

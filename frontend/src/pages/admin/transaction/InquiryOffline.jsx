@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { fetchInquiries, createInquiry, updateInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
@@ -47,6 +48,7 @@ const FollowUpModal = ({ inquiry, onClose, onSave }) => {
 
 const InquiryOffline = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { inquiries, isSuccess, message } = useSelector((state) => state.transaction);
   
   // Filter defaults to Walk-in for Offline page
@@ -54,6 +56,16 @@ const InquiryOffline = () => {
   const [modal, setModal] = useState({ type: null, data: null }); // type: 'form', 'followup', 'view'
 
   useEffect(() => { dispatch(fetchInquiries(filters)); dispatch(fetchCourses()); }, [dispatch, filters]);
+  
+  // Check for conversion data from Visitors page
+  useEffect(() => {
+    if (location.state?.visitorData) {
+        setModal({ type: 'form', data: { ...location.state.visitorData, isConversion: true } });
+        // Clear state to prevent reopening on generic re-renders (optional but good practice)
+        window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+
   useEffect(() => { 
       if (isSuccess && message) { 
           toast.success(message); 
