@@ -16,7 +16,7 @@ const visitorSchema = new mongoose.Schema({
     outTime: { type: String },
     
     // Employee/User who attended the visitor
-    attendedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    attendedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
     
     remarks: { type: String },
     

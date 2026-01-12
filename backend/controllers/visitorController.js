@@ -56,8 +56,8 @@ exports.getAllVisitors = async (req, res) => {
         }
 
         let queryExec = Visitor.find(query)
-            .populate('course', 'name') // Assuming Course model has name
-            .populate('attendedBy', 'username name') // Assuming User model has username/name
+            .populate('course', 'name') 
+            .populate('attendedBy', 'name') // Employee model has name
             .sort({ visitingDate: -1, createdAt: -1 });
 
         if (limit) {
@@ -77,7 +77,7 @@ exports.getVisitorById = async (req, res) => {
     try {
         const visitor = await Visitor.findById(req.params.id)
             .populate('course', 'name')
-            .populate('attendedBy', 'username name');
+            .populate('attendedBy', 'name');
             
         if (!visitor || visitor.isDeleted) {
             return res.status(404).json({ message: 'Visitor not found' });
