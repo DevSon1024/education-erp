@@ -36,8 +36,10 @@ import EmployeeMaster from './pages/admin/master/EmployeeMaster';
 import SubjectMaster from './pages/admin/master/SubjectMaster';
 import UserRights from './pages/admin/master/UserRights';
 import ExamRequestList from './pages/admin/master/ExamRequestList';
+// import ExamSchedule from './pages/admin/master/ExamSchedule';
 import ExamSchedule from './pages/admin/master/ExamSchedule';
 import ExamResult from './pages/admin/master/ExamResult';
+import ManageNews from './pages/admin/master/ManageNews';
 
 // Transaction Pages
 import InquiryPage from './pages/admin/transaction/InquiryPage';
@@ -85,7 +87,9 @@ function App() {
             <Route path="/master/user-rights" element={<PrivateRoute><UserRights /></PrivateRoute>} />
             <Route path="/master/exam-request-list" element={<PrivateRoute><ExamRequestList /></PrivateRoute>} />
             <Route path="/master/exam-schedule" element={<PrivateRoute><ExamSchedule /></PrivateRoute>} />
+            <Route path="/master/exam-schedule" element={<PrivateRoute><ExamSchedule /></PrivateRoute>} />
             <Route path="/master/exam-result" element={<PrivateRoute><ExamResult /></PrivateRoute>} />
+            <Route path="/master/manage-news" element={<PrivateRoute><ManageNews /></PrivateRoute>} />
 
             {/* TRANSACTION ROUTES */}
             <Route path="/transaction/inquiry" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />

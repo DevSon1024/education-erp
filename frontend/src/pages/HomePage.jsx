@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchCourses } from '../features/master/masterSlice';
 import { createInquiry } from '../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
-import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin } from 'lucide-react';
+import newsService from '../services/newsService'; // Import news service
+import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle } from 'lucide-react';
 import HeroImage1 from '../assets/6.jpg'
 import HeroImage2 from '../assets/5.jpg';
 import HeroImage3 from '../assets/Accounting.png';
@@ -76,6 +77,8 @@ const HomePage = () => {
     const [captcha, setCaptcha] = useState('');
     const [userCaptcha, setUserCaptcha] = useState('');
     const [formLoading, setFormLoading] = useState(false);
+    const [latestNews, setLatestNews] = useState([]); // State for news
+    const [newsLoading, setNewsLoading] = useState(true);
   
     // Form State
     const [formData, setFormData] = useState({
@@ -101,7 +104,19 @@ const HomePage = () => {
     useEffect(() => {
       dispatch(fetchCourses());
       generateCaptcha();
+      fetchLatestNews(); // Fetch news on load
     }, [dispatch]);
+
+    const fetchLatestNews = async () => {
+        try {
+            const data = await newsService.getPublicNews();
+            setLatestNews(data);
+        } catch (error) {
+            console.error("Failed to load news", error);
+        } finally {
+            setNewsLoading(false);
+        }
+    };
   
     const handleChange = (e) => {
       setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -336,21 +351,31 @@ const HomePage = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
-                  <div className="h-48 bg-gray-200 relative">
-                     <div className="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-2 py-1 rounded">NEW</div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
-                      <Calendar size={12} /> <span>Jan 4, 2026</span>
+              {newsLoading ? (
+                  <div className="col-span-3 text-center py-8 text-gray-500">Loading News...</div>
+              ) : latestNews.length === 0 ? (
+                  <div className="col-span-3 text-center py-8 text-gray-500">No news available at the moment.</div>
+              ) : (
+                  latestNews.map((item) => (
+                    <div key={item._id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 h-full flex flex-col">
+                      <div className="h-4 bg-primary relative">
+                         {item.isBreaking && (
+                             <div className="absolute top-0 left-4 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-b shadow-md flex items-center gap-1">
+                                <AlertCircle size={10} /> BREAKING
+                             </div>
+                         )}
+                      </div>
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
+                          <Calendar size={12} /> <span>{new Date(item.releaseDate).toLocaleDateString()}</span>
+                        </div>
+                        <h3 className="font-bold text-lg mb-2 text-gray-800 line-clamp-2">{item.title}</h3>
+                        <p className="text-gray-500 text-sm mb-4 line-clamp-3 flex-1">{item.smallDetail || item.description?.substring(0, 100) + '...'}</p>
+                        {/* You can add a 'Read More' modal or page later if needed, mostly short description is enough */}
+                      </div>
                     </div>
-                    <h3 className="font-bold text-lg mb-2 text-gray-800">Annual Tech Fest 2026 Announced</h3>
-                    <p className="text-gray-500 text-sm mb-4">Get ready for the biggest technology festival of the year...</p>
-                    <a href="#" className="text-primary text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">Read full story <ArrowRight size={14}/></a>
-                  </div>
-                </div>
-              ))}
+                  ))
+              )}
             </div>
           </div>
         </div>
