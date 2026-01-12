@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // Layout
 import Navbar from './components/layout/Navbar';
 import PublicLayout from './components/layout/PublicLayout';
+import ScrollToTop from './components/layout/ScrollToTop';
 
 // Pages
 import HomePage from './pages/HomePage'; 
@@ -15,6 +16,7 @@ import RegisterPage from './pages/RegisterPage';
 import AdminHome from './pages/admin/AdminHome';
 import AboutUsPage from './pages/user/AboutUsPage';
 import CoursePage from './pages/user/CoursePage';
+import CourseDetailPage from './pages/user/CourseDetailPage';
 import FacilitiesPage from './pages/user/FacilitiesPage';
 import GalleryPage from './pages/user/GalleryPage';
 import FranchisePage from './pages/user/FranchisePage';
@@ -63,6 +65,7 @@ function App() {
   return (
     <>
       <Router>
+        <ScrollToTop />
         <div className={`min-h-screen bg-gray-50 text-gray-900 font-sans ${user ? 'pt-20' : ''}`}>
           {user && <Navbar />}
           <Routes>
@@ -117,6 +120,7 @@ function App() {
               <Route path="/" element={user ? <Navigate to="/home" replace /> : <HomePage />} />
               <Route path="/about-us" element={<AboutUsPage />} />
               <Route path="/course" element={<CoursePage />} />
+              <Route path="/course/:courseId" element={<CourseDetailPage />} />
               <Route path="/facilities" element={<FacilitiesPage />} />
               <Route path="/gallery" element={<GalleryPage />} />
               <Route path="/franchise" element={<FranchisePage />} />

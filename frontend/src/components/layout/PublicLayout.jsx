@@ -3,16 +3,48 @@ import { Outlet, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Phone, Mail, Facebook, Twitter, Instagram, Linkedin, 
-  LogIn, UserPlus, ArrowRight, Menu, X, MapPin
+  LogIn, UserPlus, ArrowRight, Menu, X, MapPin, ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoImage from '../../assets/logo2.png';
 
 const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null); // For Mobile
+  const [hoverDropdown, setHoverDropdown] = useState(null); // For Desktop
+
+  // Fetch courses for dynamic dropdown
+  const { courses } = useSelector((state) => state.master);
+  
+  // Extract unique Course Types
+  const courseTypes = [...new Set(courses.map(course => course.courseType))].filter(Boolean);
+
   const menuItems = [
-    'Home','About Us', 'Course', 'Facilities', 'Gallery', 
-    'Franchise', 'Contact', 'Blog', 'Feedback'
+    { name: 'Home', path: '/' },
+    { 
+      name: 'About Us', 
+      isDropdown: true,
+      subItems: [
+        { name: 'About Smart', path: '/about-us#smart' },
+        { name: 'Mission', path: '/about-us#mission' },
+        { name: 'Vision', path: '/about-us#vision' },
+      ]
+    },
+    { 
+      name: 'Course', 
+      isDropdown: true, 
+      isDynamic: true, // Marker for dynamic course types
+      subItems: courseTypes.map(type => ({ 
+        name: type, 
+        path: `/course?type=${type}` 
+      }))
+    },
+    { name: 'Facilities', path: '/facilities' },
+    { name: 'Gallery', path: '/gallery' },
+    { name: 'Franchise', path: '/franchise' },
+    { name: 'Contact', path: '/contact' },
+    { name: 'Blog', path: '/blog' },
+    { name: 'Feedback', path: '/feedback' }
   ];
 
   return (
@@ -27,11 +59,47 @@ const PublicNavbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center justify-center w-full gap-1">
             {menuItems.map((item, index) => (
-              <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`}
-                className="px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md"
+              <div key={index} className="relative group"
+                   onMouseEnter={() => setHoverDropdown(index)}
+                   onMouseLeave={() => setHoverDropdown(null)}
               >
-                {item}
-              </Link>
+                  {item.isDropdown ? (
+                      <div>
+                          <button className="flex items-center gap-1 px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md">
+                              {item.name} <ChevronDown size={14} />
+                          </button>
+                          
+                          {/* Desktop Dropdown Content */}
+                          <AnimatePresence>
+                              {hoverDropdown === index && (
+                                  <motion.div
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: 10 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="absolute left-0 mt-0 w-56 bg-white text-gray-800 shadow-xl rounded-md overflow-hidden border-t-4 border-accent"
+                                  >
+                                      {item.subItems.map((sub, subIdx) => (
+                                          <Link 
+                                            key={subIdx} 
+                                            to={sub.path} 
+                                            className="block px-6 py-3 text-sm font-semibold hover:bg-gray-50 hover:text-primary transition-colors border-b border-gray-100 last:border-0"
+                                          >
+                                              {sub.name}
+                                          </Link>
+                                      ))}
+                                  </motion.div>
+                              )}
+                          </AnimatePresence>
+                      </div>
+                  ) : (
+                      <Link to={item.path}
+                          className="px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md"
+                      >
+                          {item.name}
+                      </Link>
+                  )}
+              </div>
             ))}
           </div>
           
@@ -46,13 +114,48 @@ const PublicNavbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-primary border-t border-blue-800 overflow-hidden"
+            className="md:hidden bg-primary border-t border-blue-800 overflow-hidden max-h-[80vh] overflow-y-auto"
           >
             <div className="flex flex-col p-4 space-y-1">
               {menuItems.map((item, index) => (
-                <Link key={index} to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(/\s/g, '-')}`} className="block px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors">
-                  {item}
-                </Link>
+                <div key={index}>
+                    {item.isDropdown ? (
+                        <div>
+                            <button 
+                                onClick={() => setActiveDropdown(activeDropdown === index ? null : index)}
+                                className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors"
+                            >
+                                {item.name}
+                                <ChevronDown size={16} className={`transition-transform duration-300 ${activeDropdown === index ? 'rotate-180' : ''}`}/>
+                            </button>
+                            <AnimatePresence>
+                                {activeDropdown === index && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="bg-blue-900/50 rounded-b-lg overflow-hidden"
+                                    >
+                                        {item.subItems.map((sub, subIdx) => (
+                                            <Link 
+                                                key={subIdx} 
+                                                to={sub.path} 
+                                                className="block px-8 py-3 text-sm text-blue-100 border-b border-blue-800/30 hover:text-white hover:bg-blue-800 transition-colors"
+                                                onClick={() => setIsOpen(false)}
+                                            >
+                                                {sub.name}
+                                            </Link>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    ) : (
+                        <Link to={item.path} className="block px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors" onClick={() => setIsOpen(false)}>
+                            {item.name}
+                        </Link>
+                    )}
+                </div>
               ))}
             </div>
           </motion.div>
