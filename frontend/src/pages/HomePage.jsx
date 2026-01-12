@@ -4,10 +4,12 @@ import { fetchCourses } from '../features/master/masterSlice';
 import { createInquiry } from '../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
 import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin } from 'lucide-react';
-import HeroImage1 from '../assets/Gemini_Generated_Image_ds77tjds77tjds77.png'
-import HeroImage2 from '../assets/Gemini_Generated_Image_j44de9j44de9j44d.png';
-import HeroImage3 from '../assets/Gemini_Generated_Image_k4t3pqk4t3pqk4t3.png';
-import HeroImage4 from '../assets/Gemini_Generated_Image_xdv7jexdv7jexdv7.png';
+import HeroImage1 from '../assets/6.jpg'
+import HeroImage2 from '../assets/5.jpg';
+import HeroImage3 from '../assets/Accounting.png';
+import HeroImage4 from '../assets/textileDesign.png';
+import HeroImage5 from '../assets/GraphicDesigning.png';
+import HeroImage6 from '../assets/textileDesign_2.png';
 
 // Carousel Component (Keep this as is)
 const Carousel = ({ items, type = "hero" }) => {
@@ -29,7 +31,7 @@ const Carousel = ({ items, type = "hero" }) => {
   }, [currentIndex, type]);
 
   return (
-    <div className={`relative overflow-hidden group ${type === 'hero' ? 'h-[400px] md:h-[550px]' : 'h-auto py-8'}`}>
+    <div className={`relative overflow-hidden group ${type === 'hero' ? 'h-[200px] sm:h-[400px] md:h-[550px]' : 'h-auto py-8'}`}>
       <div 
         className="flex transition-transform duration-500 ease-out h-full"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -37,7 +39,7 @@ const Carousel = ({ items, type = "hero" }) => {
         {items.map((item, index) => (
           <div key={index} className="w-full flex-shrink-0 h-full flex items-center justify-center bg-gray-100 relative">
             {type === 'hero' ? (
-              <img src={item.image} alt="Slide" className="w-full h-full object-cover" />
+              <img src={item.image} alt="Slide" className="w-full h-full object-contain md:object-cover bg-white" />
             ) : (
                <div className="w-full px-4 flex justify-center">
                  <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center border-t-4 border-accent">
@@ -132,12 +134,6 @@ const HomePage = () => {
           source: 'QuickContact',
           status: 'Pending'
         };
-  
-        // We use the same createInquiry action but we need to import it.
-        // Importing createInquiry from transactionSlice is needed.
-        // NOTE: We cannot use useDispatch hook for asyncThunk directly if we want to wait for promise easily without extra state
-        // creating inquiry logic inline for quick contact to avoid redirection loop or complex state in global slice for guest user
-        // BUT better to use the slice action. 
         
         await dispatch(createInquiry(payload)).unwrap();
         
@@ -165,7 +161,9 @@ const HomePage = () => {
       { image: HeroImage1 },
       { image: HeroImage2 },
       { image: HeroImage3 },
-      { image: HeroImage4}
+      { image: HeroImage4},
+      { image: HeroImage5},
+      { image: HeroImage6}
     ];
   
     const toppers = [
@@ -175,8 +173,7 @@ const HomePage = () => {
     ];
   
     return (
-      <div className="w-full pt-[4.5rem]"> 
-      {/* 4.5rem pt allows for fixed header space */}
+      <div className="w-full pt-[4.5rem]">
         {/* 1. Hero Carousel */}
         <Carousel items={heroImages} type="hero" />
   

@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminHome from './pages/admin/AdminHome';
 import AboutUsPage from './pages/user/AboutUsPage';
+import WhySmartPage from './pages/user/WhySmartPage';
 import CoursePage from './pages/user/CoursePage';
 import CourseDetailPage from './pages/user/CourseDetailPage';
 import FacilitiesPage from './pages/user/FacilitiesPage';
@@ -119,6 +120,7 @@ function App() {
             <Route element={<PublicLayout />}>
               <Route path="/" element={user ? <Navigate to="/home" replace /> : <HomePage />} />
               <Route path="/about-us" element={<AboutUsPage />} />
+              <Route path="/why-smart" element={<WhySmartPage />} />
               <Route path="/course" element={<CoursePage />} />
               <Route path="/course/:courseId" element={<CourseDetailPage />} />
               <Route path="/facilities" element={<FacilitiesPage />} />

@@ -11,9 +11,9 @@ import { motion } from 'framer-motion';
 import logoImage from '../../assets/logo2.png';
 
 const FranchisePage = () => {
-  const [selectedState, setSelectedState] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
-  const [showFranchise, setShowFranchise] = useState(false);
+  const [selectedState, setSelectedState] = useState('Gujarat');
+  const [selectedCity, setSelectedCity] = useState('Surat');
+  const [showFranchise, setShowFranchise] = useState(true);
 
   const states = [
     'Gujarat', 'Maharashtra', 'Rajasthan', 'Madhya Pradesh', 

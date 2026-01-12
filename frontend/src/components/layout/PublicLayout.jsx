@@ -30,6 +30,7 @@ const PublicNavbar = () => {
         { name: 'Vision', path: '/about-us#vision' },
       ]
     },
+    { name: 'Why Smart', path: '/why-smart' },
     { 
       name: 'Course', 
       isDropdown: true, 
@@ -114,7 +115,7 @@ const PublicNavbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-primary border-t border-blue-800 overflow-hidden max-h-[80vh] overflow-y-auto"
+            className="md:hidden bg-primary border-t border-blue-800 overflow-hidden max-h-[85vh] overflow-y-auto"
           >
             <div className="flex flex-col p-4 space-y-1">
               {menuItems.map((item, index) => (
@@ -157,6 +158,16 @@ const PublicNavbar = () => {
                     )}
                 </div>
               ))}
+
+              {/* Mobile Auth Buttons */}
+              <div className="pt-4 mt-2 border-t border-blue-800/50 grid grid-cols-2 gap-3">
+                  <Link to="/login" className="flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
+                      <LogIn size={18} /> Login
+                  </Link>
+                  <Link to="/register" className="flex items-center justify-center gap-2 bg-accent hover:bg-orange-600 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
+                      <UserPlus size={18} /> Register
+                  </Link>
+              </div>
             </div>
           </motion.div>
         )}
@@ -171,13 +182,16 @@ const PublicLayout = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       {/* 1. Slim Top Header */}
-      <div className="bg-gray-900 text-gray-300 py-3 text-xs border-b border-gray-800">
+      <div className="bg-gray-900 text-gray-300 py-2 text-xs border-b border-gray-800">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2 hover:text-white transition-colors"><Phone size={14} className="text-accent" /> +91-96017-49300</span>
-            <span className="flex items-center gap-2 hover:text-white transition-colors"><Mail size={14} className="text-accent" /> info@smartinstitute.co.in</span>
+          {/* Contact Info - Visible on Mobile & Desktop */}
+          <div className="flex items-center justify-center w-full md:w-auto gap-4 md:gap-6">
+            <span className="flex items-center gap-2 hover:text-white transition-colors"><Phone size={14} className="text-accent" /> <span className="hidden sm:inline">+91-96017-49300</span><span className="sm:hidden">Call Us</span></span>
+            <span className="flex items-center gap-2 hover:text-white transition-colors"><Mail size={14} className="text-accent" /> <span className="hidden sm:inline">info@smartinstitute.co.in</span><span className="sm:hidden">Email Us</span></span>
           </div>
-          <div className="flex items-center gap-6">
+
+          {/* Social & Auth - Hidden on Mobile, Visible on Desktop */}
+          <div className="hidden md:flex items-center gap-6">
             <div className="flex gap-4 pr-6 border-r border-gray-700">
               <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 cursor-pointer transition-transform hover:scale-110">
                 <Facebook size={16} />
@@ -218,12 +232,15 @@ const PublicLayout = () => {
              </div>
              
              {/* Centered Slogan with Mirror Effect */}
-             <div className="flex-grow flex justify-center items-center py-2">
-                <h3 className="text-2xl md:text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 uppercase text-center"
+             <div className="flex-grow flex justify-center items-center py-2 bg-gradient-to-r from-transparent via-gray-50 to-transparent overflow-hidden">
+                <h3 className="text-xl sm:text-3xl md:text-5xl font-black tracking-normal md:tracking-wider text-center drop-shadow-sm filter whitespace-nowrap"
                     style={{ 
-                        WebkitBoxReflect: 'below -12px linear-gradient(transparent, rgba(0,0,0,0.2))' 
+                        fontFamily: "system-ui, -apple-system, sans-serif",
+                        WebkitBoxReflect: 'below -10px linear-gradient(transparent, rgba(0,0,0,0.15))' 
                     }}>
-                  सपने जो SMART बना दे
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-800">सपने जो </span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-tr from-orange-500 via-red-500 to-pink-500 text-3xl sm:text-5xl md:text-6xl inline-block transform hover:scale-110 transition-transform duration-300 mx-1 filter drop-shadow-md" style={{ fontFamily: "'Arial Black', sans-serif" }}>SMART</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-800"> बना दे</span>
                 </h3>
              </div>
 

@@ -11,13 +11,21 @@ import { motion } from 'framer-motion';
 import logoImage from '../../assets/logo2.png';
 
 const ContactPage = () => {
+  const [activeMap, setActiveMap] = useState('head'); // 'head' or 'branch'
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    state: '',
+    city: '',
+    branch: '',
     subject: '',
-    message: ''
+    message: '',
+    securityCode: ''
   });
+
+  const [generatedCode, setGeneratedCode] = useState(Math.floor(1000 + Math.random() * 9000).toString());
 
   const handleChange = (e) => {
     setFormData({
@@ -28,8 +36,35 @@ const ContactPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission here
+    if (formData.securityCode !== generatedCode) {
+      alert('Invalid Security Code! Please try again.');
+      setGeneratedCode(Math.floor(1000 + Math.random() * 9000).toString());
+      setFormData({...formData, securityCode: ''});
+      return;
+    }
+
+    const { name, email, phone, state, city, branch, subject, message } = formData;
+    
+    // Construct mailto link
+    const mailtoLink = `mailto:bhestanbranch@smartinstitute.co.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nState: ${state}\nCity: ${city}\nBranch: ${branch}\n\nMessage:\n${message}`
+    )}`;
+    
+    window.location.href = mailtoLink;
+    
+    // Reset form
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      state: '',
+      city: '',
+      branch: '',
+      subject: '',
+      message: '',
+      securityCode: ''
+    });
+    setGeneratedCode(Math.floor(1000 + Math.random() * 9000).toString());
   };
 
   const contactInfo = [
@@ -143,266 +178,204 @@ const ContactPage = () => {
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6">Contact <span className="text-accent">Us</span></h1>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-              Get in touch with us for any queries, admissions, or franchise opportunities
+              Get In Touch With Us
             </p>
           </motion.div>
         </div>
       </div>
 
-      {/* 5. Contact Information */}
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Get in <span className="text-primary">Touch</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">We're here to help you with all your educational needs</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {contactInfo.map((info, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  {info.icon}
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{info.title}</h3>
-                <div className="space-y-1">
-                  {info.details.map((detail, idx) => (
-                    <p key={idx} className="text-sm text-gray-600">{detail}</p>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
+           {/* Social Media Navigation */}
+           <div className="flex justify-center gap-6 mb-16">
+              <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-blue-600 transition-all text-gray-600">
+                <Facebook size={32} />
+              </a>
+               <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-sky-500 transition-all text-gray-600 font-bold text-xl w-16 h-16 flex items-center justify-center">
+                X
+              </a>
+              <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-pink-600 transition-all text-gray-600">
+                <Instagram size={32} />
+              </a>
+              <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-red-600 transition-all text-gray-600">
+                 {/* Lucide doesn't index Youtube easily in all versions, using Text fallback if icon unavailable or generic Globe */}
+                 <Globe size={32} /> 
+              </a>
+           </div>
 
-      {/* 6. Contact Form & Map */}
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* Contact Form */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Send us a <span className="text-primary">Message</span></h2>
-              <p className="text-gray-600 mb-8">
-                Fill out the form below and we'll get back to you within 24 hours.
-              </p>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                      placeholder="john@example.com"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                    placeholder="+91 98765 43210"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
-                  <select
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                  >
-                    <option value="">Select Subject</option>
-                    <option value="admission">Admission Query</option>
-                    <option value="course">Course Information</option>
-                    <option value="franchise">Franchise Inquiry</option>
-                    <option value="support">Technical Support</option>
-                    <option value="feedback">Feedback</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows="5"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"
-                    placeholder="Tell us how we can help you..."
-                  ></textarea>
-                </div>
-                
-                <button
-                  type="submit"
-                  className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Send size={20} />
-                  Send Message
-                </button>
-              </form>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             
-            {/* Map & Quick Info */}
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Find <span className="text-primary">Our Location</span></h2>
-              
-              {/* Map Placeholder */}
-              <div className="bg-gray-200 rounded-2xl overflow-hidden mb-8 h-96 relative">
-                <img src="https://placehold.co/800x400/png?text=Map+Location" alt="Map" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-lg text-center">
-                    <MapPin className="text-primary mx-auto mb-2" size={32} />
-                    <p className="font-semibold text-gray-900">Smart Institute, Surat</p>
-                    <p className="text-sm text-gray-600">Click to view on Google Maps</p>
-                  </div>
-                </div>
+            {/* Contact Details Section */}
+            <div className="space-y-8">
+               {/* Head Office */}
+               <motion.div 
+                 initial={{ opacity: 0, x: -20 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 className="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-primary"
+               >
+                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                   <Building className="text-primary" /> Head Office
+                 </h2>
+                 <div className="space-y-4 text-gray-600">
+                   <div className="flex items-start gap-3">
+                     <MapPin className="text-accent mt-1 shrink-0" />
+                     <p>
+                       1st & 2nd Floor, 50-Kuber Nagar,<br/>
+                       Opp.Baba Baijnath nath Mandir,<br/>
+                       Nilgir Road, Ass-Pass Circle,<br/>
+                       Godadra, Surat-395010
+                     </p>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <Phone className="text-accent shrink-0" />
+                     <div className="flex flex-col">
+                       <a href="tel:+919898830409" className="hover:text-primary transition-colors">+91-98988-30409</a>
+                       <a href="tel:+919601749300" className="hover:text-primary transition-colors">+91-96017-49300</a>
+                     </div>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <Mail className="text-accent shrink-0" />
+                     <a href="mailto:headoffice@smartinstitute.co.in" className="hover:text-primary transition-colors">headoffice@smartinstitute.co.in</a>
+                   </div>
+                 </div>
+               </motion.div>
+
+               {/* Branch Office */}
+               <motion.div 
+                 initial={{ opacity: 0, x: -20 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 transition={{ delay: 0.2 }}
+                 className="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-accent"
+               >
+                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                   <Building className="text-accent" /> Branch Office
+                 </h2>
+                 <div className="space-y-4 text-gray-600">
+                   <div className="flex items-start gap-3">
+                     <MapPin className="text-accent mt-1 shrink-0" />
+                     <p>
+                       309-A, 309-B, 3rd Floor, Sai Square Building,<br/>
+                       Bhestan Circle, Bhestan,<br/>
+                       Surat-395023
+                     </p>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <Phone className="text-accent shrink-0" />
+                     <div className="flex flex-col">
+                       <a href="tel:+919898830409" className="hover:text-primary transition-colors">+91-98988-30409</a>
+                       <a href="tel:+919601749300" className="hover:text-primary transition-colors">+91-96017-49300</a>
+                     </div>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <Mail className="text-accent shrink-0" />
+                     <a href="mailto:bhestanbranch@smartinstitute.co.in" className="hover:text-primary transition-colors">bhestanbranch@smartinstitute.co.in</a>
+                   </div>
+                 </div>
+               </motion.div>
+            </div>
+
+            {/* Contact Form */}
+            <div className="bg-white p-8 rounded-2xl shadow-xl">
+               <h2 className="text-3xl font-bold text-gray-900 mb-6">Send us a <span className="text-primary">Message</span></h2>
+               <form onSubmit={handleSubmit} className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter Your Name..." className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter Your Email Here..." className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required placeholder="Phone Number" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+                    <select name="state" value={formData.state} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                        <option value="">Select State</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                    </select>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <select name="city" value={formData.city} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                        <option value="">Select City</option>
+                        <option value="Surat">Surat</option>
+                        <option value="Ahmedabad">Ahmedabad</option>
+                    </select>
+                    <select name="branch" value={formData.branch} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                        <option value="">Select Branch</option>
+                        <option value="Godadara">Godadara Head Office</option>
+                        <option value="Bhestan">Bhestan Branch</option>
+                    </select>
+                 </div>
+
+                 <input type="text" name="subject" value={formData.subject} onChange={handleChange} required placeholder="Subject" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+
+                 <textarea name="message" value={formData.message} onChange={handleChange} required rows="4" placeholder="Message" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"></textarea>
+
+                 <div className="flex items-center gap-4">
+                    <div className="bg-gray-200 px-4 py-3 rounded-lg font-mono text-xl font-bold tracking-widest select-none text-gray-700">
+                        {generatedCode}
+                    </div>
+                    <input type="text" name="securityCode" value={formData.securityCode} onChange={handleChange} required placeholder="Enter Security Code" className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
+                 </div>
+
+                 <button type="submit" className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                   <Send size={20} /> Submit Message
+                 </button>
+               </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Map Section */}
+      <div className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Find <span className="text-primary">Our Locations</span></h2>
+            
+            <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 max-w-5xl mx-auto">
+              {/* Map Tabs */}
+              <div className="flex border-b border-gray-100">
+                <button 
+                  onClick={() => setActiveMap('head')}
+                  className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 ${activeMap === 'head' ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                >
+                  <Building size={16} /> Head Office
+                </button>
+                <button 
+                  onClick={() => setActiveMap('branch')}
+                  className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 ${activeMap === 'branch' ? 'bg-accent text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                >
+                  <Building size={16} /> Branch Office
+                </button>
+              </div>
+
+              {/* Map Iframe */}
+              <div className="h-96 relative bg-gray-200">
+                <iframe 
+                  title="Location Map"
+                  width="100%" 
+                  height="100%" 
+                  frameBorder="0" 
+                  scrolling="no" 
+                  marginHeight="0" 
+                  marginWidth="0" 
+                  src={activeMap === 'head' 
+                    ? "https://maps.google.com/maps?q=50+Kuber+Nagar+Opp+Baba+Baijnath+Mandir+Godadra+Surat&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                    : "https://maps.google.com/maps?q=21.17752898474314,72.85686492919922&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  }
+                  className="absolute inset-0 w-full h-full"
+                ></iframe>
               </div>
               
-              {/* Quick Contact */}
-              <div className="bg-gradient-to-r from-primary to-blue-800 rounded-2xl p-8 text-white">
-                <h3 className="text-2xl font-bold mb-6">Quick Contact</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Clock size={20} className="text-accent" />
-                    <div>
-                      <p className="font-semibold">Office Hours</p>
-                      <p className="text-sm text-blue-100">Monday - Saturday: 9:00 AM - 7:00 PM</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Headphones size={20} className="text-accent" />
-                    <div>
-                      <p className="font-semibold">24/7 Support</p>
-                      <p className="text-sm text-blue-100">Emergency: +91-98988-30409</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Users size={20} className="text-accent" />
-                    <div>
-                      <p className="font-semibold">Live Chat Available</p>
-                      <p className="text-sm text-blue-100">Chat with our representatives</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="p-4 bg-gray-50 text-center border-t border-gray-100">
+                  <p className="font-semibold text-gray-800 flex items-center justify-center gap-2">
+                    <MapPin size={16} className="text-primary" />
+                    {activeMap === 'head' ? 'Godadra, Surat' : 'Bhestan, Surat'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {activeMap === 'head' ? '1st & 2nd Floor, 50-Kuber Nagar' : 'Sai Square Building, Bhestan Circle'}
+                  </p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 7. Departments */}
-      <div className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Contact by <span className="text-primary">Department</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Reach out to the right department for faster assistance</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {departments.map((dept, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
-              >
-                <h3 className="text-lg font-bold text-primary mb-4">{dept.name}</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Mail size={14} className="text-gray-400" />
-                    <span className="text-gray-600">{dept.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone size={14} className="text-gray-400" />
-                    <span className="text-gray-600">{dept.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={14} className="text-gray-400" />
-                    <span className="text-gray-600">{dept.timing}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 8. FAQs */}
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Frequently Asked <span className="text-primary">Questions</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Quick answers to common questions</p>
-          </div>
-          
-          <div className="max-w-3xl mx-auto space-y-4">
-            {faqs.map((faq, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-gray-50 rounded-xl p-6"
-              >
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 9. CTA Section */}
-      <div className="py-20 bg-gradient-to-br from-primary to-blue-800 text-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Ready to Start Your <span className="text-accent">Learning Journey?</span></h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Contact us today and take the first step towards a brighter future
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-accent hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
-                <Phone size={20} /> Call Now
-              </button>
-              <button className="bg-white text-primary hover:bg-gray-100 font-bold py-4 px-8 rounded-full transition-all shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
-                <Mail size={20} /> Email Us
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
