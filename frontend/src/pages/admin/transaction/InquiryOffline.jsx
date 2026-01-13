@@ -70,9 +70,10 @@ const InquiryOffline = () => {
       if (isSuccess && message) { 
           toast.success(message); 
           dispatch(resetTransaction()); 
-          setModal({type:null}); 
+          setModal({type:null});
+          dispatch(fetchInquiries(filters)); // Force refresh list
       } 
-  }, [isSuccess, message]);
+  }, [isSuccess, message, dispatch, filters]);
 
   const handleSave = (data) => {
       if(data._id) dispatch(updateInquiry({ id: data._id, data }));

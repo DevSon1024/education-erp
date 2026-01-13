@@ -211,13 +211,21 @@ const TodaysVisitorsList = () => {
                                         <td className="p-3">{visitor.attendedBy?.name || visitor.attendedBy?.username || '-'}</td>
                                         <td className="p-3">
                                             <div className="flex gap-2">
-                                                 {!visitor.inquiryId && (
+                                                 {visitor.inquiryId ? (
+                                                    <button 
+                                                        disabled
+                                                        className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 border border-green-200 cursor-not-allowed" 
+                                                        title="Already Converted"
+                                                    >
+                                                        <ArrowRightCircle size={14} /> Converted
+                                                    </button>
+                                                 ) : (
                                                     <button 
                                                         onClick={() => navigate('/transaction/inquiry/offline', { state: { visitorData: visitor } })} 
-                                                        className="text-orange-500 hover:text-orange-700 p-1" 
+                                                        className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold hover:bg-orange-200 flex items-center gap-1 border border-orange-200 transition-colors" 
                                                         title="Convert to Inquiry"
                                                     >
-                                                        <ArrowRightCircle size={16} />
+                                                        <ArrowRightCircle size={14} /> Convert
                                                     </button>
                                                 )}
                                                 <button onClick={() => handleEdit(visitor)} className="text-blue-500 hover:text-blue-700 p-1">
