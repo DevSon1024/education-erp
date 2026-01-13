@@ -36,7 +36,6 @@ import EmployeeMaster from './pages/admin/master/EmployeeMaster';
 import SubjectMaster from './pages/admin/master/SubjectMaster';
 import UserRights from './pages/admin/master/UserRights';
 import ExamRequestList from './pages/admin/master/ExamRequestList';
-// import ExamSchedule from './pages/admin/master/ExamSchedule';
 import ExamSchedule from './pages/admin/master/ExamSchedule';
 import ExamResult from './pages/admin/master/ExamResult';
 import ManageNews from './pages/admin/master/ManageNews';
@@ -56,6 +55,8 @@ import StudentCancellation from './pages/admin/transaction/StudentCancellation';
 import PendingStudentRegistration from './pages/admin/transaction/PendingStudentRegistration';
 import StudentRegistrationProcess from './pages/admin/transaction/StudentRegistrationProcess';
 
+// --- REPORTS (Ensure this import is correct) ---
+import LedgerReport from './pages/admin/reports/LedgerReport';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -87,7 +88,6 @@ function App() {
             <Route path="/master/user-rights" element={<PrivateRoute><UserRights /></PrivateRoute>} />
             <Route path="/master/exam-request-list" element={<PrivateRoute><ExamRequestList /></PrivateRoute>} />
             <Route path="/master/exam-schedule" element={<PrivateRoute><ExamSchedule /></PrivateRoute>} />
-            <Route path="/master/exam-schedule" element={<PrivateRoute><ExamSchedule /></PrivateRoute>} />
             <Route path="/master/exam-result" element={<PrivateRoute><ExamResult /></PrivateRoute>} />
             <Route path="/master/manage-news" element={<PrivateRoute><ManageNews /></PrivateRoute>} />
 
@@ -103,24 +103,21 @@ function App() {
             <Route path="/transaction/pending-admission-fees" element={<PrivateRoute><PendingAdmissionFees /></PrivateRoute>} />
             <Route path="/transaction/admission-payment/:id" element={<PrivateRoute><PendingAdmissionFeePayment /></PrivateRoute>} />
             
-            {/* Updated Route for Student Registration (Admission) */}
             <Route path="/transaction/student-registration" element={<PrivateRoute><StudentAdmission /></PrivateRoute>} />
-            
             <Route path="/transaction/student-cancellation" element={<PrivateRoute><StudentCancellation /></PrivateRoute>} />
             <Route path="/transaction/pending-registration" element={<PrivateRoute><PendingStudentRegistration /></PrivateRoute>} />
             <Route path="/transaction/student-registration-process/:id" element={<PrivateRoute><StudentRegistrationProcess /></PrivateRoute>} />
             
-            {/* Added Connect -> Inquiry List route (Aliased to InquiryPage) */}
+            {/* --- REPORTS ROUTE --- */}
+            <Route path="/reports/ledger" element={<PrivateRoute><LedgerReport /></PrivateRoute>} />
+
+            {/* Connect */}
             <Route path="/connect/inquiry-list" element={<PrivateRoute><InquiryPage /></PrivateRoute>} />
 
-
-
             {/* PUBLIC PAGES */}
-            {/* AUTH PAGES (Standalone Layout) */}
             <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
             <Route path="/register" element={user ? <Navigate to="/home" replace /> : <RegisterPage />} />
 
-            {/* PUBLIC PAGES */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={user ? <Navigate to="/home" replace /> : <HomePage />} />
               <Route path="/about-us" element={<AboutUsPage />} />

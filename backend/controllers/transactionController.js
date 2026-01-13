@@ -1,6 +1,7 @@
 const Inquiry = require('../models/Inquiry');
 const FeeReceipt = require('../models/FeeReceipt');
 const Student = require('../models/Student');
+const Batch = require('../models/Batch'); 
 const asyncHandler = require('express-async-handler');
 
 // --- INQUIRY ---
@@ -181,14 +182,10 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     // 5. Send Admission SMS if applicable
     if (admissionCompletedNow) {
         try {
-             // We need to fetch Course and Batch names which might not be populated in 'student' object
-             // 'student.course' is an ObjectId, 'student.batch' is a String Name (usually) or ID?
-             // In Student Model: batch is String. course is ObjectId.
              const Course = require('../models/Course');
-             const Batch = require('../models/Batch');
              const sendSMS = require('../utils/smsSender');
 
-             const courseDoc = await Course.findById(courseId); // courseId is from body, or use student.course
+             const courseDoc = await Course.findById(courseId);
              const batchDoc = await Batch.findOne({ name: student.batch });
              
              const courseName = courseDoc ? courseDoc.name : 'N/A';
@@ -213,11 +210,6 @@ const updateFeeReceipt = asyncHandler(async (req, res) => {
     const receipt = await FeeReceipt.findById(req.params.id);
 
     if (receipt) {
-        // We need to adjust the student's pending fees if the amount changes
-        // This is complex. 
-        // Old Amount: 500, New Amount: 600 -> Student Paid 100 more -> Pending fees decreases by 100
-        // Old Amount: 500, New Amount: 400 -> Student Paid 100 less -> Pending fees increases by 100
-        
         if (req.body.amountPaid && req.body.amountPaid !== receipt.amountPaid) {
             const student = await Student.findById(receipt.student);
             if(student) {
@@ -265,6 +257,48 @@ const getStudentFees = asyncHandler(async (req, res) => {
     res.json(receipts);
 });
 
+// --- LEDGER REPORT ---
+// @desc Get Student Ledger Data
+const getStudentLedger = asyncHandler(async (req, res) => {
+    const { studentId, regNo } = req.query;
+
+    let student = null;
+    if (studentId) {
+        student = await Student.findById(studentId).populate('course');
+    } else if (regNo) {
+        student = await Student.findOne({ regNo }).populate('course');
+    }
+
+    if (!student) {
+        res.status(404);
+        throw new Error('Student not found');
+    }
+
+    // Fetch Batch for time
+    const batchDoc = await Batch.findOne({ name: student.batch });
+
+    // Fetch Receipts
+    const receipts = await FeeReceipt.find({ student: student._id }).sort({ date: 1 });
+
+    // Calculate Summary
+    // UPDATED FORMULA: Total = Course Fees + Admission Fees
+    const totalCourseFees = (student.totalFees || 0) + (student.admissionFeeAmount || 0);
+    const totalPaid = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
+    const dueAmount = totalCourseFees - totalPaid;
+
+    res.json({
+        student,
+        course: student.course,
+        batch: batchDoc,
+        receipts,
+        summary: {
+            totalCourseFees,
+            totalPaid,
+            dueAmount
+        }
+    });
+});
+
 module.exports = { 
     getInquiries, 
     createInquiry, 
@@ -273,5 +307,6 @@ module.exports = {
     getStudentFees,
     getFeeReceipts,
     updateFeeReceipt,
-    deleteFeeReceipt
+    deleteFeeReceipt,
+    getStudentLedger
 };

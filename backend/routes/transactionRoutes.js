@@ -5,10 +5,10 @@ const { checkPermission } = require('../middlewares/permissionMiddleware');
 const { 
     getInquiries, createInquiry, updateInquiryStatus,
     createFeeReceipt, getStudentFees,
-    getFeeReceipts, updateFeeReceipt, deleteFeeReceipt
+    getFeeReceipts, updateFeeReceipt, deleteFeeReceipt,
+    getStudentLedger
 } = require('../controllers/transactionController');
 
-// --- Inquiry Routes ---
 // --- Inquiry Routes ---
 router.route('/inquiry')
     .get(protect, checkPermission('Inquiry', 'view'), getInquiries)
@@ -29,5 +29,11 @@ router.route('/fees/:id')
 router.route('/fees/student/:studentId')
     // Viewing fees requires 'view' permission on Fees Receipt
     .get(protect, checkPermission('Fees Receipt', 'view'), getStudentFees);
+
+// --- Ledger Route ---
+router.route('/ledger')
+    // Using 'Fees Receipt' view permission as Ledger is financial data
+    // Or if 'Ledger' is a specific page in permissions, use checkPermission('Ledger', 'view')
+    .get(protect, checkPermission('Ledger', 'view'), getStudentLedger);
 
 module.exports = router;

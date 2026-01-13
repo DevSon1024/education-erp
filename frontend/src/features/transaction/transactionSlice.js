@@ -60,11 +60,21 @@ export const deleteFeeReceipt = createAsyncThunk('transaction/deleteFeeReceipt',
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+// Fetch Ledger Data
+export const fetchLedger = createAsyncThunk('transaction/fetchLedger', async (queryParams, thunkAPI) => {
+    try {
+        // queryParams can be { studentId: '...' } or { regNo: '...' }
+        const response = await axios.get(API_URL + 'ledger', { params: queryParams });
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 const transactionSlice = createSlice({
     name: 'transaction',
     initialState: {
         inquiries: [],
         receipts: [],
+        ledgerData: null, // Store ledger data
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -73,6 +83,7 @@ const transactionSlice = createSlice({
         resetTransaction: (state) => {
             state.isSuccess = false;
             state.message = '';
+            state.ledgerData = null; // Reset ledger on leave
         }
     },
     extraReducers: (builder) => {
@@ -86,7 +97,7 @@ const transactionSlice = createSlice({
             .addCase(updateInquiry.fulfilled, (state, action) => {
                 const index = state.inquiries.findIndex(i => i._id === action.payload._id);
                 if (index !== -1) {
-                    state.inquiries[index] = action.payload; // Update data
+                    state.inquiries[index] = action.payload;
                 }
                 state.isSuccess = true;
                 state.message = 'Inquiry Updated';
@@ -109,6 +120,18 @@ const transactionSlice = createSlice({
                 state.receipts = state.receipts.filter(r => r._id !== action.payload);
                 state.isSuccess = true;
                 state.message = 'Receipt Deleted Successfully';
+            })
+            .addCase(fetchLedger.pending, (state) => {
+                state.isLoading = true;
+                state.ledgerData = null;
+            })
+            .addCase(fetchLedger.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.ledgerData = action.payload;
+            })
+            .addCase(fetchLedger.rejected, (state, action) => {
+                state.isLoading = false;
+                state.message = action.payload;
             });
     }
 });
