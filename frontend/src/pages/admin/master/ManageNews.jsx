@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Search, Edit, Trash2, X, AlertCircle } from 'lucide-react';
 import newsService from '../../../services/newsService';
 import { toast } from 'react-toastify';
+import { formatDate } from '../../../utils/dateUtils';
 
 const ManageNews = () => {
     // --- State ---
@@ -256,7 +257,7 @@ const ManageNews = () => {
                                     <tr key={news._id} className="hover:bg-gray-50 text-sm border-b transition-colors">
                                         <td className="p-3 font-medium text-gray-500">{index + 1}</td>
                                         <td className="p-3 font-semibold text-gray-800">{news.title}</td>
-                                        <td className="p-3 text-gray-600">{new Date(news.releaseDate).toLocaleDateString()}</td>
+                                        <td className="p-3 text-sm text-gray-600">{formatDate(news.releaseDate)}</td>
                                         <td className="p-3">
                                             {news.isBreaking ? (
                                                 <span className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold flex items-center gap-1 w-fit">

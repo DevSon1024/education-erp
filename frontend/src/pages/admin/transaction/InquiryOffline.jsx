@@ -10,6 +10,7 @@ import {
     Plus, Search, RotateCcw, X, PhoneCall, User, Edit, Trash2, Eye
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { formatDate } from '../../../utils/dateUtils';
 
 // Follow Up Modal (Specific to Action Button)
 const FollowUpModal = ({ inquiry, onClose, onSave }) => {
@@ -86,12 +87,12 @@ const InquiryOffline = () => {
 
   const columns = [
       { header: 'Sr', render: (_, i) => i + 1 },
-      { header: 'Date', render: r => new Date(r.inquiryDate).toLocaleDateString() },
+      { header: 'Date', render: r => formatDate(r.inquiryDate) },
       { header: 'Student', render: r => <span className="font-bold">{r.firstName} {r.lastName}</span> },
       { header: 'Contact', accessor: 'contactStudent' },
       { header: 'Parent', accessor: 'contactParent' },
       { header: 'Status', render: r => <span className={`px-2 py-0.5 rounded text-xs font-bold ${r.status==='Open'?'bg-green-100 text-green-800':'bg-gray-100'}`}>{r.status}</span> },
-      { header: 'Follow Up', render: r => r.followUpDate ? new Date(r.followUpDate).toLocaleDateString() : '-' },
+      { header: 'Follow Up', render: r => r.followUpDate ? formatDate(r.followUpDate) : '-' },
       { header: 'Action', render: r => <button onClick={() => setModal({type:'followup', data:r})} className="text-purple-600 border border-purple-200 px-2 py-1 rounded bg-purple-50 text-xs font-bold hover:bg-purple-100"><PhoneCall size={14}/> Follow Up</button>},
   ];
 

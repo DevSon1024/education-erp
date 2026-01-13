@@ -63,18 +63,20 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto py-10">
-            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl m-4 relative animate-fadeIn">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-fadeIn relative">
                 
-                {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t-lg">
+                {/* Header - Fixed/Sticky */}
+                <div className="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t-lg flex-none">
                     <h3 className="text-lg font-bold text-gray-800">
                         {initialData ? 'Edit Inquiry' : `New ${mode} Inquiry`}
                     </h3>
                     <button onClick={onClose} className="text-gray-500 hover:text-red-500"><X size={24}/></button>
                 </div>
                 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+                {/* Scrollable Body */}
+                <div className="overflow-y-auto p-6 flex-grow">
+                    <form id="inquiry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     
                     {/* 1. Personal Details */}
                     <div>
@@ -211,17 +213,24 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                         </div>
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="flex justify-end gap-4 pt-4 border-t">
-                        <button type="button" onClick={() => reset()} className="px-6 py-2 border rounded text-gray-600 hover:bg-gray-100">Reset</button>
-                        <button type="submit" className="bg-green-600 text-white px-8 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2">
-                            <Save size={18}/> Save {mode} Inquiry
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+
+                {/* Footer Actions - Fixed/Sticky */}
+                 <div className="flex justify-end gap-4 p-4 border-t bg-gray-50 rounded-b-lg flex-none">
+                    <button type="button" onClick={() => reset()} className="px-6 py-2 border rounded text-gray-600 hover:bg-gray-100">Reset</button>
+                    {/* Trigger form submit externally or move button inside form if form wraps everything. 
+                        Since button is outside form block in this layout, we use form id linkage or wrap logic differently.
+                        Easiest: Form wraps only inputs, Button has form='inquiry-form'
+                    */}
+                    <button type="submit" form="inquiry-form" className="bg-green-600 text-white px-8 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2">
+                        <Save size={18}/> Save {mode} Inquiry
+                    </button>
+                </div>
             </div>
         </div>
     );
+
 };
 
 export default InquiryForm;

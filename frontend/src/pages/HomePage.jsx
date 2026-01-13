@@ -4,7 +4,8 @@ import { fetchCourses } from '../features/master/masterSlice';
 import { createInquiry } from '../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
 import newsService from '../services/newsService'; // Import news service
-import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle } from 'lucide-react';
+import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle, User, Award, BookOpen, Clock, ExternalLink } from 'lucide-react';
+import { formatDate } from '../utils/dateUtils';
 import HeroImage1 from '../assets/6.jpg'
 import HeroImage2 from '../assets/5.jpg';
 import HeroImage3 from '../assets/Accounting.png';
@@ -366,11 +367,18 @@ const HomePage = () => {
                          )}
                       </div>
                       <div className="p-6 flex-1 flex flex-col">
-                        <div className="flex items-center gap-2 text-gray-400 text-xs mb-3">
-                          <Calendar size={12} /> <span>{new Date(item.releaseDate).toLocaleDateString()}</span>
+                        <h3 className="font-bold text-lg mb-2 text-gray-800 line-clamp-2">
+                          {item.title.length > 50 
+                            ? item.title.substring(0, 50) + '...' 
+                            : item.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                          <Calendar size={12} />
+                          <span>{formatDate(item.releaseDate)}</span>
                         </div>
-                        <h3 className="font-bold text-lg mb-2 text-gray-800 line-clamp-2">{item.title}</h3>
-                        <p className="text-gray-500 text-sm mb-4 line-clamp-3 flex-1">{item.smallDetail || item.description?.substring(0, 100) + '...'}</p>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
+                          {item.smallDetail || item.description?.substring(0, 80) + '...'}
+                        </p>
                         {/* You can add a 'Read More' modal or page later if needed, mostly short description is enough */}
                       </div>
                     </div>

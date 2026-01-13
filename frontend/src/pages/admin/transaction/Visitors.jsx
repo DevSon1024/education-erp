@@ -3,6 +3,7 @@ import { Users, Plus, Search, FileText, X, Edit, Trash2, Calendar, Clock, BookOp
 import visitorService from '../../../services/visitorService';
 import axios from 'axios'; 
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../../utils/dateUtils';
 
 const Visitors = () => {
     const navigate = useNavigate();
@@ -280,7 +281,7 @@ const Visitors = () => {
                                 visitors.map((visitor, index) => (
                                     <tr key={visitor._id} className="hover:bg-gray-50 text-sm border-b">
                                         <td className="p-3">{index + 1}</td>
-                                        <td className="p-3">{new Date(visitor.visitingDate).toLocaleDateString()}</td>
+                                        <td className="p-3">{formatDate(visitor.visitingDate)}</td>
                                         <td className="p-3 font-medium text-gray-800">{visitor.studentName}</td>
                                         <td className="p-3 text-gray-600">{visitor.mobileNumber}</td>
                                         <td className="p-3">{visitor.reference}</td>
