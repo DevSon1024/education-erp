@@ -6,8 +6,10 @@ import { Save, X, Camera, User, Phone, BookOpen, MapPin, Calendar } from 'lucide
 const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     const { courses } = useSelector((state) => state.master);
     
-    // Determine source based on mode ('DSR' -> 'DSR', 'Offline' -> 'Walk-in')
-    const fixedSource = mode === 'DSR' ? 'DSR' : 'Walk-in';
+    // Determine source based on mode
+    let fixedSource = 'Walk-in';
+    if (mode === 'DSR') fixedSource = 'DSR';
+    if (mode === 'Online') fixedSource = 'Online';
 
     const { register, handleSubmit, reset, setValue } = useForm({
         defaultValues: {
@@ -57,8 +59,13 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     }, [initialData, reset, fixedSource]);
 
     const onSubmit = (data) => {
-        // Ensure source is forced for new entries or strict modes
-        const payload = { ...data, source: fixedSource };
+        // Includes ID for updates
+        if(initialData && initialData._id && !initialData.isConversion) {
+            data._id = initialData._id;
+        }
+        
+        // Ensure source is set (use existing if editing, or fixedSource if new)
+        const payload = { ...data, source: data.source || fixedSource };
         onSave(payload);
     };
 

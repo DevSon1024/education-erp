@@ -68,28 +68,27 @@ const createInquiry = asyncHandler(async (req, res) => {
 const updateInquiryStatus = asyncHandler(async (req, res) => {
     const inquiry = await Inquiry.findById(req.params.id);
     if (inquiry) {
-        // Core updates
-        if(req.body.status) inquiry.status = req.body.status;
-        if(req.body.source) inquiry.source = req.body.source;
-        if(req.body.remarks) inquiry.remarks = req.body.remarks;
-        if(req.body.allocatedTo) inquiry.allocatedTo = req.body.allocatedTo;
-        
-        // Field updates
-        if(req.body.referenceBy !== undefined) inquiry.referenceBy = req.body.referenceBy;
-        if(req.body.firstName) inquiry.firstName = req.body.firstName;
-        if(req.body.lastName) inquiry.lastName = req.body.lastName;
-
-        // Follow Up Updates
-        if(req.body.followUpDetails) inquiry.followUpDetails = req.body.followUpDetails;
-        if(req.body.followUpDate) inquiry.followUpDate = req.body.followUpDate;
-        if(req.body.nextVisitingDate) inquiry.nextVisitingDate = req.body.nextVisitingDate;
-        if(req.body.visitReason) inquiry.visitReason = req.body.visitReason;
-
         // Permanent Delete Signal
         if(req.body.isDeleted === true) {
              await Inquiry.findByIdAndDelete(req.params.id);
              return res.json({ id: req.params.id, message: 'Inquiry Removed Permanently' });
         }
+
+        const fields = [
+            'status', 'source', 'remarks', 'allocatedTo', 'referenceBy',
+            'firstName', 'middleName', 'lastName', 'email', 'gender', 'dob',
+            'contactStudent', 'contactParent', 'contactHome',
+            'address', 'city', 'state',
+            'education', 'qualification', 'interestedCourse',
+            'inquiryDate',
+            'followUpDetails', 'followUpDate', 'nextVisitingDate', 'visitReason'
+        ];
+
+        fields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                inquiry[field] = req.body[field];
+            }
+        });
 
         await inquiry.save();
         res.json(inquiry);

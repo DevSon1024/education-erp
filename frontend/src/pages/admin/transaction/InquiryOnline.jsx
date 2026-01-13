@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInquiries, updateInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
+import { fetchCourses } from '../../../features/master/masterSlice';
+import InquiryForm from '../../../components/transaction/InquiryForm';
 import SmartTable from '../../../components/ui/SmartTable';
 import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -62,6 +64,7 @@ const InquiryOnline = () => {
   const { inquiries, isSuccess, message } = useSelector((state) => state.transaction);
   
   const [showFollowUpModal, setShowFollowUpModal] = useState(null);
+  const [editModalData, setEditModalData] = useState(null);
   
   // Filter State
   const [filters, setFilters] = useState({
@@ -75,17 +78,19 @@ const InquiryOnline = () => {
 
   useEffect(() => {
     dispatch(fetchInquiries(filters));
+    dispatch(fetchCourses()); // Required for InquiryForm dropdowns
   }, [dispatch, filters]);
 
   useEffect(() => {
-      if (isSuccess && message && showFollowUpModal) {
-          toast.success("Follow-up Updated Successfully");
+      if (isSuccess && message && (showFollowUpModal || editModalData)) {
+          toast.success(message); // "Inquiry Updated" or "Follow-up Updated"
           dispatch(resetTransaction());
           setShowFollowUpModal(null);
+          setEditModalData(null);
           // Refresh list to show updated status/dates
           dispatch(fetchInquiries(filters));
       }
-  }, [isSuccess, message, dispatch, showFollowUpModal, filters]);
+  }, [isSuccess, message, dispatch, showFollowUpModal, editModalData, filters]);
 
   const handleFilterChange = (e) => {
       setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -100,6 +105,12 @@ const InquiryOnline = () => {
 
   const handleSaveFollowUp = ({ id, data }) => {
       dispatch(updateInquiry({ id, data }));
+  };
+
+  const handleSaveInquiry = (data) => {
+      if (data._id) {
+          dispatch(updateInquiry({ id: data._id, data }));
+      }
   };
 
   // --- Table Columns ---
@@ -209,14 +220,7 @@ const InquiryOnline = () => {
         data={inquiries}
         pagination={{ page: 1, pages: 1 }} 
         onPageChange={() => {}}
-        onEdit={(row) => {
-            // Edit not fully implemented for Online Inquiry yet, use InquiryForm in future or a modal
-            // For now, we can show a placeholder or basic edit modal if needed, but user didn't ask for full edit for online.
-            // Wait, standardizing CRUD means implementing Edit.
-            // I'll add the InquiryForm modal here too for completeness in standardizing?
-            // Actually, Online inquiries are "Received". We might just want to view details.
-            // But SmartTable provides standardized Edit/Delete.
-        }}
+        onEdit={(row) => setEditModalData(row)}
         onDelete={(id) => {
              if(confirm("Are you sure you want to delete this inquiry?")) {
                  dispatch(updateInquiry({ id, data: { isDeleted: true } })).then(() => dispatch(fetchInquiries(filters)));
@@ -230,6 +234,16 @@ const InquiryOnline = () => {
             inquiry={showFollowUpModal} 
             onClose={() => setShowFollowUpModal(null)}
             onSave={handleSaveFollowUp}
+        />
+      )}
+
+      {/* Edit Inquiry Mdoal */}
+      {editModalData && (
+        <InquiryForm
+            mode="Online"
+            initialData={editModalData}
+            onClose={() => setEditModalData(null)}
+            onSave={handleSaveInquiry}
         />
       )}
     </div>
