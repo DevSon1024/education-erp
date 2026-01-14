@@ -2,6 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/employees/';
+
+// for production use uncomment below one line
+// const API_URL = '/api/employees/';
 axios.defaults.withCredentials = true;
 
 export const fetchEmployees = createAsyncThunk('employees/fetchAll', async (filters, thunkAPI) => {

@@ -6,6 +6,10 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/visitors';
 
+// for production use uncomment below one line
+// const API_URL = '/api/visitors';
+
+
 const createVisitor = async (visitorData) => {
     const response = await axios.post(`${API_URL}/create`, visitorData);
     return response.data;

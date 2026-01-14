@@ -2,6 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/master/';
+
+// for production use uncomment below one line
+// const API_URL = '/api/master/';
 axios.defaults.withCredentials = true;
 
 // --- Course Thunks ---

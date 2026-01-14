@@ -3,6 +3,9 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/auth/';
 
+// for production use uncomment below one line
+// const API_URL = '/api/auth/';
+
 // Enable credentials for cookies
 axios.defaults.withCredentials = true;
 

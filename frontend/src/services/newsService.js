@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/news';
 
+// for production use uncomment below one line
+// const API_URL = '/api/news';
+
 const createNews = async (newsData) => {
     const response = await axios.post(API_URL, newsData, { withCredentials: true });
     return response.data;

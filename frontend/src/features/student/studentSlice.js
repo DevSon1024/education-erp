@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/students/";
+// for production use uncomment below one line
+// const API_URL = "/api/students/"; 
 axios.defaults.withCredentials = true;
 
 export const fetchStudents = createAsyncThunk(
