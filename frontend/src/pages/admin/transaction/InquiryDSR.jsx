@@ -6,38 +6,74 @@ import { fetchCourses } from '../../../features/master/masterSlice';
 import SmartTable from '../../../components/ui/SmartTable';
 import InquiryForm from '../../../components/transaction/InquiryForm'; // Imported reusable form
 import { 
-    Plus, Search, X, PhoneCall, FileText, Edit, Trash2
+    Plus, Search, X, PhoneCall, FileText, Edit, Trash2, Calendar
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// Reuse the FollowUpModal logic (Could be extracted to a separate file entirely)
+// Follow Up Modal (Specific to Action Button)
 const FollowUpModal = ({ inquiry, onClose, onSave }) => {
-    const { register, handleSubmit } = useForm({ defaultValues: { status: inquiry.status, followUpDetails: inquiry.followUpDetails } });
+    const { register, handleSubmit } = useForm({ 
+        defaultValues: { 
+            status: inquiry.status, 
+            followUpDetails: inquiry.followUpDetails,
+            fDate: inquiry.followUpDate ? new Date(inquiry.followUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        } 
+    });
+
     const onSubmit = (data) => {
-        const fDate = new Date(`${data.fDate}T${data.fTime}`);
-        const vDate = data.vDate ? new Date(`${data.vDate}T${data.vTime}`) : null;
-        onSave({ id: inquiry._id, data: { ...data, followUpDate: fDate, nextVisitingDate: vDate } });
+        let fDate = null;
+        if(data.fDate) {
+             const time = data.fTime || '00:00';
+             fDate = new Date(`${data.fDate}T${time}`);
+        }
+
+        let vDate = null;
+        if(data.vDate) {
+            const time = data.vTime || '00:00';
+            vDate = new Date(`${data.vDate}T${time}`);
+        }
+
+        onSave({ 
+            id: inquiry._id, 
+            data: { 
+                ...data, 
+                followUpDate: fDate, 
+                nextVisitingDate: vDate 
+            } 
+        });
     };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl animate-fadeIn">
                 <div className="flex justify-between mb-4 border-b pb-2"><h3 className="font-bold text-blue-800">DSR Follow Up</h3><button onClick={onClose}><X/></button></div>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                        <div><label className="text-xs font-bold">Date</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
-                        <div><label className="text-xs font-bold">Time</label><input type="time" {...register('fTime')} required className="border p-2 rounded w-full text-sm"/></div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                     <div>
+                        <label className="text-xs font-bold block mb-1">Inquiry Status</label>
+                        <select {...register('status')} className="border p-2 rounded w-full text-sm">
+                            <option>Open</option>
+                            <option>InProgress</option>
+                            <option>Recall</option>
+                            <option>converted</option>
+                            <option>Close</option>
+                        </select>
                     </div>
-                    <div><label className="text-xs font-bold">Details</label><textarea {...register('followUpDetails')} className="border p-2 rounded w-full text-sm" rows="2"></textarea></div>
-                    <div><label className="text-xs font-bold">Status</label><select {...register('status')} className="border p-2 rounded w-full text-sm"><option>InProgress</option><option>Converted</option><option>Closed</option></select></div>
-                    <div className="bg-gray-50 p-2 rounded mt-2">
-                        <p className="font-bold text-xs mb-1 text-purple-700">Next Visit</p>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div><label className="text-xs font-bold block mb-1">Date</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
+                        <div><label className="text-xs font-bold block mb-1">Time</label><input type="time" {...register('fTime')} required className="border p-2 rounded w-full text-sm"/></div>
+                    </div>
+                    <div><label className="text-xs font-bold block mb-1">Details</label><textarea {...register('followUpDetails')} className="border p-2 rounded w-full text-sm" rows="3"></textarea></div>
+                    
+                    <div className="bg-gray-50 p-3 rounded mt-2 border border-gray-100">
+                        <p className="font-bold text-xs mb-2 text-purple-700 flex items-center gap-1"><Calendar size={12}/> Next Visit</p>
+                        <div className="grid grid-cols-2 gap-3 mb-2">
                              <input type="date" {...register('vDate')} className="border p-2 rounded w-full text-sm"/>
                              <input type="time" {...register('vTime')} className="border p-2 rounded w-full text-sm"/>
                         </div>
                         <input {...register('visitReason')} placeholder="Reason..." className="border p-2 rounded w-full text-sm"/>
                     </div>
-                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700">Save</button>
+                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm">Save Update</button>
                 </form>
             </div>
         </div>
@@ -58,12 +94,20 @@ const InquiryDSR = () => {
           toast.success(message); 
           dispatch(resetTransaction()); 
           setModal({type:null}); 
+          // fetchInquiries removed to maintain list state
       } 
-  }, [isSuccess, message]);
+  }, [isSuccess, message, dispatch]);
 
-  const handleSave = (data) => {
-      if(data._id) dispatch(updateInquiry({ id: data._id, data }));
-      else dispatch(createInquiry(data)); // Form already handles source='DSR'
+  // Wrapper for InquiryForm save
+  const handleFormSave = (payload) => {
+       if (payload instanceof FormData) {
+           const id = payload.get('_id');
+            if(id && id !== 'undefined') dispatch(updateInquiry({ id, data: payload }));
+            else dispatch(createInquiry(payload));
+       } else {
+           if(payload._id) dispatch(updateInquiry({ id: payload._id, data: payload }));
+           else dispatch(createInquiry(payload));
+       }
   };
 
   const handleDelete = (id) => {
@@ -72,15 +116,27 @@ const InquiryDSR = () => {
 
   const columns = [
       { header: 'Sr', render: (_, i) => i + 1 },
-      { header: 'Date', render: r => new Date(r.inquiryDate).toLocaleDateString() },
-      { header: 'Student', render: r => <span className="font-bold">{r.firstName} {r.lastName}</span> },
-      { header: 'Contact', accessor: 'contactStudent' },
-      { header: 'Parent', accessor: 'contactParent' },
+      { header: 'Date', render: r => new Date(r.inquiryDate).toLocaleDateString('en-GB') }, // dd/mm/yyyy format
+      { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.lastName || ''}</span> },
+      { header: 'Contact (Home)', render: r => r.contactHome || '-' },
+      { header: 'Contact (Student)', render: r => r.contactStudent || '-' },
+      { header: 'Contact (Parent)', render: r => r.contactParent || '-' },
       { header: 'Status', render: r => <span className={`px-2 py-0.5 rounded text-xs font-bold ${r.status==='Open'?'bg-green-100 text-green-800':'bg-gray-100'}`}>{r.status}</span> },
-      { header: 'Next Follow Up', render: r => r.followUpDate ? new Date(r.followUpDate).toLocaleDateString() : '-' },
+      { header: 'Next Follow Up', render: r => r.followUpDate ? new Date(r.followUpDate).toLocaleDateString('en-GB') : '-' },
       { header: 'Details', accessor: 'followUpDetails' },
-      { header: 'Details', accessor: 'followUpDetails' },
-      { header: 'Action', render: r => <button onClick={() => setModal({type:'followup', data:r})} className="text-purple-600 border border-purple-200 px-2 py-1 rounded bg-purple-50 text-xs font-bold hover:bg-purple-100"><PhoneCall size={14}/> Update</button>},
+      { header: 'Action', render: r => (
+          <div className="flex gap-2">
+            <button onClick={() => setModal({type:'followup', data:r})} className="bg-purple-50 text-purple-600 border border-purple-200 p-1.5 rounded hover:bg-purple-100" title="Update Status">
+                <PhoneCall size={14}/>
+            </button>
+            <button onClick={() => setModal({type:'form', data:r})} className="bg-blue-50 text-blue-600 border border-blue-200 p-1.5 rounded hover:bg-blue-100" title="Edit">
+                <Edit size={14}/>
+            </button>
+            <button onClick={() => handleDelete(r._id)} className="bg-red-50 text-red-600 border border-red-200 p-1.5 rounded hover:bg-red-100" title="Delete">
+                <Trash2 size={14}/>
+            </button>
+          </div>
+      )},
   ];
 
   return (
@@ -93,19 +149,23 @@ const InquiryDSR = () => {
         </div>
         
         {/* Filter Bar */}
-        <div className="bg-white p-3 rounded border shadow-sm flex gap-3 mb-4">
+        <div className="bg-white p-3 rounded border shadow-sm flex gap-3 mb-4 flex-wrap">
              <input type="date" onChange={e => setFilters({...filters, startDate: e.target.value})} className="border p-2 rounded text-sm"/>
              <input type="date" onChange={e => setFilters({...filters, endDate: e.target.value})} className="border p-2 rounded text-sm"/>
-             <select onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm"><option value="">All Status</option><option>Open</option><option>InProgress</option></select>
-             <input placeholder="Search Name..." onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow"/>
+             <select onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm min-w-[120px]">
+                <option value="">All Status</option>
+                <option>Open</option>
+                <option>InProgress</option>
+                 <option>Recall</option>
+                 <option>Close</option>
+             </select>
+             <input placeholder="Search Name..." onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow min-w-[200px]"/>
              <button onClick={() => dispatch(fetchInquiries(filters))} className="bg-gray-800 text-white px-4 rounded hover:bg-black"><Search size={18}/></button>
         </div>
 
         <SmartTable 
             columns={columns} 
             data={inquiries} 
-            onEdit={(row) => setModal({type:'form', data:row})}
-            onDelete={(id) => handleDelete(id)}
         />
 
         {/* Reusable Form Modal */}
@@ -114,7 +174,7 @@ const InquiryDSR = () => {
                 mode="DSR" 
                 initialData={modal.data} 
                 onClose={() => setModal({type:null})} 
-                onSave={handleSave}
+                onSave={handleFormSave}
             />
         )}
 

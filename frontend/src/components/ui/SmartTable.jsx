@@ -18,7 +18,7 @@ const SmartTable = ({ columns, data = [], pagination, onPageChange, onEdit, onDe
                   {col.header}
                 </th>
               ))}
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              {(onEdit || onDelete) && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -33,14 +33,20 @@ const SmartTable = ({ columns, data = [], pagination, onPageChange, onEdit, onDe
                       )}
                     </td>
                   ))}
+                  {(onEdit || onDelete) && (
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => onEdit && onEdit(row)} className="text-blue-600 hover:text-blue-900 mr-3">
+                    {onEdit && (
+                    <button onClick={() => onEdit(row)} className="text-blue-600 hover:text-blue-900 mr-3">
                       <Edit size={18} />
                     </button>
-                    <button onClick={() => onDelete && onDelete(row._id)} className="text-red-600 hover:text-red-900">
+                    )}
+                    {onDelete && (
+                    <button onClick={() => onDelete(row._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={18} />
                     </button>
+                    )}
                   </td>
+                  )}
                 </tr>
               ))
             ) : (

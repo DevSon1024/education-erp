@@ -48,7 +48,7 @@ const AdminHome = () => {
         })).then((res) => {
             if (!res.error) {
                 toast.success("Inquiry transferred to Online list");
-                dispatch(fetchInquiries({})); // Refresh list
+                dispatch(fetchInquiries({ source: 'QuickContact' })); // Refresh list with correct filter
             }
         });
     }

@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const inquirySchema = new mongoose.Schema({
     // Personal Details
     firstName: { type: String, required: true },
-    middleName: { type: String }, // Father/Husband Name
+    middleName: { type: String }, // Can be used as Father/Husband Name
+    relationType: { type: String, enum: ['Father', 'Husband'], default: 'Father' }, // NEW
     lastName: { type: String },
     gender: { type: String, enum: ['Male', 'Female', 'Other'] },
     dob: { type: Date },
@@ -16,6 +17,7 @@ const inquirySchema = new mongoose.Schema({
     
     // Education & Address
     education: { type: String }, 
+    customEducation: { type: String }, // NEW: If education is 'Other'
     qualification: { type: String }, 
     address: { type: String },
     state: { type: String },
@@ -31,8 +33,13 @@ const inquirySchema = new mongoose.Schema({
         default: 'Walk-in' 
     },
     
-    // Specific Reference Detail (e.g. Name of person, specific newspaper)
+    // Specific Reference Detail
     referenceBy: { type: String }, 
+    referenceDetail: { // NEW: For adding new reference contact
+        name: String,
+        mobile: String,
+        address: String
+    },
 
     inquiryDate: { type: Date, default: Date.now },
     status: { 
@@ -42,7 +49,7 @@ const inquirySchema = new mongoose.Schema({
     },
     
     // Follow-ups & Remarks
-    followUpDate: { type: Date }, // Stores Date and Time
+    followUpDate: { type: Date }, // Stores Date (and Time component)
     followUpDetails: { type: String }, 
     
     // Extended Follow-up fields
@@ -55,7 +62,7 @@ const inquirySchema = new mongoose.Schema({
     allocatedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
 
     // Assets
-    studentPhoto: { type: String }, 
+    studentPhoto: { type: String }, // Stores filename/path from Multer
 
     // Link to Visitor
     visitorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' },

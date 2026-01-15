@@ -51,7 +51,21 @@ const getInquiries = asyncHandler(async (req, res) => {
 
 // @desc Create Inquiry
 const createInquiry = asyncHandler(async (req, res) => {
-    const inquiry = await Inquiry.create(req.body);
+    const data = { ...req.body };
+    if (req.file) {
+        data.studentPhoto = req.file.path.replace(/\\/g, "/"); // Normalize path
+    }
+
+    // Handle referenceDetail if passed as JSON string
+    if (data.referenceDetail && typeof data.referenceDetail === 'string') {
+        try {
+            data.referenceDetail = JSON.parse(data.referenceDetail);
+        } catch (e) {
+            console.error('Error parsing referenceDetail', e);
+        }
+    }
+
+    const inquiry = await Inquiry.create(data);
 
     // If this inquiry came from a visitor conversion, update the visitor record
     if (req.body.visitorId) {
@@ -81,14 +95,27 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
             'address', 'city', 'state',
             'education', 'qualification', 'interestedCourse',
             'inquiryDate',
-            'followUpDetails', 'followUpDate', 'nextVisitingDate', 'visitReason'
+            'followUpDetails', 'followUpDate', 'nextVisitingDate', 'visitReason',
+            // NEW FIELDS
+            'relationType', 'customEducation', 'referenceDetail'
         ];
 
         fields.forEach(field => {
             if (req.body[field] !== undefined) {
-                inquiry[field] = req.body[field];
+                // If field is object (like referenceDetail) and sometimes sent as string from FormData
+                if (field === 'referenceDetail' && typeof req.body[field] === 'string') {
+                    try {
+                         inquiry[field] = JSON.parse(req.body[field]);
+                    } catch(e) { /* ignore parse error */ }
+                } else {
+                    inquiry[field] = req.body[field];
+                }
             }
         });
+
+        if (req.file) {
+            inquiry.studentPhoto = req.file.path.replace(/\\/g, "/");
+        }
 
         await inquiry.save();
         res.json(inquiry);

@@ -4,55 +4,79 @@ import { fetchInquiries, updateInquiry, resetTransaction } from '../../../featur
 import { fetchCourses } from '../../../features/master/masterSlice';
 import InquiryForm from '../../../components/transaction/InquiryForm';
 import SmartTable from '../../../components/ui/SmartTable';
-import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye } from 'lucide-react';
+import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye, Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 
 // --- SUB-COMPONENT: Follow Up Form ---
+import { formatDate } from '../../../utils/dateUtils';
+
+// ... (imports remain)
+
+// --- SUB-COMPONENT: Follow Up Form ---
 const FollowUpForm = ({ inquiry, onClose, onSave }) => {
-    const { register, handleSubmit } = useForm();
+    const { register, handleSubmit } = useForm({ 
+        defaultValues: { 
+            status: inquiry.status, 
+            followUpDetails: inquiry.followUpDetails,
+            fDate: inquiry.followUpDate ? new Date(inquiry.followUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        } 
+    });
 
     const onSubmit = (data) => {
+        let fDate = null;
+        if(data.fDate) {
+             const time = data.fTime || '00:00';
+             fDate = new Date(`${data.fDate}T${time}`);
+        }
+
+        let vDate = null;
+        if(data.vDate) {
+            const time = data.vTime || '00:00';
+            vDate = new Date(`${data.vDate}T${time}`);
+        }
+
         onSave({ 
             id: inquiry._id, 
-            data: { ...data, status: 'InProgress' } 
+            data: { 
+                ...data, 
+                followUpDate: fDate, 
+                nextVisitingDate: vDate 
+            } 
         });
     };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 animate-fadeIn">
-                <div className="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 className="text-lg font-bold flex items-center gap-2">
-                        <PhoneCall size={20} className="text-blue-600"/> Follow Up
-                    </h3>
-                    <button onClick={onClose}><X size={20} className="text-gray-500 hover:text-red-500"/></button>
-                </div>
-                <div className="mb-4 text-sm bg-gray-50 p-3 rounded">
-                    <p><strong>Student:</strong> {inquiry.firstName} {inquiry.lastName}</p>
-                    <p><strong>Phone:</strong> {inquiry.contactStudent}</p>
-                </div>
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl animate-fadeIn">
+                <div className="flex justify-between mb-4 border-b pb-2"><h3 className="font-bold text-blue-800">Online Follow Up</h3><button onClick={onClose}><X/></button></div>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase">Next Follow-Up Date</label>
-                        <input type="date" {...register('followUpDate', {required: true})} className="w-full border p-2 rounded text-sm"/>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase">Discussion / Remarks</label>
-                        <textarea {...register('followUpDetails', {required: true})} rows="4" className="w-full border p-2 rounded text-sm" placeholder="Conversation details..."></textarea>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase">Update Status</label>
-                        <select {...register('status')} className="w-full border p-2 rounded text-sm">
-                            <option value="InProgress">In Progress</option>
-                            <option value="Recall">Recall</option>
-                            <option value="Converted">Converted</option>
-                            <option value="Closed">Closed</option>
+                     <div>
+                        <label className="text-xs font-bold block mb-1">Inquiry Status</label>
+                        <select {...register('status')} className="border p-2 rounded w-full text-sm">
+                            <option>Open</option>
+                            <option>InProgress</option>
+                            <option>Recall</option>
+                            <option>converted</option>
+                            <option>Close</option>
                         </select>
                     </div>
-                    <div className="flex justify-end pt-2">
-                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm shadow hover:bg-blue-700">Save Follow Up</button>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div><label className="text-xs font-bold block mb-1">Follow-Up Date</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
+                        <div><label className="text-xs font-bold block mb-1">Time (12h)</label><input type="time" {...register('fTime')} className="border p-2 rounded w-full text-sm"/></div>
                     </div>
+                    <div><label className="text-xs font-bold block mb-1">Discussion / Remarks</label><textarea {...register('followUpDetails')} className="border p-2 rounded w-full text-sm" rows="3"></textarea></div>
+                    
+                    <div className="bg-gray-50 p-3 rounded mt-2 border border-gray-100">
+                        <p className="font-bold text-xs mb-2 text-purple-700 flex items-center gap-1"><Calendar size={12}/> Next Visit Schedule</p>
+                        <div className="grid grid-cols-2 gap-3 mb-2">
+                             <input type="date" {...register('vDate')} className="border p-2 rounded w-full text-sm"/>
+                             <input type="time" {...register('vTime')} className="border p-2 rounded w-full text-sm"/>
+                        </div>
+                        <input {...register('visitReason')} placeholder="Reason for visit..." className="border p-2 rounded w-full text-sm"/>
+                    </div>
+                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm">Update Status & Follow Up</button>
                 </form>
             </div>
         </div>
@@ -87,10 +111,9 @@ const InquiryOnline = () => {
           dispatch(resetTransaction());
           setShowFollowUpModal(null);
           setEditModalData(null);
-          // Refresh list to show updated status/dates
-          dispatch(fetchInquiries(filters));
+          // fetchInquiries removed to prevent list reset
       }
-  }, [isSuccess, message, dispatch, showFollowUpModal, editModalData, filters]);
+  }, [isSuccess, message, dispatch, showFollowUpModal, editModalData]);
 
   const handleFilterChange = (e) => {
       setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -108,58 +131,55 @@ const InquiryOnline = () => {
   };
 
   const handleSaveInquiry = (data) => {
-      if (data._id) {
-          dispatch(updateInquiry({ id: data._id, data }));
+      // Check for FormData/File upload support if InquiryForm uses it now
+      if(data instanceof FormData) {
+           const id = data.get('_id');
+           if(id) dispatch(updateInquiry({ id, data }));
+      } else {
+           if (data._id) dispatch(updateInquiry({ id: data._id, data }));
+      }
+  };
+
+  const handleDelete = (id) => {
+      if(window.confirm("Are you sure you want to delete this inquiry?")) {
+          dispatch(updateInquiry({ id, data: { isDeleted: true } })).then(() => dispatch(fetchInquiries(filters)));
       }
   };
 
   // --- Table Columns ---
   const columns = [
-      { header: 'Sr No', render: (_, idx) => idx + 1 },
-      { header: 'Inquiry', render: (row) => new Date(row.inquiryDate).toLocaleDateString() }, // Inquiry Date
-      { header: 'Student', render: (row) => <span className="font-medium text-blue-900">{row.firstName} {row.lastName}</span> },
-      { header: 'Contact (Home)', accessor: 'contactHome' },
-      { header: 'Contact (Student)', accessor: 'contactStudent' },
-      { header: 'Contact (Parent)', accessor: 'contactParent' },
+      { header: 'Sr', render: (_, idx) => idx + 1 },
+      { header: 'Date', render: (row) => formatDate(row.inquiryDate) },
+      { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.lastName || ''}</span> },
+      { header: 'Contact (Home)', render: r => r.contactHome || '-' },
+      { header: 'Contact (Student)', render: r => r.contactStudent || '-' },
+      { header: 'Contact (Parent)', render: r => r.contactParent || '-' },
       { header: 'Gender', accessor: 'gender' },
-      { 
-          header: 'Status', 
-          render: (row) => (
-            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                row.status === 'Open' ? 'bg-green-100 text-green-800' :
-                row.status === 'Closed' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
-            }`}>
-                {row.status}
-            </span>
-          )
-      },
-      { 
-          header: 'Follow-up', 
-          render: (row) => row.followUpDate ? new Date(row.followUpDate).toLocaleDateString() : '-' 
-      },
-      { 
-          header: 'Follow-up Time', 
-          render: (row) => row.followUpDate ? new Date(row.followUpDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-' 
-      },
-      { header: 'Follow-Up Details', accessor: 'followUpDetails' },
-      { 
-          header: 'Follow Up', 
-          render: (row) => (
-             <button 
-                onClick={() => setShowFollowUpModal(row)}
-                className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 p-1.5 rounded transition-colors border border-indigo-200"
-                title="Add Follow Up"
-             >
-                <PhoneCall size={16}/>
-             </button>
-          )
-      },
-      { header: 'Allocation To', render: (row) => row.allocatedTo?.name || 'Unallocated' }
+      { header: 'Status', render: r => <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${r.status==='Open'?'bg-green-100 text-green-700': r.status==='Recall' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'}`}>{r.status}</span> },
+      { header: 'Follow Up', render: r => (
+          <div className="text-xs">
+              <div className="font-bold">{r.followUpDate ? formatDate(r.followUpDate) : '-'}</div>
+              <div className="text-gray-500 truncate max-w-[100px]">{r.followUpDetails}</div>
+          </div>
+      )},
+      { header: 'Allocated To', render: r => r.allocatedTo?.name || 'Unallocated' },
+      { header: 'Action', render: r => (
+          <div className="flex gap-2">
+            <button onClick={() => setShowFollowUpModal(r)} className="bg-purple-50 text-purple-600 border border-purple-200 p-1.5 rounded hover:bg-purple-100" title="Follow Up">
+                <PhoneCall size={14}/>
+            </button>
+            <button onClick={() => setEditModalData(r)} className="bg-blue-50 text-blue-600 border border-blue-200 p-1.5 rounded hover:bg-blue-100" title="Edit">
+                <Edit size={14}/>
+            </button>
+            <button onClick={() => handleDelete(r._id)} className="bg-red-50 text-red-600 border border-red-200 p-1.5 rounded hover:bg-red-100" title="Delete">
+                <Trash2 size={14}/>
+            </button>
+          </div>
+      )},
   ];
 
   return (
-    <div className="container mx-auto p-4 max-w-7xl animate-fadeIn">
+    <div className="container mx-auto p-4 max-w-full animate-fadeIn">
       
       {/* Page Header */}
       <div className="flex items-center gap-3 mb-6 border-b pb-4">
@@ -218,14 +238,7 @@ const InquiryOnline = () => {
       <SmartTable 
         columns={columns}
         data={inquiries}
-        pagination={{ page: 1, pages: 1 }} 
-        onPageChange={() => {}}
-        onEdit={(row) => setEditModalData(row)}
-        onDelete={(id) => {
-             if(confirm("Are you sure you want to delete this inquiry?")) {
-                 dispatch(updateInquiry({ id, data: { isDeleted: true } })).then(() => dispatch(fetchInquiries(filters)));
-             }
-        }}
+        // Removed onEdit and onDelete to prevent duplicate actions
       />
 
       {/* Follow Up Modal */}

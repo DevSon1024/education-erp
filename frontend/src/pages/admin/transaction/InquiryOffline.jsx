@@ -7,40 +7,81 @@ import { fetchCourses } from '../../../features/master/masterSlice';
 import SmartTable from '../../../components/ui/SmartTable';
 import InquiryForm from '../../../components/transaction/InquiryForm'; // Imported reusable form
 import { 
-    Plus, Search, RotateCcw, X, PhoneCall, User, Edit, Trash2, Eye
+    Plus, Search, RotateCcw, X, PhoneCall, User, Edit, Trash2, Eye, Calendar
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../../utils/dateUtils';
 
 // Follow Up Modal (Specific to Action Button)
 const FollowUpModal = ({ inquiry, onClose, onSave }) => {
-    const { register, handleSubmit } = useForm({ defaultValues: { status: inquiry.status, followUpDetails: inquiry.followUpDetails } });
+    const { register, handleSubmit } = useForm({ 
+        defaultValues: { 
+            status: inquiry.status, 
+            followUpDetails: inquiry.followUpDetails,
+            // Split existing date/time if available
+            fDate: inquiry.followUpDate ? new Date(inquiry.followUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        } 
+    });
+
     const onSubmit = (data) => {
-        const fDate = new Date(`${data.fDate}T${data.fTime}`);
-        const vDate = data.vDate ? new Date(`${data.vDate}T${data.vTime}`) : null;
-        onSave({ id: inquiry._id, data: { ...data, followUpDate: fDate, nextVisitingDate: vDate } });
+        // Construct full Date objects
+        let fDate = null;
+        if(data.fDate) {
+             const time = data.fTime || '00:00';
+             fDate = new Date(`${data.fDate}T${time}`);
+        }
+
+        let vDate = null;
+        if(data.vDate) {
+            const time = data.vTime || '00:00';
+            vDate = new Date(`${data.vDate}T${time}`);
+        }
+
+        onSave({ 
+            id: inquiry._id, 
+            data: { 
+                ...data, 
+                followUpDate: fDate, 
+                nextVisitingDate: vDate,
+                // Ensure no undefined fields overwrite existing
+            } 
+        });
     };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl animate-fadeIn">
                 <div className="flex justify-between mb-4 border-b pb-2"><h3 className="font-bold text-blue-800">Follow Up Update</h3><button onClick={onClose}><X/></button></div>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                        <div><label className="text-xs font-bold">Follow-Up Date</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
-                        <div><label className="text-xs font-bold">Time</label><input type="time" {...register('fTime')} required className="border p-2 rounded w-full text-sm"/></div>
-                    </div>
-                    <div><label className="text-xs font-bold">Discussion</label><textarea {...register('followUpDetails')} className="border p-2 rounded w-full text-sm" rows="2"></textarea></div>
-                    <div><label className="text-xs font-bold">Status</label><select {...register('status')} className="border p-2 rounded w-full text-sm"><option>InProgress</option><option>Converted</option><option>Closed</option></select></div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     
-                    <div className="bg-gray-50 p-2 rounded mt-2">
-                        <p className="font-bold text-xs mb-1 text-purple-700">Next Visit Schedule</p>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
+                    {/* Inquiry Status */}
+                     <div>
+                        <label className="text-xs font-bold block mb-1">Inquiry Status</label>
+                        <select {...register('status')} className="border p-2 rounded w-full text-sm">
+                            <option>Open</option>
+                            <option>InProgress</option>
+                            <option>Recall</option>
+                            <option>converted</option> {/* Case sensitive match enum if needed, usually backend handles case or use 'Converted' */}
+                            <option>Close</option>
+                            <option>Complete</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div><label className="text-xs font-bold block mb-1">Follow-Up Date</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
+                        <div><label className="text-xs font-bold block mb-1">Time (12h)</label><input type="time" {...register('fTime')} className="border p-2 rounded w-full text-sm"/></div>
+                    </div>
+                    <div><label className="text-xs font-bold block mb-1">Discussion / Remarks</label><textarea {...register('followUpDetails')} className="border p-2 rounded w-full text-sm" rows="3"></textarea></div>
+                    
+                    <div className="bg-gray-50 p-3 rounded mt-2 border border-gray-100">
+                        <p className="font-bold text-xs mb-2 text-purple-700 flex items-center gap-1"><Calendar size={12}/> Next Visit Schedule</p>
+                        <div className="grid grid-cols-2 gap-3 mb-2">
                             <input type="date" {...register('vDate')} className="border p-2 rounded w-full text-sm"/>
                             <input type="time" {...register('vTime')} className="border p-2 rounded w-full text-sm"/>
                         </div>
                         <input {...register('visitReason')} placeholder="Reason for visit..." className="border p-2 rounded w-full text-sm"/>
                     </div>
-                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700">Save Update</button>
+                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm">Update Status & Follow Up</button>
                 </form>
             </div>
         </div>
@@ -62,7 +103,6 @@ const InquiryOffline = () => {
   useEffect(() => {
     if (location.state?.visitorData) {
         setModal({ type: 'form', data: { ...location.state.visitorData, isConversion: true } });
-        // Clear state to prevent reopening on generic re-renders (optional but good practice)
         window.history.replaceState({}, document.title);
     }
   }, [location]);
@@ -72,14 +112,41 @@ const InquiryOffline = () => {
           toast.success(message); 
           dispatch(resetTransaction()); 
           setModal({type:null});
-          dispatch(fetchInquiries(filters)); // Force refresh list
+          // fetchInquiries removed to prevent resetting list filters/showing all data
+          // Redux state is already updated via create/update thunks
       } 
-  }, [isSuccess, message, dispatch, filters]);
+  }, [isSuccess, message, dispatch]);
 
   const handleSave = (data) => {
-      if(data._id) dispatch(updateInquiry({ id: data._id, data }));
-      else dispatch(createInquiry(data));
+      // Data is now FormData if coming from InquiryForm, or object from FollowUpModal
+      // If FormData, we pass it directly. Backend handles multipart.
+      if(data instanceof FormData) {
+          // Check for ID in FormData to decide create or update
+          const id = data.get('_id');
+          if(id) dispatch(updateInquiry({ id, data }));
+          else dispatch(createInquiry(data));
+      } else {
+          // Normal JSON update (FollowUpModal)
+          if(data._id) dispatch(updateInquiry({ id: data._id, data })); // Wrong structure in handleSave? 
+          // Wait, FollowUpModal passes {id, data} wrapper to onSave, InquiryForm passes Payload or FormData.
+          // Let's normalize inside the components or here.
+          // InquiryForm calls onSave(formData). FollowUp call logic is below.
+      }
   };
+  
+  // Wrapper for InquiryForm save
+  const handleFormSave = (payload) => {
+       if (payload instanceof FormData) {
+           const id = payload.get('_id');
+            if(id && id !== 'undefined') dispatch(updateInquiry({ id, data: payload }));
+            else dispatch(createInquiry(payload));
+       } else {
+           // Fallback/Legacy
+           if(payload._id) dispatch(updateInquiry({ id: payload._id, data: payload }));
+           else dispatch(createInquiry(payload));
+       }
+  };
+
 
   const handleDelete = (id) => {
       if(window.confirm('Delete this inquiry?')) dispatch(updateInquiry({ id, data: { isDeleted: true } })).then(() => dispatch(fetchInquiries(filters)));
@@ -88,12 +155,31 @@ const InquiryOffline = () => {
   const columns = [
       { header: 'Sr', render: (_, i) => i + 1 },
       { header: 'Date', render: r => formatDate(r.inquiryDate) },
-      { header: 'Student', render: r => <span className="font-bold">{r.firstName} {r.lastName}</span> },
-      { header: 'Contact', accessor: 'contactStudent' },
-      { header: 'Parent', accessor: 'contactParent' },
-      { header: 'Status', render: r => <span className={`px-2 py-0.5 rounded text-xs font-bold ${r.status==='Open'?'bg-green-100 text-green-800':'bg-gray-100'}`}>{r.status}</span> },
-      { header: 'Follow Up', render: r => r.followUpDate ? formatDate(r.followUpDate) : '-' },
-      { header: 'Action', render: r => <button onClick={() => setModal({type:'followup', data:r})} className="text-purple-600 border border-purple-200 px-2 py-1 rounded bg-purple-50 text-xs font-bold hover:bg-purple-100"><PhoneCall size={14}/> Follow Up</button>},
+      { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.lastName || ''}</span> },
+      { header: 'Contact (Home)', render: r => r.contactHome || '-' },
+      { header: 'Contact (Student)', render: r => r.contactStudent || '-' },
+      { header: 'Contact (Parent)', render: r => r.contactParent || '-' },
+      { header: 'Gender', accessor: 'gender' },
+      { header: 'Status', render: r => <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${r.status==='Open'?'bg-green-100 text-green-700': r.status==='Recall' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'}`}>{r.status}</span> },
+      { header: 'Follow Up', render: r => (
+          <div className="text-xs">
+              <div className="font-bold">{r.followUpDate ? formatDate(r.followUpDate) : '-'}</div>
+              <div className="text-gray-500 truncate max-w-[100px]">{r.followUpDetails}</div>
+          </div>
+      )},
+      { header: 'Action', render: r => (
+          <div className="flex gap-2">
+            <button onClick={() => setModal({type:'followup', data:r})} className="bg-purple-50 text-purple-600 border border-purple-200 p-1.5 rounded hover:bg-purple-100" title="Follow Up">
+                <PhoneCall size={14}/>
+            </button>
+            <button onClick={() => setModal({type:'form', data:r})} className="bg-blue-50 text-blue-600 border border-blue-200 p-1.5 rounded hover:bg-blue-100" title="Edit">
+                <Edit size={14}/>
+            </button>
+            <button onClick={() => handleDelete(r._id)} className="bg-red-50 text-red-600 border border-red-200 p-1.5 rounded hover:bg-red-100" title="Delete">
+                <Trash2 size={14}/>
+            </button>
+          </div>
+      )},
   ];
 
   return (
@@ -106,19 +192,23 @@ const InquiryOffline = () => {
         </div>
         
         {/* Filter Bar */}
-        <div className="bg-white p-3 rounded border shadow-sm flex gap-3 mb-4">
+        <div className="bg-white p-3 rounded border shadow-sm flex gap-3 mb-4 flex-wrap">
              <input type="date" onChange={e => setFilters({...filters, startDate: e.target.value})} className="border p-2 rounded text-sm"/>
              <input type="date" onChange={e => setFilters({...filters, endDate: e.target.value})} className="border p-2 rounded text-sm"/>
-             <select onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm"><option value="">All Status</option><option>Open</option><option>InProgress</option></select>
-             <input placeholder="Search Name..." onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow"/>
+             <select onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm min-w-[120px]">
+                <option value="">All Status</option>
+                <option>Open</option>
+                <option>Recall</option>
+                <option>InProgress</option>
+                <option>Close</option>
+             </select>
+             <input placeholder="Search Name..." onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow min-w-[200px]"/>
              <button onClick={() => dispatch(fetchInquiries(filters))} className="bg-gray-800 text-white px-4 rounded hover:bg-black"><Search size={18}/></button>
         </div>
 
         <SmartTable 
             columns={columns} 
             data={inquiries} 
-            onEdit={(row) => setModal({type:'form', data:row})}
-            onDelete={(id) => handleDelete(id)}
         />
 
         {/* Reusable Form Modal */}
@@ -127,7 +217,7 @@ const InquiryOffline = () => {
                 mode="Offline" 
                 initialData={modal.data} 
                 onClose={() => setModal({type:null})} 
-                onSave={handleSave}
+                onSave={handleFormSave}
             />
         )}
 
