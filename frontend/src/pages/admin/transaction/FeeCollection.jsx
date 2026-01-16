@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm, Controller } from 'react-hook-form';
-import { fetchStudents } from '../../../features/student/studentSlice';
 import { collectFees, fetchFeeReceipts, updateFeeReceipt, deleteFeeReceipt, resetTransaction } from '../../../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
 import { Search, RotateCcw, FileText, Printer, Edit2, Trash2, Plus, X } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
+import StudentSearch from '../../../components/StudentSearch';
 
 const FeeCollection = () => {
     const dispatch = useDispatch();
     const { receipts, isSuccess, message } = useSelector(state => state.transaction);
-    const { students } = useSelector(state => state.students);
+    // Removed students slice dependency as we now search dynamically
+    
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [currentReceiptId, setCurrentReceiptId] = useState(null);
     const [printingReceipt, setPrintingReceipt] = useState(null);
+    const [initialEditStudentId, setInitialEditStudentId] = useState(null); // For StudentSearch in Edit Mode
+    const [formStudentObj, setFormStudentObj] = useState(null); // To store selected student object in form to get course etc.
     const receiptRef = useRef();
 
     // Filters State
@@ -23,15 +26,17 @@ const FeeCollection = () => {
         endDate: '',
         receiptNo: '',
         paymentMode: '',
-        studentId: '' // For dropdown
+        studentId: '' // For dropdown/search
     });
 
     const { register, handleSubmit, reset, setValue, control, watch } = useForm();
-    const selectedStudentId = watch('studentId');
+    
+    // We no longer need to watch studentId for course autofill via effect, 
+    // because we handle it directly in onSelect of StudentSearch.
 
     useEffect(() => {
         dispatch(fetchFeeReceipts());
-        dispatch(fetchStudents()); // Load all students for dropdown
+        // dispatch(fetchStudents()); // REMOVED: Optimization
     }, [dispatch]);
 
     useEffect(() => {
@@ -69,6 +74,8 @@ const FeeCollection = () => {
     // --- Form Handlers ---
     const openAddModal = () => {
         setEditMode(false);
+        setInitialEditStudentId(null);
+        setFormStudentObj(null);
         reset({
             receiptNo: 'Auto Generated', 
             date: new Date().toISOString().split('T')[0],
@@ -80,6 +87,8 @@ const FeeCollection = () => {
     const openEditModal = (receipt) => {
         setEditMode(true);
         setCurrentReceiptId(receipt._id);
+        setInitialEditStudentId(receipt.student?._id); // Set initial ID for search component
+        setFormStudentObj(receipt.student); // Pre-fill student obj just in case
         
         // Populate form
         setValue('receiptNo', receipt.receiptNo);
@@ -88,8 +97,6 @@ const FeeCollection = () => {
         setValue('amountPaid', receipt.amountPaid);
         setValue('paymentMode', receipt.paymentMode);
         setValue('remarks', receipt.remarks);
-        
-        // Set derived fields if needed
         setValue('courseName', receipt.course?.name);
 
         setShowModal(true);
@@ -98,6 +105,8 @@ const FeeCollection = () => {
     const closeModal = () => {
         setShowModal(false);
         setEditMode(false);
+        setInitialEditStudentId(null);
+        setFormStudentObj(null);
         reset();
     };
 
@@ -105,9 +114,16 @@ const FeeCollection = () => {
         if(editMode) {
             dispatch(updateFeeReceipt({ id: currentReceiptId, data }));
         } else {
-            // Find student to get course ID automatically if not in form
-            const student = students.find(s => s._id === data.studentId);
-            const payload = { ...data, courseId: student?.course?._id };
+            // Use local state formStudentObj to get course ID
+            // If user searched and selected, formStudentObj is set.
+            const courseId = formStudentObj?.course?._id;
+            
+            if(!courseId) {
+                toast.error("Could not determine student course. Please re-select student.");
+                return;
+            }
+
+            const payload = { ...data, courseId };
             dispatch(collectFees(payload));
         }
     };
@@ -117,17 +133,6 @@ const FeeCollection = () => {
             dispatch(deleteFeeReceipt(id));
         }
     };
-
-    // --- Auto-fill Course when Student is selected ---
-    useEffect(() => {
-        if (selectedStudentId && students.length > 0) {
-            const student = students.find(s => s._id === selectedStudentId);
-            if (student) {
-                setValue('courseName', student.course?.name || 'N/A');
-            }
-        }
-    }, [selectedStudentId, students, setValue]);
-
 
     // --- Printing ---
     const handlePrint = useReactToPrint({
@@ -153,18 +158,12 @@ const FeeCollection = () => {
             <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-100">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Student</label>
-                        <select 
-                            name="studentId" 
-                            value={filters.studentId} 
-                            onChange={handleFilterChange}
-                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                        >
-                            <option value="">All Students</option>
-                            {students && students.map(s => (
-                                <option key={s._id} value={s._id}>{s.name} ({s.regNo})</option>
-                            ))}
-                        </select>
+                        {/* REPLACED: Dropdown with Search */}
+                        <StudentSearch 
+                            label="Student"
+                            onSelect={(id) => setFilters(prev => ({ ...prev, studentId: id }))}
+                            placeholder="Search Student..."
+                        />
                     </div>
 
                     <div>
@@ -178,7 +177,7 @@ const FeeCollection = () => {
                             <option value="">All Types</option>
                             <option value="Cash">Cash</option>
                             <option value="Cheque">Cheque</option>
-                            <option value="Online">Online</option> {/* Assuming 'Online' maps to UPI/Bank/etc or generic */}
+                            <option value="Online">Online</option>
                             <option value="UPI">UPI</option>
                         </select>
                     </div>
@@ -343,17 +342,30 @@ const FeeCollection = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Student Name</label>
-                                    <select 
-                                        {...register('studentId', { required: true })} 
-                                        disabled={editMode} // Disable student change on edit to prevent complex logic issues (reverting balances etc)
-                                        className={`w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none ${editMode ? 'bg-gray-100' : ''}`}
-                                    >
-                                        <option value="">Select Student</option>
-                                        {students && students.map(s => (
-                                            <option key={s._id} value={s._id}>{s.name} ({s.regNo})</option>
-                                        ))}
-                                    </select>
+                                    {/* REPLACED: Dropdown with Search */}
+                                    <Controller
+                                        name="studentId"
+                                        control={control}
+                                        rules={{ required: "Student is required" }}
+                                        render={({ field, fieldState: { error } }) => (
+                                            <StudentSearch 
+                                                label="Student Name"
+                                                required
+                                                defaultSelectedId={initialEditStudentId} // Only pass when editing
+                                                error={error?.message}
+                                                onSelect={(id, student) => {
+                                                    field.onChange(id);
+                                                    if(student) {
+                                                        setFormStudentObj(student);
+                                                        setValue('courseName', student.course?.name || 'N/A');
+                                                    } else {
+                                                        setFormStudentObj(null);
+                                                        setValue('courseName', '');
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Course Name</label>
