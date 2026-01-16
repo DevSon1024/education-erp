@@ -1,76 +1,99 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const studentSchema = new mongoose.Schema({
+const studentSchema = new mongoose.Schema(
+  {
     // --- System Fields ---
-    enrollmentNo: { type: String, unique: true }, 
-    regNo: { type: String, unique: true, sparse: true }, 
+    enrollmentNo: { type: String, unique: true },
+    regNo: { type: String, unique: true, sparse: true },
     isActive: { type: Boolean, default: true },
-    isRegistered: { type: Boolean, default: false }, 
+    isRegistered: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
-    branchName: { type: String, default: 'Main Branch' },
-    registrationDate: { type: Date }, 
+    branchName: { type: String, default: "Main Branch" },
+    registrationDate: { type: Date },
 
     // --- Personal Details ---
     admissionDate: { type: Date, required: true, default: Date.now },
     aadharCard: { type: String, required: true },
     firstName: { type: String, required: true },
-    relationType: { type: String, enum: ['Father', 'Husband'], default: 'Father' }, // Added for Marksheet logic
+    relationType: {
+      type: String,
+      enum: ["Father", "Husband"],
+      default: "Father",
+    }, // Added for Marksheet logic
     middleName: { type: String }, // CHANGED: Removed required: true to prevent 400 error
     lastName: { type: String, required: true },
     motherName: { type: String },
-    
+
     dob: { type: Date, required: true },
-    gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
-    studentPhoto: { type: String }, 
+    gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
+    studentPhoto: { type: String },
 
     // --- Contact & Address ---
     email: { type: String },
     contactHome: { type: String },
     mobileStudent: { type: String },
-    mobileParent: { type: String, required: true }, 
-    
+    mobileParent: { type: String, required: true },
+
     address: { type: String, required: true },
     state: { type: String, required: true },
     city: { type: String, required: true },
     pincode: { type: String },
 
     // --- Other Info ---
-    occupationType: { type: String, enum: ['Service', 'Business', 'Student', 'Unemployed'] },
+    occupationType: {
+      type: String,
+      enum: ["Service", "Business", "Student", "Unemployed"],
+    },
     occupationName: { type: String },
     education: { type: String },
-    reference: { type: String, default: 'Direct' }, // CHANGED: Added default
+    reference: { type: String, default: "Direct" }, // CHANGED: Added default
 
     // --- Academic & Fees ---
-    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: true,
+    },
     batch: { type: String, required: true },
-    
+
     // CHANGED: Made optional because "Pay Later" has no mode yet
-    paymentMode: { type: String, enum: ['Cash', 'Online', 'EMI', 'Cheque', 'Bank Transfer'] }, 
-    paymentPlan: { type: String, enum: ['One Time', 'Monthly'] }, // New Field
-    
+    paymentMode: {
+      type: String,
+      enum: ["Cash", "Online", "EMI", "Cheque", "Bank Transfer"],
+    },
+    paymentPlan: { type: String, enum: ["One Time", "Monthly"] }, // New Field
+
     totalFees: { type: Number, required: true },
     pendingFees: { type: Number, default: 0 }, // CHANGED: Added default
     isAdmissionFeesPaid: { type: Boolean, default: false },
     admissionFeeAmount: { type: Number, default: 0 }, // Actual admission fee paid
-    
+
     // Link to User Login
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
     // EMI Details (Optional)
     emiDetails: {
-        registrationFees: Number,
-        monthlyInstallment: Number,
-        months: Number
-    }
+      registrationFees: Number,
+      monthlyInstallment: Number,
+      months: Number,
+    },
+  },
+  { timestamps: true }
+);
 
-}, { timestamps: true });
+// Indexes for frequent searches
+studentSchema.index({ email: 1 });
+studentSchema.index({ mobileParent: 1 });
+studentSchema.index({ name: "text" }); // Enable text search on name if needed, or simple index on firstName/lastName
 
 // Middleware for Enrollment No
-studentSchema.pre('save', async function() {
-    if (this.isNew && !this.enrollmentNo) {
-        const count = await mongoose.model('Student').countDocuments();
-        this.enrollmentNo = `ENR${new Date().getFullYear()}${String(count + 1).padStart(4, '0')}`;
-    }
+studentSchema.pre("save", async function () {
+  if (this.isNew && !this.enrollmentNo) {
+    const count = await mongoose.model("Student").countDocuments();
+    this.enrollmentNo = `ENR${new Date().getFullYear()}${String(
+      count + 1
+    ).padStart(4, "0")}`;
+  }
 });
 
-module.exports = mongoose.model('Student', studentSchema);
+module.exports = mongoose.model("Student", studentSchema);
