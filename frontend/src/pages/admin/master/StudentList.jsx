@@ -197,7 +197,7 @@ const StudentList = () => {
                         <Link to={`/master/student/edit/${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Edit">
                             <Edit size={16}/>
                         </Link>
-                        <Link to={`/master/student/view/${s._id}`} className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print Admission Form">
+                        <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print Admission Form">
                             <Printer size={16}/>
                         </Link>
                    </div>

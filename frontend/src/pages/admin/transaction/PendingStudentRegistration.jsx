@@ -138,6 +138,7 @@ const PendingStudentRegistration = () => {
                         <button onClick={() => handleRegister(student._id)} className="text-green-600 font-bold border border-green-600 px-2 py-1 rounded text-xs hover:bg-green-50">
                             Register
                         </button>
+                        <button onClick={() => navigate(`/print/admission-form/${student._id}?mode=REGISTRATION`)} className="text-purple-600" title="Print Form"><Printer size={18}/></button>
                         <button className="text-gray-600" title="Edit"><Edit size={18}/></button>
                       </td>
                     </tr>

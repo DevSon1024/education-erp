@@ -140,7 +140,8 @@ const PendingAdmissionFees = () => {
           <CreditCard size={18} />
         </button>
         <button
-          title="Print"
+          onClick={() => navigate(`/print/admission-form/${row._id}?mode=NO_FEES`)}
+          title="Print Admission Form"
           className="p-1 text-gray-600 hover:bg-gray-50 rounded"
         >
           <Printer size={18} />
@@ -230,6 +231,8 @@ const PendingAdmissionFees = () => {
           >
             <RotateCcw size={18} /> Reset
           </button>
+          
+          {/* Note: Global report or selected print logic can be here. For row specific print, see the table actions below. */}
           <button className="bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-purple-700">
             <Printer size={18} /> Report
           </button>

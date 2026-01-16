@@ -91,6 +91,7 @@ const StudentRegistrationProcess = lazy(() =>
 
 // --- REPORTS (Ensure this import is correct) ---
 const LedgerReport = lazy(() => import("./pages/admin/reports/LedgerReport"));
+const AdmissionFormPrint = lazy(() => import("./pages/admin/reports/AdmissionFormPrint"));
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -349,6 +350,17 @@ function App() {
                 element={
                   <PrivateRoute>
                     <LedgerReport />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/print/admission-form/:id"
+                element={
+                  <PrivateRoute>
+                    <Suspense fallback={<Loading />}>
+                        {/* Lazy load inline or import at top if preferred, using existing lazy pattern */}
+                        <AdmissionFormPrint />
+                    </Suspense>
                   </PrivateRoute>
                 }
               />
