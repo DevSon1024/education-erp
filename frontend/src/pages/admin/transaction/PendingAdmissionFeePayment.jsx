@@ -33,7 +33,6 @@ const PendingAdmissionFeePayment = () => {
     date: new Date().toISOString().split("T")[0],
   });
 
-  // Fetch Student
   useEffect(() => {
     if (id) {
       dispatch(fetchStudentById(id));
@@ -44,7 +43,6 @@ const PendingAdmissionFeePayment = () => {
     };
   }, [id, dispatch]);
 
-  // Set Default Amount
   useEffect(() => {
     if (student && student.course) {
       const defaultFee = student.course.admissionFees || "";
@@ -52,11 +50,9 @@ const PendingAdmissionFeePayment = () => {
     }
   }, [student]);
 
-  // Handle Success Redirect
   useEffect(() => {
     if (isSuccess) {
       toast.success(message);
-      // Redirect to Pending Student Registration
       setTimeout(() => {
         navigate("/transaction/pending-registration");
       }, 1500);
@@ -75,7 +71,8 @@ const PendingAdmissionFeePayment = () => {
       courseId: student.course._id,
       amountPaid: formData.amountPaid,
       paymentMode: formData.paymentMode,
-      remarks: formData.remarks,
+      // FIXED: If remarks is empty, send 'Admission Fee'
+      remarks: formData.remarks || 'Admission Fee',
     };
 
     dispatch(collectFees(feeData));
@@ -100,11 +97,11 @@ const PendingAdmissionFeePayment = () => {
         </div>
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Section 1: Student Details */}
           <div className="border-r border-gray-100 pr-4">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
               Student Information
             </h3>
+
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Student Name:</span>
@@ -113,21 +110,38 @@ const PendingAdmissionFeePayment = () => {
                 </span>
               </div>
               <div className="grid grid-cols-3">
-                <span className="text-gray-500">Enrollment:</span>
+                <span className="text-gray-500">Father Name:</span>
                 <span className="col-span-2 font-medium">
-                  {student.enrollmentNo}
+                  {student.middleName || "-"}
                 </span>
               </div>
               <div className="grid grid-cols-3">
-                <span className="text-gray-500">Contact:</span>
+                <span className="text-gray-500">Mobile Number:</span>
                 <span className="col-span-2 font-medium">
                   {student.mobileStudent || student.mobileParent}
+                </span>
+              </div>
+              <div className="grid grid-cols-3">
+                <span className="text-gray-500">E-mail ID:</span>
+                <span className="col-span-2 font-medium">
+                  {student.email || "-"}
+                </span>
+              </div>
+              <div className="grid grid-cols-3">
+                <span className="text-gray-500">Admission Date:</span>
+                <span className="col-span-2 font-medium">
+                  {new Date(student.admissionDate).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="grid grid-cols-3">
+                <span className="text-gray-500">Date of Birth:</span>
+                <span className="col-span-2 font-medium">
+                  {new Date(student.dob).toLocaleDateString()}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Section 2: Payment Receipt */}
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
               Fee Payment
@@ -163,23 +177,40 @@ const PendingAdmissionFeePayment = () => {
 
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Amount (₹)
+                  Course Name
                 </label>
                 <input
-                  type="number"
-                  required
-                  placeholder="Admission Fees"
-                  value={formData.amountPaid}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amountPaid: e.target.value })
-                  }
-                  className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200 font-bold text-gray-800"
+                  type="text"
+                  disabled
+                  value={student.course?.name || ""}
+                  className="w-full bg-gray-100 border rounded px-3 py-2 text-sm"
                 />
               </div>
 
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Payment Mode
+                  Amount (₹)
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Admission Fees"
+                  value={formData.amountPaid}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!isNaN(val))
+                      setFormData({ ...formData, amountPaid: val });
+                  }}
+                  className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200 font-bold text-gray-800"
+                />
+                <span className="text-xs text-gray-400">
+                  Default: Admission Fee
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Receipt Type
                 </label>
                 <select
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
@@ -189,10 +220,8 @@ const PendingAdmissionFeePayment = () => {
                   }
                 >
                   <option value="Cash">Cash</option>
-                  <option value="Online">Online</option>
                   <option value="Cheque">Cheque</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Online">Online</option>
                 </select>
               </div>
 
@@ -211,14 +240,13 @@ const PendingAdmissionFeePayment = () => {
                 ></textarea>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 flex gap-3">
                 <button
                   type="submit"
                   disabled={feeLoading}
                   className="w-full bg-green-600 text-white py-2 rounded shadow hover:bg-green-700 disabled:bg-green-300 flex justify-center items-center gap-2 font-bold"
                 >
-                  <Save size={18} />{" "}
-                  {feeLoading ? "Generating..." : "Generate Receipt"}
+                  <Save size={18} /> {feeLoading ? "Saving..." : "Save"}
                 </button>
               </div>
             </form>

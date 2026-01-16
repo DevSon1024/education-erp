@@ -20,13 +20,12 @@ import {
   ChevronLeft,
   Save,
   Search,
-  AlertCircle,
-  Trash2,
   Plus,
   X,
   UserCheck,
   CreditCard,
   CheckCircle,
+  Trash2,
 } from "lucide-react";
 
 const LOCATION_DATA = {
@@ -35,7 +34,6 @@ const LOCATION_DATA = {
   Delhi: ["New Delhi", "Noida", "Gurgaon"],
 };
 
-// Helper to get unique education list from existing students
 const getUniqueEducation = (students) => {
   const methods = new Set([
     "10th Pass",
@@ -53,7 +51,6 @@ const StudentAdmission = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Redux
   const { isSuccess, students, isLoading, message } = useSelector(
     (state) => state.students
   );
@@ -63,19 +60,17 @@ const StudentAdmission = () => {
     employees: [],
   };
 
-  // Local State
   const [step, setStep] = useState(1);
   const [previewImage, setPreviewImage] = useState(null);
   const [previewCourses, setPreviewCourses] = useState([]);
   const [foundInquiry, setFoundInquiry] = useState(null);
   const [duplicateStudent, setDuplicateStudent] = useState(null);
-  const [payAdmissionFee, setPayAdmissionFee] = useState(null); // null, true, false
+  const [payAdmissionFee, setPayAdmissionFee] = useState(null); 
   const [isNewReference, setIsNewReference] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Local loading state for immediate feedback
+  const [isSubmitting, setIsSubmitting] = useState(false); 
 
   const [educationOptions, setEducationOptions] = useState([]);
 
-  // Form
   const {
     register,
     handleSubmit,
@@ -89,7 +84,7 @@ const StudentAdmission = () => {
       admissionDate: new Date().toISOString().split("T")[0],
       state: "Gujarat",
       city: "Surat",
-      relationType: "Father", // Default
+      relationType: "Father", 
       reference: "Direct",
       receiptPaymentMode: "Cash",
       receiptDate: new Date().toISOString().split("T")[0],
@@ -99,12 +94,11 @@ const StudentAdmission = () => {
   const watchFirstName = watch("firstName");
   const watchLastName = watch("lastName");
   const watchCourseSelection = watch("selectedCourseId");
-  const watchSelectedBatch = watch("selectedBatch"); // Needed for Radio Button re-render
+  const watchSelectedBatch = watch("selectedBatch"); 
   const watchReference = watch("reference");
   const watchState = watch("state");
   const watchRelation = watch("relationType");
 
-  // --- INITIALIZATION ---
   useEffect(() => {
     dispatch(fetchCourses());
     dispatch(fetchBatches());
@@ -136,16 +130,13 @@ const StudentAdmission = () => {
       dispatch(resetStatus());
     }
 
-    // Reset local submitting state when redux loading is done
     if (!isLoading) {
       setIsSubmitting(false);
     }
   }, [isSuccess, message, isLoading, dispatch, navigate, payAdmissionFee]);
 
-  // --- LOGIC: Inquiry & Duplicate ---
   useEffect(() => {
     if (watchFirstName && watchLastName) {
-      // Check Inquiry
       const inquiry = inquiries.find(
         (i) =>
           i.firstName?.toLowerCase() === watchFirstName.toLowerCase() &&
@@ -153,7 +144,6 @@ const StudentAdmission = () => {
       );
       setFoundInquiry(inquiry || null);
 
-      // Check Duplicate Student
       const student = students.find(
         (s) =>
           s.firstName?.toLowerCase() === watchFirstName.toLowerCase() &&
@@ -193,7 +183,6 @@ const StudentAdmission = () => {
     }
   };
 
-  // --- LOGIC: Course & Fees ---
   const handleAddCourseToList = () => {
     const courseId = getValues("selectedCourseId");
     const batchName = getValues("selectedBatch");
@@ -208,7 +197,6 @@ const StudentAdmission = () => {
     const courseObj = courses.find((c) => c._id === courseId);
     const batchObj = batches.find((b) => b.name === batchName);
 
-    // Calculate Fees
     let finalFees = courseObj.courseFees;
     let emiConfig = null;
     const admissionFee = courseObj.admissionFees || 500;
@@ -216,7 +204,6 @@ const StudentAdmission = () => {
     if (paymentType === "Monthly") {
       const regFees = courseObj.registrationFees || 0;
       const installments = courseObj.totalInstallment || 1;
-      // Fee Breakdown Logic
       const remaining = finalFees - regFees;
       const monthlyAmt = Math.ceil(remaining / installments);
 
@@ -252,7 +239,7 @@ const StudentAdmission = () => {
       return;
     }
 
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting) return; 
     setIsSubmitting(true);
 
     const primaryCourse = previewCourses[0];
@@ -262,11 +249,7 @@ const StudentAdmission = () => {
       course: primaryCourse.courseId,
       batch: primaryCourse.batch,
       totalFees: primaryCourse.fees,
-
-      // Payment Plan
       paymentPlan: primaryCourse.paymentType,
-
-      // Reference
       reference: isNewReference ? "New Reference" : data.reference,
       referenceDetails: isNewReference
         ? {
@@ -275,13 +258,12 @@ const StudentAdmission = () => {
             address: data.refAddress,
           }
         : null,
-
-      // Fee Logic
       feeDetails: payAdmissionFee
         ? {
             amount: Number(data.amountPaid),
             paymentMode: data.receiptPaymentMode,
-            remarks: data.remarks,
+            // FIXED: If remarks is empty, send 'Admission Fee'
+            remarks: data.remarks || 'Admission Fee',
             date: data.receiptDate,
           }
         : null,
@@ -290,7 +272,6 @@ const StudentAdmission = () => {
     dispatch(registerStudent(payload));
   };
 
-  // --- RENDER HELPERS ---
   const renderStepHeader = () => (
     <div className="flex justify-center items-center mb-8">
       {[1, 2, 3].map((i) => (
@@ -341,7 +322,6 @@ const StudentAdmission = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-8">
           {renderStepHeader()}
 
-          {/* ALERTS */}
           {foundInquiry && step === 1 && (
             <div className="bg-green-50 border border-green-200 p-3 mb-6 rounded-lg flex justify-between items-center shadow-sm">
               <div className="flex items-center gap-3">
@@ -370,10 +350,8 @@ const StudentAdmission = () => {
             </div>
           )}
 
-          {/* STEP 1: PERSONAL DETAILS */}
           {step === 1 && (
             <div className="grid grid-cols-12 gap-5 animate-fade-in-up">
-              {/* Row 1 */}
               <div className="col-span-12 md:col-span-4">
                 <label className="label">1. Admission Date</label>
                 <input
@@ -391,7 +369,6 @@ const StudentAdmission = () => {
                 />
               </div>
               <div className="col-span-12 md:col-span-4 flex justify-center">
-                {/* Photo */}
                 <label className="relative cursor-pointer group">
                   <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 group-hover:border-blue-500 transition">
                     {previewImage ? (
@@ -415,7 +392,6 @@ const StudentAdmission = () => {
                 </label>
               </div>
 
-              {/* Row 2 */}
               <div className="col-span-12 md:col-span-3">
                 <label className="label">2. First Name *</label>
                 <input
@@ -451,7 +427,6 @@ const StudentAdmission = () => {
                 />
               </div>
 
-              {/* Row 3 */}
               <div className="col-span-6 md:col-span-3">
                 <label className="label">3. Occupation Type</label>
                 <select {...register("occupationType")} className="input">
@@ -470,7 +445,6 @@ const StudentAdmission = () => {
                 <input {...register("motherName")} className="input" />
               </div>
 
-              {/* Row 4 */}
               <div className="col-span-12 md:col-span-5">
                 <label className="label">4. E-mail</label>
                 <input
@@ -512,7 +486,6 @@ const StudentAdmission = () => {
                 </div>
               </div>
 
-              {/* Row 5 */}
               <div className="col-span-12 md:col-span-4">
                 <label className="label">5. Home Contact</label>
                 <input
@@ -542,7 +515,6 @@ const StudentAdmission = () => {
                 />
               </div>
 
-              {/* Row 6 */}
               <div className="col-span-12">
                 <label className="label">6. Education</label>
                 <input
@@ -558,7 +530,6 @@ const StudentAdmission = () => {
                 </datalist>
               </div>
 
-              {/* Row 7 */}
               <div className="col-span-12">
                 <label className="label">
                   7. Address (House No, Building, Street) *
@@ -570,7 +541,6 @@ const StudentAdmission = () => {
                 ></textarea>
               </div>
 
-              {/* Row 8 */}
               <div className="col-span-12 md:col-span-4">
                 <label className="label">8. State *</label>
                 <select
@@ -602,7 +572,6 @@ const StudentAdmission = () => {
                 <input {...register("pincode")} className="input" />
               </div>
 
-              {/* Row 9 */}
               <div className="col-span-12 bg-gray-50 p-4 rounded border-dashed border-2 border-gray-200">
                 <label className="label text-purple-700">
                   9. Reference Details
@@ -655,10 +624,8 @@ const StudentAdmission = () => {
             </div>
           )}
 
-          {/* STEP 2: COURSE & BATCH */}
           {step === 2 && (
             <div className="animate-fade-in-up space-y-6">
-              {/* Course List */}
               <div className="border rounded-lg overflow-hidden">
                 <div className="bg-gray-100 p-3 font-bold text-gray-700 border-b">
                   A. Select Course
@@ -710,14 +677,12 @@ const StudentAdmission = () => {
                 </div>
               </div>
 
-              {/* Batch & Config */}
               {watchCourseSelection && (
                 <div className="bg-slate-50 p-4 rounded border border-slate-200">
                   <div className="font-bold text-slate-700 mb-3">
                     B. Batch & Fee Config
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {/* TABLE BASED BATCH SELECTION */}
                     <div className="col-span-1 md:col-span-4 mb-2">
                       <label className="label mb-2">Select Batch *</label>
                       <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto bg-white shadow-sm">
@@ -745,7 +710,6 @@ const StudentAdmission = () => {
                                   )
                               )
                               .map((b) => {
-                                // Use the optional chaining to safely access counts
                                 const activeCount =
                                   b.courseCounts?.[watchCourseSelection] || 0;
                                 const isSelected =
@@ -766,7 +730,7 @@ const StudentAdmission = () => {
                                     <td className="p-3 text-center">
                                       <input
                                         type="radio"
-                                        name="batchSelectGroup" // Just for visual grouping logic
+                                        name="batchSelectGroup" 
                                         checked={isSelected}
                                         onChange={() =>
                                           setValue("selectedBatch", b.name)
@@ -844,7 +808,6 @@ const StudentAdmission = () => {
                 </div>
               )}
 
-              {/* Preview Table */}
               {previewCourses.length > 0 && (
                 <div className="border rounded-lg overflow-hidden shadow-sm">
                   <div className="bg-slate-800 text-white p-3 font-bold text-sm">
@@ -913,7 +876,6 @@ const StudentAdmission = () => {
                 </div>
               )}
 
-              {/* Decision: Pay Now? */}
               {previewCourses.length > 0 && (
                 <div className="bg-white p-6 rounded border shadow-sm mt-6">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 border-b pb-2">
@@ -996,7 +958,6 @@ const StudentAdmission = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      // Auto-fill amount based on payment type
                       const amountToSet =
                         previewCourses[0].paymentType === "One Time"
                           ? previewCourses[0].fees +
@@ -1031,7 +992,6 @@ const StudentAdmission = () => {
             </div>
           )}
 
-          {/* STEP 3: FEE RECEIPT */}
           {step === 3 && payAdmissionFee === true && (
             <div className="animate-fade-in-up">
               <div className="max-w-2xl mx-auto border rounded-xl shadow-lg bg-white overflow-hidden">
