@@ -57,7 +57,9 @@ const getStudents = asyncHandler(async (req, res) => {
 
 // @desc    Get Single Student
 const getStudentById = asyncHandler(async (req, res) => {
-    const student = await Student.findById(req.params.id).populate('course', 'name admissionFees registrationFees');
+    const student = await Student.findById(req.params.id)
+        .populate('course', 'name courseFees monthlyFees totalInstallment') // Explicitly select fee fields
+        .populate('userId', 'username email');
     if (student) res.json(student);
     else { res.status(404); throw new Error('Student not found'); }
 });

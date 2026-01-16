@@ -107,10 +107,10 @@ function App() {
         <ScrollToTop />
         <div
           className={`min-h-screen bg-gray-50 text-gray-900 font-sans ${
-            user ? "pt-20" : ""
+            user ? "pt-20 print:pt-0" : ""
           }`}
         >
-          {user && <Navbar />}
+          <div className="print:hidden">{user && <Navbar />}</div>
           <Suspense fallback={<Loading />}>
             <Routes>
               {/* PRIVATE ADMIN ROUTES */}

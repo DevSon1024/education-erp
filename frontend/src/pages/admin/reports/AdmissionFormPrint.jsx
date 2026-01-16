@@ -1,21 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import logo from '../../../assets/logo2.png';
 import moment from 'moment';
+import { fetchBatches } from '../../../features/master/masterSlice';
 
 const AdmissionFormPrint = () => {
     const { id } = useParams();
+    const dispatch = useDispatch(); // Added dispatch
     const [searchParams] = useSearchParams();
     const mode = searchParams.get('mode') || 'FULL'; // FULL, NO_FEES, REGISTRATION
     
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { user } = useSelector((state) => state.auth); 
+    const { batches } = useSelector((state) => state.master); // Get batches from Redux
+    
+    // ... rest of code
+    const canEdit = user && (user.role === 'Super Admin' || user.role === 'Admin');
 
     const API_URL = "http://localhost:5000/api/students/";
 
     useEffect(() => {
+        dispatch(fetchBatches()); // Fetch batches
         const fetchStudent = async () => {
+             // ... existing fetch logic
             try {
                 const { data } = await axios.get(API_URL + id, { withCredentials: true });
                 setStudent(data);
@@ -26,7 +36,7 @@ const AdmissionFormPrint = () => {
             }
         };
         fetchStudent();
-    }, [id]);
+    }, [id, dispatch]);
 
     if (loading) return <div className="p-10 text-center">Loading form data...</div>;
     if (!student) return <div className="p-10 text-center text-red-500">Student not found</div>;
@@ -34,9 +44,10 @@ const AdmissionFormPrint = () => {
     // Helper for editable fields
     const Editable = ({ value, className = "", tag: Tag = 'span' }) => (
         <Tag 
-            contentEditable 
+            contentEditable={canEdit}
             suppressContentEditableWarning 
-            className={`outline-none hover:bg-yellow-50 focus:bg-yellow-50 px-1 border-b border-gray-300 min-w-[50px] inline-block ${className}`}
+            className={`outline-none px-1 border-b border-gray-300 min-w-[50px] inline-block ${canEdit ? 'hover:bg-yellow-50 focus:bg-yellow-50' : ''} ${className}`}
+            title={canEdit ? "Click to edit" : ""}
         >
             {value || " "}
         </Tag>
@@ -52,10 +63,21 @@ const AdmissionFormPrint = () => {
         </div>
     );
 
+    // --- Derived Data Helper ---
+    const getBatchTime = () => {
+        if (!student || !batches) return "";
+        const batchObj = batches.find(b => b.name === student.batch);
+        if (batchObj) return `${batchObj.startTime} TO ${batchObj.endTime}`;
+        return student.batch || ""; // Fallback
+    };
+    
+    const batchTimeDisplay = getBatchTime();
+
     return (
         <div className="max-w-[210mm] mx-auto bg-white min-h-screen p-0 print:p-0">
             {/* --- Web Only Controls --- */}
             <div className="print:hidden p-4 bg-gray-100 flex justify-between items-center mb-4 border-b">
+                 {/* ... existing controls ... */}
                 <div className="text-sm text-gray-600">
                     <span className="font-bold">Print Mode:</span> {mode} <br/>
                     <span className="text-xs">Click on any text to edit before printing.</span>
@@ -69,7 +91,8 @@ const AdmissionFormPrint = () => {
             </div>
 
             {/* ================= PAGE 1 ================= */}
-            <div className="p-8 h-[297mm] relative text-black leading-tight border border-gray-200 print:border-0 print:shadow-none shadow-lg">
+            {/* REDUCED PADDING & HEIGHT to avoid blank page overflow */}
+            <div className="p-5 h-[290mm] relative text-black leading-tight border border-gray-200 print:border-0 print:shadow-none shadow-lg">
                 
                 {/* Header */}
                 <div className="flex justify-between items-start mb-2 border-b-2 border-black pb-2">
@@ -77,10 +100,20 @@ const AdmissionFormPrint = () => {
                         <img src={logo} alt="Logo" className="h-16 object-contain" />
                     </div>
                     <div className="w-2/3 text-right">
-                        <h1 className="text-xl font-bold uppercase tracking-wide">Jayesh Institute Branch</h1>
-                        <p className="text-xs font-semibold mt-1">LUDHIANA</p>
-                        <p className="text-xs">Ph. No.: 6354116595 &nbsp; Mo.: +91 6354116595</p>
-                        <p className="text-xs font-bold text-blue-800">www.smartinstitute.co.in</p>
+                         {/* Editable Header for flexibility */}
+                        <h1 className="text-xl font-bold uppercase tracking-wide">
+                            <Editable value={student.branchName || "JAYESH INSTITUTE BRANCH"} />
+                        </h1>
+                        <p className="text-xs font-semibold mt-1">
+                             <Editable value={student.branchLocation || "LUDHIANA"} />
+                        </p>
+                        <p className="text-xs">
+                            Ph. No.: <Editable value={student.branchPhone || "6354116595"} /> &nbsp; 
+                            Mo.: +91 <Editable value={student.branchMobile || "6354116595"} />
+                        </p>
+                        <p className="text-xs font-bold text-blue-800">
+                            <Editable value={student.website || "www.smartinstitute.co.in"} />
+                        </p>
                     </div>
                 </div>
 
@@ -106,8 +139,18 @@ const AdmissionFormPrint = () => {
                          </div>
                     </div>
 
-                    <div className="absolute right-0 top-0 w-32 h-40 border-2 border-black flex items-center justify-center text-xs text-gray-500 font-bold bg-gray-50">
-                        Fix Photo
+                    <div className="absolute right-0 top-0 w-32 h-40 border-2 border-black flex items-center justify-center bg-gray-50 overflow-hidden">
+                        {student.studentPhoto ? (
+                             <img 
+                                src={student.studentPhoto.startsWith('http') ? student.studentPhoto : `http://localhost:5000/${student.studentPhoto}`} 
+                                alt="Student"
+                                className="w-full h-full object-cover"
+                                onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                             />
+                        ) : null}
+                         <div className={`text-xs text-gray-500 font-bold ${student.studentPhoto ? 'hidden' : 'flex'} flex-col items-center justify-center w-full h-full`}>
+                            <span>Fix Photo</span>
+                        </div>
                     </div>
                 </div>
 
@@ -177,8 +220,9 @@ const AdmissionFormPrint = () => {
                     <div className="text-sm">
                         <div className="flex items-center gap-6 mb-2">
                              <span className="font-bold">Select Fees method:</span>
-                             <CheckBox label="(A) One Time" checked={student.paymentType === 'One Time'} />
-                             <CheckBox label="(B) Monthly" checked={student.paymentType === 'Monthly'} />
+                             {/* Corrected Mapping: paymentPlan instead of paymentType */}
+                             <CheckBox label="(A) One Time" checked={student.paymentPlan === 'One Time'} />
+                             <CheckBox label="(B) Monthly" checked={student.paymentPlan === 'Monthly'} />
                         </div>
 
                         <table className="w-full border border-black border-collapse text-xs">
@@ -201,10 +245,25 @@ const AdmissionFormPrint = () => {
                                     <td className="border-r border-black p-2 relative">
                                         <div className="absolute bottom-2 left-2 flex gap-1 w-full pr-4">
                                            <span className="font-bold">Amt.</span>
-                                           <Editable value={mode === 'FULL' || mode === 'REGISTRATION' ? "" : ""} className="w-[60px]"/>
+                                            {/* Logic: If Monthly, show EMI amount (Student EMI > Course Default > Blank) */}
+                                           <Editable 
+                                                value={
+                                                    student.paymentPlan === 'Monthly' 
+                                                        ? (student.emiDetails?.monthlyInstallment || student.course?.monthlyFees || "")
+                                                        : ""
+                                                } 
+                                                className="w-[60px]"
+                                            />
                                            <span className="font-bold text-[10px] ml-1">*(Into)</span>
                                            <span className="font-bold ml-1">Time</span>
-                                           <Editable value="" className="w-10"/>
+                                           <Editable 
+                                                value={
+                                                    student.paymentPlan === 'Monthly'
+                                                        ? (student.emiDetails?.months || student.course?.totalInstallment || "")
+                                                        : ""
+                                                }
+                                                className="w-10"
+                                            />
                                         </div>
                                     </td>
                                     <td className="p-0">
@@ -219,7 +278,8 @@ const AdmissionFormPrint = () => {
                                                         <Editable value={student.admissionDate ? moment(student.admissionDate).format('DD/MM/YY') : ""} />
                                                     </td>
                                                     <td className="text-center p-2 align-top">
-                                                        <Editable value={student.admissionFees || ""} />
+                                                        {/* Fixed: Show admissionFeeAmount if paid */}
+                                                        <Editable value={student.isAdmissionFeesPaid ? student.admissionFeeAmount : ""} />
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -232,15 +292,17 @@ const AdmissionFormPrint = () => {
                         <div className="grid grid-cols-2 gap-4 mt-2">
                              <div className="flex items-end gap-1">
                                 <span className="font-bold text-nowrap">Batch Date:</span>
-                                <Editable value="___/___/_____" className="w-32 text-center"/>
+                                {/* Assuming batch date isn't specific, maybe use admission date or leave blank for filling */}
+                                <Editable value="" className="w-32 text-center"/>
                              </div>
                              <div className="flex items-end gap-1">
                                 <span className="font-bold text-nowrap">Batch Time:</span>
-                                <Editable value={student.batch || ""} className="flex-grow text-center"/>
+                                <Editable value={batchTimeDisplay} className="flex-grow text-center"/>
                              </div>
                               <div className="flex items-end gap-1 col-span-2">
                                 <span className="font-bold text-nowrap">Course Fees: ₹</span>
-                                <Editable value={student.courseFees || ""} className="w-48 font-bold"/>
+                                {/* Fixed: Use totalFees */}
+                                <Editable value={student.totalFees || ""} className="w-48 font-bold"/>
                              </div>
                         </div>
 
@@ -285,7 +347,7 @@ const AdmissionFormPrint = () => {
             </div>
 
              {/* ================= PAGE 2: Rules ================= */}
-            <div className="p-8 h-[297mm] bg-white relative text-black leading-relaxed border border-gray-200 print:border-0 print:shadow-none shadow-lg mt-8 print:mt-0 break-before-page">
+            <div className="p-5 h-[290mm] bg-white relative text-black leading-relaxed border border-gray-200 print:border-0 print:shadow-none shadow-lg mt-8 print:mt-0 break-before-page">
                  
                  <div className="flex justify-center mb-8">
                      <div className="bg-black text-white px-8 py-2 font-bold text-lg rounded-sm uppercase tracking-wider shadow-sm">
