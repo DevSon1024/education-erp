@@ -39,7 +39,14 @@ const registerUser = asyncHandler(async (req, res) => {
 // @route POST /api/auth/login
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password, role } = req.body;
-    const user = await User.findOne({ email });
+    // Allow login with either email or username
+    // The 'email' field from request body acts as the identifier
+    const user = await User.findOne({ 
+        $or: [
+            { email: email }, 
+            { username: email }
+        ] 
+    });
 
     if (user && (await user.matchPassword(password))) {
         // Enforce Role Check if provided (Security Level)

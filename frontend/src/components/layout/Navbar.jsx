@@ -75,8 +75,8 @@ const Navbar = () => {
   const [filteredMenu, setFilteredMenu] = useState([]);
   const [expandedSubItems, setExpandedSubItems] = useState({});
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logout());
     navigate('/');
   };
 
