@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API_URL = "http://localhost:5000/api/students/";
 // for production use uncomment below one line
-// const API_URL = "/api/students/"; 
+// const API_URL = "/api/students/";
 axios.defaults.withCredentials = true;
 
 export const fetchStudents = createAsyncThunk(
@@ -13,7 +13,9 @@ export const fetchStudents = createAsyncThunk(
       const response = await axios.get(API_URL, { params });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
@@ -25,7 +27,9 @@ export const fetchStudentById = createAsyncThunk(
       const response = await axios.get(`${API_URL}${id}`);
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
@@ -35,10 +39,15 @@ export const confirmRegistration = createAsyncThunk(
   "students/confirmRegistration",
   async ({ id, data }, thunkAPI) => {
     try {
-      const response = await axios.post(`${API_URL}${id}/confirm-registration`, data);
+      const response = await axios.post(
+        `${API_URL}${id}/confirm-registration`,
+        data
+      );
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
@@ -52,25 +61,31 @@ export const registerStudent = createAsyncThunk(
       let headers = {};
 
       if (studentData.studentPhoto instanceof File) {
-          const formData = new FormData();
-          Object.keys(studentData).forEach(key => {
-              if (studentData[key] !== null && studentData[key] !== undefined) {
-                  // Handle Nested Objects (like feeDetails)
-                  if(typeof studentData[key] === 'object' && !(studentData[key] instanceof File) && !(studentData[key] instanceof Date)) {
-                      formData.append(key, JSON.stringify(studentData[key])); // Stringify objects for backend
-                  } else {
-                       formData.append(key, studentData[key]);
-                  }
-              }
-          });
-          payload = formData;
-          headers = { "Content-Type": "multipart/form-data" };
+        const formData = new FormData();
+        Object.keys(studentData).forEach((key) => {
+          if (studentData[key] !== null && studentData[key] !== undefined) {
+            // Handle Nested Objects (like feeDetails)
+            if (
+              typeof studentData[key] === "object" &&
+              !(studentData[key] instanceof File) &&
+              !(studentData[key] instanceof Date)
+            ) {
+              formData.append(key, JSON.stringify(studentData[key])); // Stringify objects for backend
+            } else {
+              formData.append(key, studentData[key]);
+            }
+          }
+        });
+        payload = formData;
+        headers = { "Content-Type": "multipart/form-data" };
       }
 
       const response = await axios.post(API_URL, payload, { headers });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
@@ -85,18 +100,20 @@ export const updateStudent = createAsyncThunk(
 
       // Check for File in Update
       if (data.studentPhoto instanceof File) {
-         const formData = new FormData();
-         Object.keys(data).forEach(key => {
-             if (data[key] !== null) formData.append(key, data[key]);
-         });
-         payload = formData;
-         headers = { "Content-Type": "multipart/form-data" }; 
+        const formData = new FormData();
+        Object.keys(data).forEach((key) => {
+          if (data[key] !== null) formData.append(key, data[key]);
+        });
+        payload = formData;
+        headers = { "Content-Type": "multipart/form-data" };
       }
-      
+
       const response = await axios.put(`${API_URL}${id}`, payload, { headers });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
@@ -106,7 +123,7 @@ export const toggleActiveStatus = createAsyncThunk(
   async (id, thunkAPI) => {
     try {
       await axios.put(`${API_URL}${id}/toggle`);
-      return id; 
+      return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
     }
@@ -120,7 +137,23 @@ export const resetStudentLogin = createAsyncThunk(
       const response = await axios.put(`${API_URL}${id}/reset-login`, data);
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
+    }
+  }
+);
+
+export const deleteStudent = createAsyncThunk(
+  "students/delete",
+  async (id, thunkAPI) => {
+    try {
+      await axios.delete(`${API_URL}${id}`);
+      return id;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
   }
 );
@@ -144,14 +177,16 @@ const studentSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchStudents.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchStudents.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(fetchStudents.fulfilled, (state, action) => {
         state.isLoading = false;
         state.students = action.payload.students || [];
         state.pagination = {
-            page: action.payload.page || 1,
-            pages: action.payload.pages || 1,
-            count: action.payload.count || 0,
+          page: action.payload.page || 1,
+          pages: action.payload.pages || 1,
+          count: action.payload.count || 0,
         };
       })
       .addCase(fetchStudents.rejected, (state, action) => {
@@ -171,7 +206,9 @@ const studentSlice = createSlice({
         state.isSuccess = false;
         state.message = action.payload;
       })
-      .addCase(updateStudent.pending, (state) => { state.isLoading = true; })
+      .addCase(updateStudent.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(updateStudent.fulfilled, (state) => {
         state.isLoading = false;
         state.isSuccess = true;
@@ -182,7 +219,9 @@ const studentSlice = createSlice({
         state.isSuccess = false;
         state.message = action.payload;
       })
-      .addCase(confirmRegistration.pending, (state) => { state.isLoading = true; })
+      .addCase(confirmRegistration.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(confirmRegistration.fulfilled, (state) => {
         state.isLoading = false;
         state.isSuccess = true;
@@ -197,13 +236,31 @@ const studentSlice = createSlice({
         const student = state.students.find((s) => s._id === action.payload);
         if (student) student.isActive = !student.isActive;
       })
-      .addCase(resetStudentLogin.pending, (state) => { state.isLoading = true; })
+      .addCase(resetStudentLogin.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(resetStudentLogin.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
         state.message = "Login Credentials Updated & SMS Sent";
       })
       .addCase(resetStudentLogin.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.message = action.payload;
+      })
+      .addCase(deleteStudent.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deleteStudent.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.message = "Student Deleted Successfully";
+        state.students = state.students.filter(
+          (student) => student._id !== action.payload
+        );
+      })
+      .addCase(deleteStudent.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.message = action.payload;

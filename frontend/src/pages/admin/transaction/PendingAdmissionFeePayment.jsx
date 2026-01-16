@@ -1,24 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudentById, resetStatus } from '../../../features/student/studentSlice';
-import { collectFees, resetTransaction } from '../../../features/transaction/transactionSlice';
-import { toast } from 'react-toastify';
-import { Save, ArrowLeft } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchStudentById,
+  resetStatus,
+} from "../../../features/student/studentSlice";
+import {
+  collectFees,
+  resetTransaction,
+} from "../../../features/transaction/transactionSlice";
+import { toast } from "react-toastify";
+import { Save, ArrowLeft } from "lucide-react";
 
 const PendingAdmissionFeePayment = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { currentStudent: student, isLoading: studentLoading } = useSelector((state) => state.students);
-  const { isSuccess, message, isLoading: feeLoading } = useSelector((state) => state.transaction);
+  const { currentStudent: student, isLoading: studentLoading } = useSelector(
+    (state) => state.students
+  );
+  const {
+    isSuccess,
+    message,
+    isLoading: feeLoading,
+  } = useSelector((state) => state.transaction);
 
   const [formData, setFormData] = useState({
-    amountPaid: '',
-    paymentMode: 'Cash',
-    remarks: '',
-    date: new Date().toISOString().split('T')[0] // Default Today
+    amountPaid: "",
+    paymentMode: "Cash",
+    remarks: "",
+    date: new Date().toISOString().split("T")[0], // Default Today
   });
 
   // Fetch Student
@@ -35,9 +47,9 @@ const PendingAdmissionFeePayment = () => {
   // Set Default Amount based on Admission Fees (once student is loaded)
   useEffect(() => {
     if (student && student.course) {
-        // Default to admission fees of the course if available, else 0
-        const defaultFee = student.course.admissionFees || '';
-        setFormData(prev => ({ ...prev, amountPaid: defaultFee }));
+      // Default to admission fees of the course if available, else 0
+      const defaultFee = student.course.admissionFees || "";
+      setFormData((prev) => ({ ...prev, amountPaid: defaultFee }));
     }
   }, [student]);
 
@@ -47,7 +59,7 @@ const PendingAdmissionFeePayment = () => {
       toast.success(message);
       // Redirect to Pending Student Registration as this step completes the admission fee
       setTimeout(() => {
-        navigate('/transaction/pending-student-registration');
+        navigate("/transaction/pending-student-registration");
       }, 1500);
     }
   }, [isSuccess, message, navigate]);
@@ -55,7 +67,7 @@ const PendingAdmissionFeePayment = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.amountPaid || formData.amountPaid <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error("Please enter a valid amount");
       return;
     }
 
@@ -76,7 +88,10 @@ const PendingAdmissionFeePayment = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <button onClick={() => navigate(-1)} className="mb-4 flex items-center text-gray-600 hover:text-gray-900">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
+      >
         <ArrowLeft size={16} className="mr-1" /> Back to List
       </button>
 
@@ -86,98 +101,129 @@ const PendingAdmissionFeePayment = () => {
         </div>
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-          
           {/* Section 1: Student Details (Restricted Fields) */}
           <div className="border-r border-gray-100 pr-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Student Information</h3>
-            
+            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
+              Student Information
+            </h3>
+
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Student Name:</span>
-                <span className="col-span-2 font-medium">{student.firstName} {student.lastName}</span>
+                <span className="col-span-2 font-medium">
+                  {student.firstName} {student.lastName}
+                </span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Father Name:</span>
-                <span className="col-span-2 font-medium">{student.middleName || '-'}</span>
+                <span className="col-span-2 font-medium">
+                  {student.middleName || "-"}
+                </span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Mobile Number:</span>
-                <span className="col-span-2 font-medium">{student.mobileStudent || student.mobileParent}</span>
+                <span className="col-span-2 font-medium">
+                  {student.mobileStudent || student.mobileParent}
+                </span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">E-mail ID:</span>
-                <span className="col-span-2 font-medium">{student.email || '-'}</span>
+                <span className="col-span-2 font-medium">
+                  {student.email || "-"}
+                </span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Admission Date:</span>
-                <span className="col-span-2 font-medium">{new Date(student.admissionDate).toLocaleDateString()}</span>
+                <span className="col-span-2 font-medium">
+                  {new Date(student.admissionDate).toLocaleDateString()}
+                </span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-gray-500">Date of Birth:</span>
-                <span className="col-span-2 font-medium">{new Date(student.dob).toLocaleDateString()}</span>
+                <span className="col-span-2 font-medium">
+                  {new Date(student.dob).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Section 2: Payment Receipt */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Fee Payment</h3>
-            
+            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
+              Fee Payment
+            </h3>
+
             <form onSubmit={handleSubmit} className="space-y-4">
-              
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Receipt Number</label>
-                <input 
-                  type="text" 
-                  disabled 
-                  value="Auto-Generated" 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Receipt Number
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value="Auto-Generated"
                   className="w-full bg-gray-100 border rounded px-3 py-2 text-sm text-gray-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Receipt Date</label>
-                <input 
-                  type="date" 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Receipt Date
+                </label>
+                <input
+                  type="date"
                   required
                   value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Course Name</label>
-                <input 
-                  type="text" 
-                  disabled 
-                  value={student.course?.name || ''} 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Course Name
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={student.course?.name || ""}
                   className="w-full bg-gray-100 border rounded px-3 py-2 text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Amount (₹)</label>
-                <input 
-                  type="text" 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Amount (₹)
+                </label>
+                <input
+                  type="text"
                   required
                   placeholder="Admission Fees"
                   value={formData.amountPaid}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (!isNaN(val)) setFormData({...formData, amountPaid: val});
+                    if (!isNaN(val))
+                      setFormData({ ...formData, amountPaid: val });
                   }}
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200 font-bold text-gray-800"
                 />
-                <span className="text-xs text-gray-400">Default: Admission Fee</span>
+                <span className="text-xs text-gray-400">
+                  Default: Admission Fee
+                </span>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Receipt Type</label>
-                <select 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Receipt Type
+                </label>
+                <select
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
                   value={formData.paymentMode}
-                  onChange={(e) => setFormData({...formData, paymentMode: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, paymentMode: e.target.value })
+                  }
                 >
                   <option value="Cash">Cash</option>
                   <option value="Cheque">Cheque</option>
@@ -186,26 +232,29 @@ const PendingAdmissionFeePayment = () => {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Remarks</label>
-                <textarea 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Remarks
+                </label>
+                <textarea
                   rows="2"
                   value={formData.remarks}
-                  onChange={(e) => setFormData({...formData, remarks: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, remarks: e.target.value })
+                  }
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
                   placeholder="Optional"
                 ></textarea>
               </div>
 
               <div className="pt-4 flex gap-3">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={feeLoading}
                   className="w-full bg-green-600 text-white py-2 rounded shadow hover:bg-green-700 disabled:bg-green-300 flex justify-center items-center gap-2 font-bold"
                 >
-                  <Save size={18} /> {feeLoading ? 'Saving...' : 'Save'}
+                  <Save size={18} /> {feeLoading ? "Saving..." : "Save"}
                 </button>
               </div>
-
             </form>
           </div>
         </div>
