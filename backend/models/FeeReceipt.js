@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const feeReceiptSchema = new mongoose.Schema(
   {
-    receiptNo: { type: String, required: true, unique: true }, // Auto-gen: REC-1001
+    receiptNo: { type: String, required: true, unique: true },
     student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
@@ -14,9 +14,10 @@ const feeReceiptSchema = new mongoose.Schema(
       required: true,
     },
     amountPaid: { type: Number, required: true },
+    // FIXED: Added "Online" and "EMI" to match Student model and Frontend options
     paymentMode: {
       type: String,
-      enum: ["Cash", "UPI", "Bank Transfer", "Cheque"],
+      enum: ["Cash", "UPI", "Bank Transfer", "Cheque", "Online", "EMI"],
       required: true,
     },
     transactionId: { type: String }, // For UPI/Bank
