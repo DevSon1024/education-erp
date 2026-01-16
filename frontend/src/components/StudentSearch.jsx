@@ -9,7 +9,8 @@ const StudentSearch = ({
     defaultSelectedId, 
     className,
     required = false,
-    error
+    error,
+    additionalFilters = {} // Allow passing extra filters like { isRegistered: 'false' }
 }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
@@ -71,8 +72,14 @@ const StudentSearch = ({
     const searchStudents = async () => {
         setLoading(true);
         try {
-            // Using the studentName param which the controller supports for partial match on firstName, lastName, enrollmentNo
-            const { data } = await axios.get(`${API_URL}?studentName=${query}&pageSize=10`, { withCredentials: true });
+            // Merge query with additional filters
+            const params = {
+                studentName: query,
+                pageSize: 10,
+                ...additionalFilters
+            };
+            
+            const { data } = await axios.get(API_URL, { params, withCredentials: true });
             setResults(data.students || []);
             setIsOpen(true);
         } catch (error) {

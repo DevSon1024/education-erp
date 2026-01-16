@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchStudents } from '../../../features/student/studentSlice';
 import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import { Search, RotateCcw, Printer, UserPlus, Eye, Edit } from 'lucide-react';
+import StudentSearch from '../../../components/StudentSearch';
 
 const PendingStudentRegistration = () => {
   const dispatch = useDispatch();
@@ -60,13 +61,19 @@ const PendingStudentRegistration = () => {
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <input 
-            type="text" 
-            placeholder="Search Student..." 
-            className="border p-2 rounded"
-            value={filters.studentName}
-            onChange={(e) => setFilters({...filters, studentName: e.target.value})}
+          <StudentSearch 
+            placeholder="Search Student..."
+            additionalFilters={{ isRegistered: 'false', isAdmissionFeesPaid: 'true' }} 
+            onSelect={(id, student) => {
+              // When selected via search, we can directly update list or just set the name filter
+              if (student) {
+                setFilters(prev => ({ ...prev, studentName: student.firstName }));
+              } else {
+                setFilters(prev => ({ ...prev, studentName: '' }));
+              }
+            }}
           />
+          
           <select 
             className="border p-2 rounded"
             value={filters.reference}

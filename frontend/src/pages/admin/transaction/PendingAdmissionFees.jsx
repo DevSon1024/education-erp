@@ -16,6 +16,7 @@ import {
   CreditCard,
   Trash2,
 } from "lucide-react";
+import StudentSearch from "../../../components/StudentSearch";
 
 const PendingAdmissionFees = () => {
   const dispatch = useDispatch();
@@ -170,26 +171,16 @@ const PendingAdmissionFees = () => {
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <select
-            className="border p-2 rounded"
-            value={filters.studentName} // Using this field for dropdown logic if implemented, else text
-            onChange={(e) =>
-              setFilters({ ...filters, studentName: e.target.value })
-            }
-          >
-            <option value="">-- Select Student --</option>
-            {/* Ideally this would be populated by a separate API call for a list of all students for dropdown */}
-            {/* For now, using it as a text search input wrapper or plain select if list available */}
-          </select>
-          {/* Using text input for name search as fallback for dropdown if list is too huge */}
-          <input
-            type="text"
-            placeholder="Or Search Name/Enrollment..."
-            className="border p-2 rounded"
-            value={filters.studentName}
-            onChange={(e) =>
-              setFilters({ ...filters, studentName: e.target.value })
-            }
+          <StudentSearch 
+            placeholder="Search Student..."
+            additionalFilters={{ isAdmissionFeesPaid: 'false' }}
+            onSelect={(id, student) => {
+              if (student) {
+                setFilters(prev => ({ ...prev, studentName: student.firstName }));
+              } else {
+                setFilters(prev => ({ ...prev, studentName: '' }));
+              }
+            }}
           />
 
           <select
