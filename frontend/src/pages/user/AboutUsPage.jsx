@@ -4,7 +4,7 @@ import {
   Target, Lightbulb, CheckCircle, ArrowRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
+import studentStanding from '../../assets/studentWithbooks.webp';
 const AboutUsPage = () => {
   const location = useLocation();
 
@@ -19,10 +19,10 @@ const AboutUsPage = () => {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen bg-white dark:bg-dark-bg font-sans transition-colors duration-300">
 
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-primary to-blue-800 py-32 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-primary to-blue-800 py-32 overflow-hidden dark:from-blue-900 dark:to-gray-900">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container mx-auto px-4 relative z-10">
           <motion.div 
@@ -40,7 +40,7 @@ const AboutUsPage = () => {
       </div>
 
       {/* 1. About Smart Institute Section */}
-      <div id="smart" className="py-20 bg-white scroll-mt-20">
+      <div id="smart" className="py-20 bg-white dark:bg-dark-bg scroll-mt-20 transition-colors duration-300">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div 
@@ -49,8 +49,8 @@ const AboutUsPage = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">About <span className="text-primary">Smart Institute</span></h2>
-              <div className="space-y-4 text-gray-600 leading-relaxed text-lg">
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">About <span className="text-primary dark:text-blue-400">Smart Institute</span></h2>
+              <div className="space-y-4 text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
                 <p>
                   An autonomous institute is registered under Government of India NCT New Delhi. The institute provides a wide variety of career, professional, short term and certification courses, designed by our expert academicians after careful market study and research. All the courses are taught by experienced and certified faculty.
                 </p>
@@ -74,7 +74,7 @@ const AboutUsPage = () => {
                className="relative"
             >
                {/* Placeholder for "students college standing with books" */}
-              <img src="https://placehold.co/600x400/png?text=Students+Standing+With+Books" alt="Students at Smart Institute" className="rounded-2xl shadow-xl w-full object-cover transform hover:scale-[1.02] transition-transform duration-500" />
+              <img src={studentStanding} alt="Students at Smart Institute" className="rounded-2xl shadow-xl w-full object-cover transform hover:scale-[1.02] transition-transform duration-500" />
               <div className="absolute -bottom-6 -right-6 bg-accent text-white p-6 rounded-xl shadow-lg hidden md:block">
                 <div className="text-lg font-bold">Empowering Young Minds</div>
               </div>
@@ -84,54 +84,54 @@ const AboutUsPage = () => {
       </div>
 
       {/* 2. Mission Section */}
-      <div id="mission" className="py-20 bg-gray-50 scroll-mt-20">
+      <div id="mission" className="py-20 bg-gray-50 dark:bg-gray-900 scroll-mt-20 transition-colors duration-300">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-12 items-center">
              <div className="md:w-1/3 flex justify-center">
-                <div className="w-48 h-48 bg-blue-100 rounded-full flex items-center justify-center text-primary">
+                <div className="w-48 h-48 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-primary dark:text-blue-400">
                     <Target size={100} />
                 </div>
              </div>
              <div className="md:w-2/3">
-                <h2 className="text-4xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
                     Our <span className="text-accent">Mission</span>
                 </h2>
-                <div className="bg-white p-8 rounded-2xl shadow-md border-l-8 border-accent">
+                <div className="bg-white dark:bg-dark-card p-8 rounded-2xl shadow-md border-l-8 border-accent transition-colors duration-300">
                     <ul className="space-y-6">
                         <li className="flex items-start gap-4">
-                            <div className="mt-1 bg-primary/10 p-2 rounded-full text-primary">
+                            <div className="mt-1 bg-primary/10 dark:bg-blue-900/40 p-2 rounded-full text-primary dark:text-blue-300">
                                 <CheckCircle size={24} />
                             </div>
                             <div>
-                                <h4 className="text-xl font-bold text-gray-800 mb-2">To provide adequate knowledge of computer</h4>
-                                <p className="text-gray-600">The main focus of this program is to provide deep and adequate knowledge of computers to the student.</p>
+                                <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">To provide adequate knowledge of computer</h4>
+                                <p className="text-gray-600 dark:text-gray-400">The main focus of this program is to provide deep and adequate knowledge of computers to the student.</p>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
-                            <div className="mt-1 bg-primary/10 p-2 rounded-full text-primary">
+                            <div className="mt-1 bg-primary/10 dark:bg-blue-900/40 p-2 rounded-full text-primary dark:text-blue-300">
                                 <CheckCircle size={24} />
                             </div>
                             <div>
-                                <h4 className="text-xl font-bold text-gray-800 mb-2">Personality Development of the student</h4>
-                                <p className="text-gray-600">This program not only focus on the syllabus but also pull out the hidden abilities and inner power of the student. Basically it tries to bring out and built the personality of the student.</p>
+                                <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Personality Development of the student</h4>
+                                <p className="text-gray-600 dark:text-gray-400">This program not only focus on the syllabus but also pull out the hidden abilities and inner power of the student. Basically it tries to bring out and built the personality of the student.</p>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
-                            <div className="mt-1 bg-primary/10 p-2 rounded-full text-primary">
+                            <div className="mt-1 bg-primary/10 dark:bg-blue-900/40 p-2 rounded-full text-primary dark:text-blue-300">
                                 <CheckCircle size={24} />
                             </div>
                             <div>
-                                <h4 className="text-xl font-bold text-gray-800 mb-2">To change life-style by New Technologies</h4>
-                                <p className="text-gray-600">Providing awareness to upcoming technologies and changing environment.</p>
+                                <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">To change life-style by New Technologies</h4>
+                                <p className="text-gray-600 dark:text-gray-400">Providing awareness to upcoming technologies and changing environment.</p>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
-                            <div className="mt-1 bg-primary/10 p-2 rounded-full text-primary">
+                            <div className="mt-1 bg-primary/10 dark:bg-blue-900/40 p-2 rounded-full text-primary dark:text-blue-300">
                                 <CheckCircle size={24} />
                             </div>
                             <div>
-                                <h4 className="text-xl font-bold text-gray-800 mb-2">Computer course at the nominal fee</h4>
-                                <p className="text-gray-600">Providing computer course at very nominal and affordable fees.</p>
+                                <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Computer course at the nominal fee</h4>
+                                <p className="text-gray-600 dark:text-gray-400">Providing computer course at very nominal and affordable fees.</p>
                             </div>
                         </li>
                     </ul>
@@ -142,18 +142,18 @@ const AboutUsPage = () => {
       </div>
 
       {/* 3. Vision Section */}
-      <div id="vision" className="py-20 bg-white scroll-mt-20">
+      <div id="vision" className="py-20 bg-white dark:bg-dark-bg scroll-mt-20 transition-colors duration-300">
         <div className="container mx-auto px-4">
            <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-12">
-                    <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center text-accent mx-auto mb-6">
+                    <div className="w-20 h-20 bg-accent/10 dark:bg-accent/20 rounded-full flex items-center justify-center text-accent mx-auto mb-6">
                         <Lightbulb size={48} />
                     </div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-4">Our <span className="text-primary">Vision</span></h2>
+                    <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Our <span className="text-primary dark:text-blue-400">Vision</span></h2>
                 </div>
                 
-                <div className="space-y-6 text-lg text-gray-700 leading-relaxed text-justify relative">
-                    <div className="absolute -left-12 -top-12 text-9xl text-gray-100 font-serif -z-10">"</div>
+                <div className="space-y-6 text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify relative">
+                    <div className="absolute -left-12 -top-12 text-9xl text-gray-100 dark:text-gray-800 font-serif -z-10">"</div>
                     <p>
                         Information Technology has become a fastest growing Industry in today's scenario which is providing thousands of job to well trained professionals. India has achieved a terrific growth in this field and is being considered as a Super Power in the world. Information Technology is providing the upcoming future that will change every face of Human existence. In order to produce Information Technology Professionals, IT education requires a good infrastructure and high quality competence.
                     </p>
@@ -169,13 +169,13 @@ const AboutUsPage = () => {
                 </div>
 
                 <div className="mt-12 flex flex-col items-center md:items-end">
-                    <div className="text-center md:text-right bg-gray-50 p-8 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-accent/5 rounded-bl-full"></div>
-                        <p className="text-xl font-bold text-gray-900 mb-2 font-serif italic">With best regards,</p>
+                    <div className="text-center md:text-right bg-gray-50 dark:bg-dark-card p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden transition-colors duration-300">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-accent/5 dark:bg-accent/10 rounded-bl-full"></div>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white mb-2 font-serif italic">With best regards,</p>
                         <div className="h-0.5 w-16 bg-accent ml-auto mr-auto md:mr-0 mb-4"></div>
-                        <h3 className="text-2xl font-bold text-primary mb-1">Mr. Chandan Chaubey</h3>
-                        <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Managing Director "Smart Institute"</p>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Chairman "All India Skill Development Council-AISDC"</p>
+                        <h3 className="text-2xl font-bold text-primary dark:text-blue-400 mb-1">Mr. Chandan Chaubey</h3>
+                        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Managing Director "Smart Institute"</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider mt-1">Chairman "All India Skill Development Council-AISDC"</p>
                     </div>
                 </div>
            </div>

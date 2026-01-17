@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin, 
-  ArrowRight, Send, Clock, MessageSquare, Globe, Headphones,
+  ArrowRight, Send, Clock, MessageSquare, Youtube, Headphones,
   Building, Users, Award, ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -98,7 +98,7 @@ const ContactPage = () => {
       ]
     },
     {
-      icon: <Globe className="text-accent" size={24} />,
+      icon: <Youtube className="text-accent" size={24} />,
       title: 'Website',
       details: [
         'www.smartinstitute.co.in',
@@ -199,7 +199,7 @@ const ContactPage = () => {
               </a>
               <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-red-600 transition-all text-gray-600">
                  {/* Lucide doesn't index Youtube easily in all versions, using Text fallback if icon unavailable or generic Globe */}
-                 <Globe size={32} /> 
+                 <Youtube size={32} /> 
               </a>
            </div>
 

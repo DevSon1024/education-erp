@@ -49,7 +49,7 @@ const PublicNavbar = () => {
   ];
 
   return (
-    <nav className="bg-primary text-white shadow-md sticky top-0 z-50">
+    <nav className="bg-primary/95 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
            {/* Mobile Menu Button */}
@@ -160,13 +160,13 @@ const PublicNavbar = () => {
               ))}
 
               {/* Mobile Auth Buttons */}
-              <div className="pt-4 mt-2 border-t border-blue-800/50 grid grid-cols-2 gap-3">
+              <div className="pt-4 mt-2 border-t border-blue-800/50 grid grid-cols-1 gap-3"> {/* Changed grid-cols-2 to grid-cols-1 since one btn is hidden */}
                   <Link to="/login" className="flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
                       <LogIn size={18} /> Login
                   </Link>
-                  <Link to="/register" className="flex items-center justify-center gap-2 bg-accent hover:bg-orange-600 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
+                  {/* <Link to="/register" className="flex items-center justify-center gap-2 bg-accent hover:bg-orange-600 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
                       <UserPlus size={18} /> Register
-                  </Link>
+                  </Link> */}
               </div>
             </div>
           </motion.div>
@@ -214,6 +214,7 @@ const PublicLayout = () => {
               ) : (
                 <>
                   <Link to="/login" className="flex items-center gap-1 hover:text-white transition-colors"><LogIn size={16} /> LOGIN</Link>
+                  {/* <Link to="/register" className="flex items-center gap-1 hover:text-white transition-colors"><UserPlus size={16} /> REGISTER</Link> */}
                 </>
               )}
             </div>
@@ -222,23 +223,24 @@ const PublicLayout = () => {
       </div>
 
       {/* 2. Logo & Branding */}
-      <div className="bg-white py-6 shadow-sm relative z-20">
+      <div className="bg-white/90 backdrop-blur-sm py-4 shadow-sm relative z-20 border-b border-gray-100">
         <div className="container mx-auto px-4">
            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
              {/* Logo */}
              <div className="flex-shrink-0">
-                <img src={logoImage} alt="Smart Institute Logo" className="h-24 md:h-28 w-auto object-contain drop-shadow-sm hover:scale-105 transition-transform duration-300" />
+                <Link to="/">
+                    <img src={logoImage} alt="Smart Institute Logo" className="h-20 md:h-24 w-auto object-contain drop-shadow-sm hover:scale-105 transition-transform duration-300" />
+                </Link>
              </div>
              
              {/* Centered Slogan with Mirror Effect */}
-             <div className="flex-grow flex justify-center items-center py-2 bg-gradient-to-r from-transparent via-gray-50 to-transparent overflow-hidden">
-                <h3 className="text-xl sm:text-3xl md:text-5xl font-black tracking-normal md:tracking-wider text-center drop-shadow-sm filter whitespace-nowrap"
+             <div className="flex-grow flex justify-center items-center py-2 overflow-hidden">
+                <h3 className="text-xl sm:text-2xl md:text-4xl font-black tracking-normal md:tracking-wider text-center drop-shadow-sm filter whitespace-nowrap"
                     style={{ 
                         fontFamily: "system-ui, -apple-system, sans-serif",
-                        WebkitBoxReflect: 'below -10px linear-gradient(transparent, rgba(0,0,0,0.15))' 
                     }}>
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-800">सपने जो </span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-tr from-orange-500 via-red-500 to-pink-500 text-3xl sm:text-5xl md:text-6xl inline-block transform hover:scale-110 transition-transform duration-300 mx-1 filter drop-shadow-md" style={{ fontFamily: "'Arial Black', sans-serif" }}>SMART</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-tr from-orange-500 via-red-500 to-pink-500 text-2xl sm:text-4xl md:text-5xl inline-block transform hover:scale-110 transition-transform duration-300 mx-1 filter drop-shadow-md" style={{ fontFamily: "'Arial Black', sans-serif" }}>SMART</span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-800"> बना दे</span>
                 </h3>
              </div>
