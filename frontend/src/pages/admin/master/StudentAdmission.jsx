@@ -272,6 +272,25 @@ const StudentAdmission = () => {
     dispatch(registerStudent(payload));
   };
 
+  // Auto-set payment for One Time plan
+  useEffect(() => {
+    if (previewCourses.length > 0) {
+      if (previewCourses[0].paymentType === "One Time") {
+        setPayAdmissionFee(true);
+      } else {
+        // If switching or new add (Monthly), reset if needed or keep user choice?
+        // For safety, if it was auto-set to true, we might want to respect that, 
+        // but if it's a new Monthly course, typically we let them choose (null).
+        // Let's rely on the user choosing again if they switch. 
+        // But to avoid stuck "true" state if they delete One Time and add Monthly:
+        // We can just leave it or set to null if it's currently true? 
+        // Let's just handle the One Time enforcement.
+      }
+    } else {
+        setPayAdmissionFee(null); // Reset when list cleared
+    }
+  }, [previewCourses]);
+
   const renderStepHeader = () => (
     <div className="flex justify-center items-center mb-8">
       {[1, 2, 3].map((i) => (
@@ -876,7 +895,8 @@ const StudentAdmission = () => {
                 </div>
               )}
 
-              {previewCourses.length > 0 && (
+              {/* Show Payment Option Only if NOT One Time */}
+              {previewCourses.length > 0 && previewCourses[0].paymentType !== 'One Time' && (
                 <div className="bg-white p-6 rounded border shadow-sm mt-6">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 border-b pb-2">
                     Admission Fee Payment
@@ -943,6 +963,19 @@ const StudentAdmission = () => {
                     </div>
                   </div>
                 </div>
+              )}
+              
+              {/* Force Info for One Time */}
+              {previewCourses.length > 0 && previewCourses[0].paymentType === 'One Time' && (
+                 <div className="bg-blue-50 border border-blue-200 p-4 rounded mt-6">
+                    <p className="text-blue-800 font-bold flex items-center gap-2">
+                        <CheckCircle size={20} />
+                        One Time Payment Selected
+                    </p>
+                    <p className="text-blue-700 text-sm ml-7">
+                        Full fees must be paid now. Proceed to generate receipt.
+                    </p>
+                 </div>
               )}
 
               <div className="flex justify-between mt-8">

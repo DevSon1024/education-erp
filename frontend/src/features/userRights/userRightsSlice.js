@@ -5,6 +5,7 @@ const API_URL = 'http://localhost:5000/api/user-rights/';
 
 // for production use uncomment below one line
 // const API_URL = '/api/user-rights/';
+axios.defaults.withCredentials = true;
 
 // Fetch Rights for a specific user (Admin usage)
 export const fetchUserRights = createAsyncThunk('userRights/fetch', async (userId, thunkAPI) => {

@@ -4,7 +4,11 @@ import { Provider } from "react-redux";
 import { store } from "./app/store"; // Import the store we created
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
+import axios from "axios";
 import "./index.css";
+
+// Set global axios defaults
+axios.defaults.withCredentials = true;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
