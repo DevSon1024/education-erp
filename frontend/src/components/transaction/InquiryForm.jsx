@@ -1,15 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useSelector } from 'react-redux';
-import { Save, X, Camera, User, Phone, BookOpen, Calendar, Copy, Clipboard, RotateCcw, Plus } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Save, X, Camera, User, Phone, BookOpen, Calendar, Copy, Clipboard, RotateCcw, Plus, Check } from 'lucide-react';
+import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation } from '../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 
 const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
-    const { courses } = useSelector((state) => state.master);
+    const dispatch = useDispatch();
+    const { courses, employees, references, educations } = useSelector((state) => state.master);
     const [preview, setPreview] = useState(null);
-    const [isOthersEducation, setIsOthersEducation] = useState(false);
-    const [showRefDetails, setShowRefDetails] = useState(false);
-    const [customEdu, setCustomEdu] = useState('');
+    
+    // UI States for Modals
+    const [showRefModal, setShowRefModal] = useState(false);
+    const [showEduModal, setShowEduModal] = useState(false);
+    
+    // New Entry States
+    const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
+    const [newEdu, setNewEdu] = useState('');
+
+    useEffect(() => {
+        dispatch(fetchEmployees());
+        dispatch(fetchReferences());
+        dispatch(fetchEducations());
+    }, [dispatch]);
 
     // Determine source based on mode
     let fixedSource = 'Walk-in';
@@ -90,10 +103,10 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                 };
                 
                 // Handle complex fields manually
-                if (initialData.customEducation) {
-                    setIsOthersEducation(true);
-                    setCustomEdu(initialData.customEducation);
-                    setValue('education', 'Other');
+                // Handle Education mapping if it was custom
+                if (initialData.education) {
+                     // logic to ensure it shows up is handled by the list, if it was custom it should be in the list now or we add it?
+                     // If it's legacy data not in master, we might just set it.
                 }
                 
                 // If photo exists (and is string path), show preview logic could be added here if backend serves static files
@@ -137,9 +150,8 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
         // Handle specific logic
         if (initialData?._id && !initialData.isConversion) formData.append('_id', initialData._id);
         
-        if (customEdu && data.education === 'Other') {
-             formData.append('customEducation', customEdu);
-        }
+        // Create final FormData
+        if (initialData?._id && !initialData.isConversion) formData.append('_id', initialData._id);
         
         // Ensure source is set
         if (!data.source) formData.append('source', fixedSource);
@@ -172,7 +184,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                             {/* Photo Upload - Drag & Drop Style */}
                             <div className="w-full md:w-40 flex-shrink-0">
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Student Photo</label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg h-40 flex flex-col justify-center items-center bg-gray-50 hover:bg-gray-100 cursor-pointer overflow-hidden relative">
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg h-40 flex flex-col justify-center items-center bg-gray-50 hover:bg-gray-100 cursor-pointer overflow-hidden relative mb-2">
                                     <input type="file" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                                     {preview ? (
                                         <img src={preview} alt="Preview" className="w-full h-full object-cover" />
@@ -183,30 +195,34 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                         </>
                                     )}
                                 </div>
-                            </div>
-
-                            {/* Inputs Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 flex-grow">
+                                
+                                {/* Moved Inquiry Date Here */}
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700">Inquiry Date</label>
                                     <input type="date" {...register('inquiryDate')} className="w-full border p-2 rounded text-sm"/>
                                 </div>
+                            </div>
+
+                            {/* Inputs Grid - Adjusted for Alignment */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-grow content-start">
+                                {/* Row 1: First Name | Relation+Name | Last Name (All in one row) */}
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700">First Name *</label>
                                     <input {...register('firstName', {required: true})} className="w-full border p-2 rounded text-sm" placeholder="First Name"/>
                                 </div>
                                 
                                 {/* Father/Husband Combined */}
-                                <div className="flex gap-1">
-                                    <div className="w-1/3">
-                                        <label className="block text-xs font-bold text-gray-700">Relation</label>
-                                        <select {...register('relationType')} className="w-full border p-2 rounded text-sm">
-                                            <option>Father</option><option>Husband</option>
-                                        </select>
-                                    </div>
-                                    <div className="w-2/3">
-                                        <label className="block text-xs font-bold text-gray-700">Name</label>
-                                        <input {...register('middleName')} className="w-full border p-2 rounded text-sm" placeholder="Name"/>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700">Father/Husband Name</label>
+                                    <div className="flex gap-1">
+                                        <div className="w-1/3">
+                                            <select {...register('relationType')} className="w-full border p-2 rounded text-sm">
+                                                <option>Father</option><option>Husband</option>
+                                            </select>
+                                        </div>
+                                        <div className="w-2/3">
+                                            <input {...register('middleName')} className="w-full border p-2 rounded text-sm" placeholder="Name"/>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -278,29 +294,22 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                             <div>
                                 <label className="block text-xs font-bold text-gray-700">Education</label>
-                                <select 
-                                    {...register('education')} 
-                                    className="w-full border p-2 rounded text-sm"
-                                    onChange={(e) => setIsOthersEducation(e.target.value === 'Other')}
-                                >
-                                    <option value="">-- Select --</option>
-                                    <option>SSC</option><option>HSC</option><option>Graduate</option><option>Post Graduate</option>
-                                    <option value="Other">Other (Add Custom)</option>
-                                </select>
-                                {isOthersEducation && (
-                                    <input 
-                                        type="text" 
-                                        value={customEdu}
-                                        onChange={(e) => setCustomEdu(e.target.value)}
-                                        placeholder="Specify Education" 
-                                        className="w-full border p-2 rounded text-sm mt-1 bg-yellow-50"
-                                    />
-                                )}
+                                <div className="flex gap-1">
+                                    <select 
+                                        {...register('education')} 
+                                        className="w-full border p-2 rounded text-sm"
+                                    >
+                                        <option value="">-- Select --</option>
+                                        {educations.map((edu, idx) => (
+                                            <option key={edu._id || idx} value={edu.name}>{edu.name}</option>
+                                        ))}
+                                    </select>
+                                    <button type="button" onClick={() => setShowEduModal(true)} className="p-2 bg-blue-50 text-blue-600 rounded border hover:bg-blue-100" title="Add New Education">
+                                        <Plus size={16}/>
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700">Qualification</label>
-                                <input {...register('qualification')} className="w-full border p-2 rounded text-sm" placeholder="e.g. B.Com"/>
-                            </div>
+                            {/* Qualification Input Removed as per request */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-700">Interested Course</label>
                                 <select {...register('interestedCourse')} className="w-full border p-2 rounded text-sm">
@@ -311,22 +320,21 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                             
                             {/* Reference Logic */}
                             <div className="relative">
-                                <div className="flex justify-between items-center">
-                                    <label className="block text-xs font-bold text-gray-700">Reference</label>
-                                    <button type="button" onClick={() => setShowRefDetails(!showRefDetails)} className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5">
-                                        <Plus size={10}/> {showRefDetails ? 'Hide' : 'Add New'}
+                                <label className="block text-xs font-bold text-gray-700">Reference</label>
+                                <div className="flex gap-1">
+                                    <select {...register('referenceBy')} className="w-full border p-2 rounded text-sm">
+                                        <option value="">-- Select Reference --</option>
+                                        <optgroup label="Staff">
+                                            {employees.map(e => <option key={e._id} value={e.name}>{e.name}</option>)}
+                                        </optgroup>
+                                        <optgroup label="External References">
+                                            {references.map((r, i) => <option key={r._id || i} value={r.name}>{r.name}</option>)}
+                                        </optgroup>
+                                    </select>
+                                    <button type="button" onClick={() => setShowRefModal(true)} className="p-2 bg-blue-50 text-blue-600 rounded border hover:bg-blue-100" title="Add New Reference">
+                                        <Plus size={16}/>
                                     </button>
                                 </div>
-                                <input {...register('referenceBy')} className="w-full border p-2 rounded text-sm" placeholder="Name or Source"/>
-                                
-                                {showRefDetails && (
-                                    <div className="absolute top-16 left-0 right-0 bg-white border shadow-lg z-10 p-3 rounded space-y-2">
-                                        <p className="text-xs font-bold text-gray-500 mb-1">New Reference Detail</p>
-                                        <input {...register('referenceDetail.name')} placeholder="Name" className="w-full border p-1 text-xs rounded"/>
-                                        <input {...register('referenceDetail.mobile')} placeholder="Mobile" className="w-full border p-1 text-xs rounded"/>
-                                        <input {...register('referenceDetail.address')} placeholder="Address" className="w-full border p-1 text-xs rounded"/>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -372,6 +380,85 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
 
                     </form>
                 </div>
+                
+                {/* Modals Layer */}
+                {showRefModal && (
+                    <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+                        <div className="bg-white p-4 rounded shadow-lg w-80 border animate-fadeIn">
+                            <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Add New Reference</h4>
+                            <div className="space-y-2">
+                                <input 
+                                    className="w-full border p-2 rounded text-sm" placeholder="Full Name"
+                                    value={newRef.name}
+                                    onChange={e => setNewRef({...newRef, name: e.target.value})}
+                                />
+                                <input 
+                                    className="w-full border p-2 rounded text-sm" placeholder="Mobile Number"
+                                    value={newRef.mobile}
+                                    onChange={e => setNewRef({...newRef, mobile: e.target.value})}
+                                />
+                                <input 
+                                    className="w-full border p-2 rounded text-sm" placeholder="Address"
+                                    value={newRef.address}
+                                    onChange={e => setNewRef({...newRef, address: e.target.value})}
+                                />
+                                <div className="flex justify-end gap-2 mt-2">
+                                    <button type="button" onClick={() => setShowRefModal(false)} className="px-3 py-1 text-xs border rounded">Cancel</button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            if(!newRef.name || !newRef.mobile) return toast.error('Name & Mobile required');
+                                            dispatch(createReference(newRef)).then((res) => {
+                                                if(!res.error) {
+                                                    setValue('referenceBy', newRef.name);
+                                                    setShowRefModal(false);
+                                                    setNewRef({ name: '', mobile: '', address: '' });
+                                                }
+                                            });
+                                        }}
+                                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Save Reference
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                {showEduModal && (
+                    <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+                        <div className="bg-white p-4 rounded shadow-lg w-80 border animate-fadeIn">
+                             <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Add Education Type</h4>
+                             <div className="space-y-2">
+                                <input 
+                                    className="w-full border p-2 rounded text-sm" placeholder="Education Name (e.g. BCA)"
+                                    value={newEdu}
+                                    onChange={e => setNewEdu(e.target.value)}
+                                />
+                                <div className="flex justify-end gap-2 mt-2">
+                                    <button type="button" onClick={() => setShowEduModal(false)} className="px-3 py-1 text-xs border rounded">Cancel</button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            if(!newEdu) return toast.error('Education Name required');
+                                            dispatch(createEducation({ name: newEdu })).then((res) => {
+                                                 if(!res.error) {
+                                                    setValue('education', newEdu);
+                                                    setShowEduModal(false);
+                                                    setNewEdu('');
+                                                 }
+                                            });
+                                        }}
+                                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Save Education
+                                    </button>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Footer Actions */}
                  <div className="flex justify-end gap-3 p-3 border-t bg-gray-50 rounded-b-lg flex-none">

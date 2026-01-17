@@ -6,7 +6,9 @@ const {
     getCourses, createCourse, updateCourse, deleteCourse,
     getBatches, createBatch, updateBatch, deleteBatch, 
     createEmployee, getEmployees,
-    getSubjects, createSubject, updateSubject, deleteSubject
+    getSubjects, createSubject, updateSubject, deleteSubject,
+    getReferences, createReference,
+    getEducations, createEducation
 } = require('../controllers/masterController');
 const { getExamRequests, cancelExamRequest, createExamRequest, getPendingExams } = require('../controllers/examController');
 const { getExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, getExamScheduleDetails } = require('../controllers/examScheduleController');
@@ -43,6 +45,16 @@ router.route('/subject/:id')
 router.route('/employee')
     .get(protect, checkPermission('Employee', 'view'), getEmployees)
     .post(protect, checkPermission('Employee', 'add'), createEmployee);
+
+// --- Reference Routes ---
+router.route('/reference')
+    .get(protect, getReferences)
+    .post(protect, createReference);
+
+// --- Education Routes ---
+router.route('/education')
+    .get(protect, getEducations)
+    .post(protect, createEducation);
     
 // --- Exam Request Routes ---
 router.route('/exam-request')

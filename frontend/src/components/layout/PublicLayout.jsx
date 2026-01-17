@@ -214,7 +214,6 @@ const PublicLayout = () => {
               ) : (
                 <>
                   <Link to="/login" className="flex items-center gap-1 hover:text-white transition-colors"><LogIn size={16} /> LOGIN</Link>
-                  <Link to="/register" className="flex items-center gap-1 hover:text-white transition-colors"><UserPlus size={16} /> REGISTER</Link>
                 </>
               )}
             </div>

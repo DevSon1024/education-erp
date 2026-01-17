@@ -172,6 +172,36 @@ export const updateExamResult = createAsyncThunk('master/updateExamResult', asyn
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+// --- Reference Thunks ---
+export const fetchReferences = createAsyncThunk('master/fetchReferences', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'reference');
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createReference = createAsyncThunk('master/createReference', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(API_URL + 'reference', data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+// --- Education Thunks ---
+export const fetchEducations = createAsyncThunk('master/fetchEducations', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'education');
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createEducation = createAsyncThunk('master/createEducation', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(API_URL + 'education', data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
 const masterSlice = createSlice({
     name: 'master',
     initialState: {
@@ -183,7 +213,11 @@ const masterSlice = createSlice({
         studentsList: [],
         examSchedules: [],
         examResults: [],
+        examSchedules: [],
+        examResults: [],
         pendingExams: [],
+        references: [],
+        educations: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -331,6 +365,22 @@ const masterSlice = createSlice({
             // --- Dashboard/Pending ---
             .addCase(fetchPendingExams.fulfilled, (state, action) => {
                 state.pendingExams = action.payload;
+            })
+            
+            // --- References ---
+            .addCase(fetchReferences.fulfilled, (state, action) => { state.references = action.payload; })
+            .addCase(createReference.fulfilled, (state, action) => {
+                state.references.unshift(action.payload);
+                state.isSuccess = true;
+                state.message = 'Reference Added Successfully';
+            })
+            
+            // --- Educations ---
+            .addCase(fetchEducations.fulfilled, (state, action) => { state.educations = action.payload; })
+            .addCase(createEducation.fulfilled, (state, action) => {
+                state.educations.push(action.payload); // push to sort alphabetically usually handled by backend but good here
+                state.isSuccess = true;
+                state.message = 'Education Added Successfully';
             });
     }
 });

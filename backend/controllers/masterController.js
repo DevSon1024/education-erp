@@ -3,6 +3,8 @@ const Batch = require('../models/Batch');
 const Employee = require('../models/Employee');
 const Subject = require('../models/Subject');
 const Student = require('../models/Student'); // Imported Student model for aggregation
+const Reference = require('../models/Reference');
+const Education = require('../models/Education');
 const asyncHandler = require('express-async-handler');
 
 // --- COURSE CONTROLLERS ---
@@ -181,9 +183,38 @@ const getEmployees = asyncHandler(async (req, res) => {
     res.json(emps);
 });
 
+// --- REFERENCE CONTROLLERS ---
+const getReferences = asyncHandler(async (req, res) => {
+    const references = await Reference.find({ isDeleted: false }).sort({ createdAt: -1 });
+    res.json(references);
+});
+
+const createReference = asyncHandler(async (req, res) => {
+    const reference = await Reference.create(req.body);
+    res.status(201).json(reference);
+});
+
+// --- EDUCATION CONTROLLERS ---
+const getEducations = asyncHandler(async (req, res) => {
+    const educations = await Education.find({ isDeleted: false }).sort({ name: 1 });
+    res.json(educations);
+});
+
+const createEducation = asyncHandler(async (req, res) => {
+    const { name } = req.body;
+    const exists = await Education.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') }, isDeleted: false });
+    if (exists) {
+        res.status(400); throw new Error('Education type already exists');
+    }
+    const education = await Education.create({ name });
+    res.status(201).json(education);
+});
+
 module.exports = { 
     getCourses, createCourse, updateCourse, deleteCourse, 
     getBatches, createBatch, updateBatch, deleteBatch,
     getSubjects, createSubject, updateSubject, deleteSubject,
-    createEmployee, getEmployees 
+    createEmployee, getEmployees,
+    getReferences, createReference,
+    getEducations, createEducation
 };
