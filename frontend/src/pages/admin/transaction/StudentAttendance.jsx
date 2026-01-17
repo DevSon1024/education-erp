@@ -12,7 +12,7 @@ import { fetchBatches } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { 
     Calendar, Users, Clock, Save, RotateCcw, Eye, Trash2, 
-    PlusCircle, X, CheckSquare, Square, Search 
+    PlusCircle, X, CheckSquare, Square, Search, Edit
 } from 'lucide-react';
 
 const StudentAttendance = () => {
@@ -41,6 +41,7 @@ const StudentAttendance = () => {
     // Attendance Grid State (Student ID -> Status)
     const [attendanceGrid, setAttendanceGrid] = useState([]);
     const [viewingRecord, setViewingRecord] = useState(null); // For 'view-details'
+    const [isEditing, setIsEditing] = useState(false); // Edit Mode Flag
 
     useEffect(() => {
         dispatch(fetchBatches());
@@ -55,14 +56,18 @@ const StudentAttendance = () => {
 
     // Reset Filters
     const handleResetFilters = () => {
-        setFilters({ fromDate: '', toDate: '', batch: '' });
+        setFilters({ fromDate: '', toDate: '', batch: '', batchTime: '' });
         dispatch(fetchStudentAttendanceHistory({}));
     };
 
     // --- Form Logic ---
     useEffect(() => {
         // When Batch/Time/Date changes, check status and fetch students
-        if (viewMode === 'form' && formData.batchName && formData.batchTime && formData.date) {
+        // Check "isEditing" -> if we are editing, we don't want to re-load "checkStudentAttendance" because we already loaded the record.
+        // We only fetch students if we are creating NEW, or if we switched batches in NEW mode.
+        // Actually, if editing, we probably already have the grid from the record we loaded.
+        
+        if (viewMode === 'form' && !isEditing && formData.batchName && formData.batchTime && formData.date) {
             
             // 1. Check if attendance already taken
             dispatch(checkStudentAttendance({ 
@@ -77,11 +82,11 @@ const StudentAttendance = () => {
                 batchTime: formData.batchTime 
             }));
         }
-    }, [formData.batchName, formData.batchTime, formData.date, viewMode, dispatch]);
+    }, [formData.batchName, formData.batchTime, formData.date, viewMode, isEditing, dispatch]);
 
     // Handle Status Check Result
     useEffect(() => {
-        if(viewMode === 'form' && attendanceStatus && currentAttendanceStudents.length > 0) {
+        if(viewMode === 'form' && !isEditing && attendanceStatus && currentAttendanceStudents.length > 0) {
             if (attendanceStatus.exists) {
                 // If exists, DISABLE inputs? Or showing existing record?
                 // Requirements: "show the attendance table disabled and message 'Attendance already taken by X'"
@@ -117,7 +122,7 @@ const StudentAttendance = () => {
                 setAttendanceGrid(initGrid);
             }
         }
-    }, [attendanceStatus, currentAttendanceStudents, viewMode]);
+    }, [attendanceStatus, currentAttendanceStudents, viewMode, isEditing]);
 
     // Handle Save Success
     useEffect(() => {
@@ -132,33 +137,59 @@ const StudentAttendance = () => {
 
     const handleBatchChange = (e) => {
         const batchName = e.target.value;
-        // Find batch to auto-set time (optional, but good UX)
         const selectedBatch = batches.find(b => b.name === batchName);
         const time = selectedBatch ? `${selectedBatch.startTime} - ${selectedBatch.endTime}` : '';
         
         setFormData(prev => ({ 
             ...prev, 
             batchName,
-            batchTime: time // Auto-set time
+            batchTime: time // Set default time
         }));
     };
 
+    const handleEdit = (record) => {
+        setIsEditing(true);
+        setViewMode('form');
+        setFormData({
+            date: new Date(record.date).toISOString().split('T')[0],
+            batchName: record.batchName,
+            batchTime: record.batchTime,
+            remarks: record.remarks
+        });
+
+        // Load grid
+        if (record.records) {
+            const mapped = record.records.map(r => ({
+                studentId: r.studentId._id || r.studentId, 
+                enrollmentNo: r.enrollmentNo,
+                name: r.studentName || (r.studentId?.firstName ? `${r.studentId.firstName} ${r.studentId.lastName}` : 'Unknown'),
+                courseName: r.courseName,
+                contactStudent: r.contactStudent,
+                contactParent: r.contactParent,
+                isPresent: r.isPresent,
+                remark: r.studentRemark,
+                _id: r.studentId._id || r.studentId
+            }));
+            setAttendanceGrid(mapped);
+        }
+    };
+
     const toggleAttendance = (index) => {
-        if (attendanceStatus?.exists) return; // Disabled if already taken
+        if (attendanceStatus?.exists && !isEditing) return; // Allow toggle if editing, or if not exists
         const newGrid = [...attendanceGrid];
         newGrid[index].isPresent = !newGrid[index].isPresent;
         setAttendanceGrid(newGrid);
     };
 
     const handleStudentRemarkChange = (index, val) => {
-         if (attendanceStatus?.exists) return; 
+         if (attendanceStatus?.exists && !isEditing) return; 
          const newGrid = [...attendanceGrid];
          newGrid[index].remark = val;
          setAttendanceGrid(newGrid);
     };
 
     const saveAttendance = () => {
-        if (attendanceStatus?.exists) return;
+        if (attendanceStatus?.exists && !isEditing) return; // Block save only if strict "Exists" check and NOT editing
         
         const payload = {
             date: formData.date,
@@ -202,6 +233,7 @@ const StudentAttendance = () => {
                             setFormData({ date: new Date().toISOString().split('T')[0], batchName: '', batchTime: '', remarks: '' });
                             setAttendanceGrid([]);
                             dispatch(resetAttendanceState());
+                            setIsEditing(false);
                             setViewMode('form');
                         }}
                         className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
@@ -244,6 +276,12 @@ const StudentAttendance = () => {
                                 ))}
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Batch Time</label>
+                            <input type="text" className="border rounded px-3 py-2 text-sm" 
+                                placeholder="Time..."
+                                value={filters.batchTime || ''} onChange={e => setFilters({...filters, batchTime: e.target.value})} />
+                        </div>
                         <div className="flex gap-2">
                              <button onClick={handleSearchHistory} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">Search</button>
                              <button onClick={handleResetFilters} className="bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-500">Reset</button>
@@ -274,6 +312,9 @@ const StudentAttendance = () => {
                                         <td className="px-6 py-4 text-sm text-gray-600">{record.batchTime}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600">{record.takenBy?.name || 'Unknown'}</td>
                                         <td className="px-6 py-4 flex items-center justify-end gap-2">
+                                            <button onClick={() => handleEdit(record)} className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors" title="Edit">
+                                                <Edit size={18}/>
+                                            </button>
                                             <button onClick={() => handleView(record)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors" title="View">
                                                 <Eye size={18}/>
                                             </button>
@@ -299,7 +340,7 @@ const StudentAttendance = () => {
             {viewMode === 'form' && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
                     <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-                        <h3 className="font-bold text-gray-800">Add New Attendance</h3>
+                        <h3 className="font-bold text-gray-800">{isEditing ? 'Edit Attendance' : 'Add New Attendance'}</h3>
                     </div>
                     
                     <div className="p-6">
@@ -310,6 +351,7 @@ const StudentAttendance = () => {
                                 <input type="date" 
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                     value={formData.date}
+                                    disabled={isEditing}
                                     onChange={e => setFormData({...formData, date: e.target.value})}
                                 />
                             </div>
@@ -318,6 +360,7 @@ const StudentAttendance = () => {
                                 <select 
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                     value={formData.batchName}
+                                    disabled={isEditing}
                                     onChange={handleBatchChange}
                                 >
                                     <option value="">Select Batch</option>
@@ -328,12 +371,20 @@ const StudentAttendance = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-1">Batch Time</label>
-                                <input type="text" 
-                                    readOnly // Auto-populated from Batch, or can be editable if needed
-                                    className="w-full border border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-gray-600"
+                                <select 
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
                                     value={formData.batchTime}
-                                    placeholder="Select Batch Name..."
-                                />
+                                    disabled={isEditing} 
+                                    onChange={e => setFormData({...formData, batchTime: e.target.value})}
+                                >
+                                    {/* Populate based on selected batch. If only 1 time, simplify. */}
+                                    <option value="">Select Time</option>
+                                    {formData.batchTime && <option value={formData.batchTime}>{formData.batchTime}</option>}
+                                    {/* If we had multiple times, we'd map them here. For now, rely on handleBatchChange setting it. 
+                                        Or simply show the current value as option. 
+                                        Since User wants a dropdown, let's allow it to be interactable if data supported it, but here just show the value.
+                                    */}
+                                </select>
                             </div>
                         </div>
 
@@ -342,6 +393,13 @@ const StudentAttendance = () => {
                             <div className="mb-6 bg-yellow-50 text-yellow-800 px-4 py-3 rounded-lg border border-yellow-200 flex items-center gap-2">
                                 <Users size={20} />
                                 <span className="font-medium">Attendance already taken by {attendanceStatus.takenBy}. Showing in Read-Only mode.</span>
+                            </div>
+                        )}
+
+                        {isEditing && (
+                            <div className="mb-6 bg-blue-50 text-blue-800 px-4 py-3 rounded-lg border border-blue-200 flex items-center gap-2">
+                                <Edit size={20} />
+                                <span className="font-medium">Editing Attendance Record.</span>
                             </div>
                         )}
 
@@ -364,11 +422,11 @@ const StudentAttendance = () => {
                                         <tbody className="divide-y divide-gray-100">
                                             {attendanceGrid.map((row, idx) => (
                                                 <tr key={idx} 
-                                                    className={`transition-colors ${row.isPresent ? 'bg-green-50' : 'hover:bg-gray-50'}`}
+                                                    className={`transition-colors border-b last:border-0 ${row.isPresent ? 'bg-green-100 border-green-200' : 'hover:bg-gray-50 border-gray-100'}`}
                                                 >
                                                     <td className="px-4 py-3 text-center">
                                                         <button 
-                                                            disabled={attendanceStatus?.exists}
+                                                            disabled={attendanceStatus?.exists && !isEditing}
                                                             onClick={() => toggleAttendance(idx)}
                                                             className={`p-1 rounded transition-colors ${row.isPresent ? 'text-green-600' : 'text-gray-300 hover:text-gray-400'}`}
                                                         >
@@ -382,7 +440,7 @@ const StudentAttendance = () => {
                                                     <td className="px-4 py-3 text-sm text-gray-600">{row.contactParent}</td>
                                                     <td className="px-4 py-3">
                                                         <input type="text"
-                                                            disabled={attendanceStatus?.exists}
+                                                            disabled={attendanceStatus?.exists && !isEditing}
                                                             className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:border-primary disabled:bg-transparent disabled:border-transparent"
                                                             placeholder="Remark..."
                                                             value={row.remark || ''}
@@ -407,7 +465,7 @@ const StudentAttendance = () => {
                                     <label className="block text-sm font-bold text-gray-700 mb-1">Batch Remarks</label>
                                     <textarea 
                                         rows="2"
-                                        disabled={attendanceStatus?.exists}
+                                        disabled={attendanceStatus?.exists && !isEditing}
                                         className="w-full border border-gray-300 rounded-lg px-3 py-2"
                                         placeholder="Overall remarks for this batch..."
                                         value={formData.remarks}
@@ -427,7 +485,7 @@ const StudentAttendance = () => {
                                     >
                                         Reset
                                     </button>
-                                    {!attendanceStatus?.exists && (
+                                    {(!attendanceStatus?.exists || isEditing) && (
                                         <button 
                                             onClick={saveAttendance}
                                             disabled={isLoading}

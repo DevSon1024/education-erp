@@ -11,7 +11,7 @@ import {
 import { toast } from 'react-toastify';
 import { 
     Calendar, Briefcase, Clock, Save, RotateCcw, Eye, Trash2, 
-    PlusCircle, CheckSquare, Square
+    PlusCircle, CheckSquare, Square, Edit
 } from 'lucide-react';
 
 const EmployeeAttendance = () => {
@@ -34,6 +34,7 @@ const EmployeeAttendance = () => {
     
     const [attendanceGrid, setAttendanceGrid] = useState([]);
     const [viewingRecord, setViewingRecord] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         dispatch(fetchEmployeeAttendanceHistory(filters));
@@ -51,17 +52,17 @@ const EmployeeAttendance = () => {
 
     // --- Form Logic ---
     useEffect(() => {
-        if (viewMode === 'form' && formData.date) {
+        if (viewMode === 'form' && !isEditing && formData.date) {
             dispatch(checkEmployeeAttendance({ date: formData.date }));
 
             // Fetch employees if grid empty or date changed (always re-fetch to be safe or just fetch once?)
             // We need to fetch employees to build the grid.
              dispatch(fetchEmployeesForAttendance());
         }
-    }, [formData.date, viewMode, dispatch]);
+    }, [formData.date, viewMode, isEditing, dispatch]);
 
     useEffect(() => {
-        if(viewMode === 'form' && currentAttendanceEmployees.length > 0) {
+        if(viewMode === 'form' && !isEditing && currentAttendanceEmployees.length > 0) {
             if (attendanceStatus && attendanceStatus.exists && attendanceStatus.record) {
                  // Map existing record
                  const mapped = attendanceStatus.record.records.map(r => ({
@@ -86,7 +87,7 @@ const EmployeeAttendance = () => {
                 if(!attendanceStatus?.exists) setAttendanceGrid(initGrid);
             }
         }
-    }, [attendanceStatus, currentAttendanceEmployees, viewMode]);
+    }, [attendanceStatus, currentAttendanceEmployees, viewMode, isEditing]);
 
     useEffect(() => {
         if (isSuccess && message) {
@@ -99,21 +100,21 @@ const EmployeeAttendance = () => {
 
 
     const toggleAttendance = (index) => {
-        if (attendanceStatus?.exists) return; 
+        if (attendanceStatus?.exists && !isEditing) return; 
         const newGrid = [...attendanceGrid];
         newGrid[index].isPresent = !newGrid[index].isPresent;
         setAttendanceGrid(newGrid);
     };
 
     const handleRemarkChange = (index, val) => {
-         if (attendanceStatus?.exists) return; 
+         if (attendanceStatus?.exists && !isEditing) return; 
          const newGrid = [...attendanceGrid];
          newGrid[index].remark = val;
          setAttendanceGrid(newGrid);
     };
 
     const saveAttendance = () => {
-        if (attendanceStatus?.exists) return;
+        if (attendanceStatus?.exists && !isEditing) return;
         
         const payload = {
             date: formData.date,
@@ -140,6 +141,27 @@ const EmployeeAttendance = () => {
         setViewMode('view-details');
     };
 
+    const handleEdit = (record) => {
+        setIsEditing(true);
+        setViewMode('form');
+        setFormData({
+            date: new Date(record.date).toISOString().split('T')[0],
+            remarks: record.remarks
+        });
+
+        if (record.records) {
+            const mapped = record.records.map(r => ({
+                employeeId: r.employeeId._id || r.employeeId,
+                name: r.employeeName || (r.employeeId?.name ? r.employeeId.name : 'Unknown'),
+                srNumber: r.srNumber,
+                isPresent: r.isPresent,
+                remark: r.employeeRemark,
+                _id: r.employeeId._id || r.employeeId
+            }));
+            setAttendanceGrid(mapped);
+        }
+    };
+
     return (
         <div className="container mx-auto p-6 min-h-screen">
             <div className="flex justify-between items-center mb-6">
@@ -155,6 +177,7 @@ const EmployeeAttendance = () => {
                             setFormData({ date: new Date().toISOString().split('T')[0], remarks: '' });
                             setAttendanceGrid([]);
                             dispatch(resetAttendanceState());
+                            setIsEditing(false);
                             setViewMode('form');
                         }}
                         className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
@@ -215,6 +238,9 @@ const EmployeeAttendance = () => {
                                         <td className="px-6 py-4 text-sm text-gray-600">{record.takenBy?.name || 'Unknown'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">{record.remarks}</td>
                                         <td className="px-6 py-4 flex items-center justify-end gap-2">
+                                            <button onClick={() => handleEdit(record)} className="p-2 text-green-600 hover:bg-green-50 rounded-full" title="Edit">
+                                                <Edit size={18}/>
+                                            </button>
                                             <button onClick={() => handleView(record)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full" title="View">
                                                 <Eye size={18}/>
                                             </button>
@@ -240,7 +266,7 @@ const EmployeeAttendance = () => {
             {viewMode === 'form' && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
                     <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-                        <h3 className="font-bold text-gray-800">New Employee Attendance</h3>
+                        <h3 className="font-bold text-gray-800">{isEditing ? 'Edit Employee Attendance' : 'New Employee Attendance'}</h3>
                     </div>
                     
                     <div className="p-6">
@@ -250,6 +276,7 @@ const EmployeeAttendance = () => {
                                 <input type="date" 
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary"
                                     value={formData.date}
+                                    disabled={isEditing}
                                     onChange={e => setFormData({...formData, date: e.target.value})}
                                 />
                             </div>
@@ -272,6 +299,13 @@ const EmployeeAttendance = () => {
                             </div>
                         )}
 
+                        {isEditing && (
+                            <div className="mb-6 bg-blue-50 text-blue-800 px-4 py-3 rounded-lg border border-blue-200 flex items-center gap-2">
+                                <Edit size={20} />
+                                <span className="font-medium">Editing Attendance Record.</span>
+                            </div>
+                        )}
+
                         <div className="overflow-x-auto rounded-lg border border-gray-200">
                             <table className="w-full text-left">
                                 <thead className="bg-gray-100">
@@ -285,10 +319,10 @@ const EmployeeAttendance = () => {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {attendanceGrid.map((row, idx) => (
-                                        <tr key={idx} className={`transition-colors ${row.isPresent ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
+                                        <tr key={idx} className={`transition-colors border-b last:border-0 ${row.isPresent ? 'bg-green-100 border-green-200' : 'hover:bg-gray-50 border-gray-100'}`}>
                                             <td className="px-6 py-3 text-center">
                                                 <button 
-                                                    disabled={attendanceStatus?.exists}
+                                                    disabled={attendanceStatus?.exists && !isEditing}
                                                     onClick={() => toggleAttendance(idx)}
                                                     className={`p-1 rounded transition-colors ${row.isPresent ? 'text-green-600' : 'text-gray-300 hover:text-gray-400'}`}
                                                 >
@@ -319,13 +353,14 @@ const EmployeeAttendance = () => {
                                 onClick={() => {
                                     setFormData({ date: new Date().toISOString().split('T')[0], remarks: '' });
                                     setAttendanceGrid([]);
+                                    setIsEditing(false);
                                     dispatch(resetAttendanceState()); 
                                 }}
                                 className="px-6 py-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200"
                             >
                                 Reset
                             </button>
-                            {!attendanceStatus?.exists && (
+                            {(!attendanceStatus?.exists || isEditing) && (
                                 <button 
                                     onClick={saveAttendance}
                                     disabled={isLoading}

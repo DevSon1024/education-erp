@@ -160,7 +160,7 @@ exports.saveStudentAttendance = async (req, res) => {
 // Get Attendance History (Filter)
 exports.getStudentAttendanceHistory = async (req, res) => {
     try {
-        const { fromDate, toDate, batch } = req.query;
+        const { fromDate, toDate, batch, batchTime } = req.query;
         let query = {};
         
         if (fromDate && toDate) {
@@ -174,45 +174,12 @@ exports.getStudentAttendanceHistory = async (req, res) => {
             query.batchName = batch;
         }
 
-        const history = await StudentAttendance.find(query)
-            .sort({ date: -1 })
-            .limit(10); // Limit ?
+        if (batchTime) {
+            query.batchTime = batchTime;
+        }
 
-        // User mentioned "Main Filter: From Date, to date, batch name, batch time".
-        // And table showing: enrollment number, batch name, batch time, attendance date, view, edit, delete.
-        // Wait, the history table shows *records* (summary of a batch attendance) or *individual students*?
-        // "table: enrollment number, batch name, batch time, attendance date..." 
-        // "Attendance Table" typically implies listing the Batch Attendance event.
-        // BUT "Enrollment number" in the columns suggests it lists INDIVIDUAL student attendance logs?
-        // Re-reading: "-> table: enrollment number, batch name, batch time, attendance date, view, edit, delete"
-        // If it lists "enrollment number", it implies searching for a specific student's attendance? 
-        // OR does it mean the user wants to see a list of Students who were marked?
-        // The structure "Add new attendance form" -> then "Attendance Table" (taking process).
-        // Then outside, "Main Filter" -> "Table".
-        // This outer table seems to be the "Report" or "View" list.
-        // If "Enrollment number" is a column, it means rows are Students.
-        // If so, `StudentAttendance` model stores a document *per batch*. I'd need to unwind it or query differently.
-        // However, usually "Edit Attendance" edits the whole batch record.
-        // "Edit" button on a specific student row would be odd if the form is for a whole batch.
-        
-        // LET'S RE-READ CAREFULLY:
-        // "Attendance table: ... enrollment number ..." (This is inside the 'Add new attendance form' -> 'Attendance Table'). This is the grid to check present/absent.
-        
-        // "-> Table" (This is at the bottom, presumably the result of "Main Filter").
-        // "enrollment number, batch name, batch time, attendance date, view, edit, delete"
-        // Use of "Enrollment number" here is confusing if it lists the Batch Attendance.
-        // Maybe the user wants to see a flat list of all students' attendance records?
-        // But "Edit/Delete" usually applies to the Batch Entry.
-        // AND "View" says "for showing table of present students with remarks". This implies the row represents a BATCH ENTRY, not a student.
-        // If the row is a Batch Entry, "Enrollment number" makes no sense there.
-        // UNLESS the user wants to search attendance BY student?
-        // BUT the filter inputs are: "From Date, to date, batch name, batch time". NO Student search input.
-        // So "Enrollment number" in the result table might be a typo / misunderstanding in the prompt, OR it simply shouldn't be there for a Batch-based record.
-        // OR, maybe the user copied the columns from the inner table.
-        // I will assume the MAIN list should show the BATCH ATTENDANCE RECORDS (Date, Batch, Time, Taken By).
-        // I will OMIT "Enrollment number" from the main list columns because it doesn't fit a "Grouped" record.
-        // Instead, I'll allow "View" to see the details (which include enrollment numbers).
-        
+        // Removed unused 'history' variable block
+
         const records = await StudentAttendance.find(query)
                                 .populate('takenBy', 'name')
                                 .populate('records.studentId', 'firstName lastName')
