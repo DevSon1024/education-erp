@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Youtube,
@@ -12,6 +12,7 @@ const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null); // For Mobile
   const [hoverDropdown, setHoverDropdown] = useState(null); // For Desktop
+  const location = useLocation(); // Hook to get current location
 
   // Fetch courses for dynamic dropdown
   const { courses } = useSelector((state) => state.master);
@@ -48,6 +49,20 @@ const PublicNavbar = () => {
     { name: 'Feedback', path: '/feedback' }
   ];
 
+  // Helper to determine if a path is active
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path.split('?')[0]);
+  };
+
+  // Helper to determine if a dropdown parent should be active
+  const isDropdownActive = (subItems) => {
+    return subItems.some(sub => {
+       const cleanPath = sub.path.split('#')[0].split('?')[0];
+       return location.pathname === cleanPath || (cleanPath !== '/' && location.pathname.startsWith(cleanPath));
+    });
+  };
+
   return (
     <nav className="bg-primary/95 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4">
@@ -66,7 +81,7 @@ const PublicNavbar = () => {
               >
                   {item.isDropdown ? (
                       <div>
-                          <button className="flex items-center gap-1 px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md">
+                          <button className={`flex items-center gap-1 px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md ${isDropdownActive(item.subItems) ? 'text-accent' : ''}`}>
                               {item.name} <ChevronDown size={14} />
                           </button>
                           
@@ -84,7 +99,7 @@ const PublicNavbar = () => {
                                           <Link 
                                             key={subIdx} 
                                             to={sub.path} 
-                                            className="block px-6 py-3 text-sm font-semibold hover:bg-gray-50 hover:text-primary transition-colors border-b border-gray-100 last:border-0"
+                                            className={`block px-6 py-3 text-sm font-semibold hover:bg-gray-50 hover:text-primary transition-colors border-b border-gray-100 last:border-0 ${location.pathname === sub.path.split('#')[0].split('?')[0] ? 'text-primary bg-blue-50' : ''}`}
                                           >
                                               {sub.name}
                                           </Link>
@@ -95,7 +110,7 @@ const PublicNavbar = () => {
                       </div>
                   ) : (
                       <Link to={item.path}
-                          className="px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md"
+                          className={`px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md ${isActive(item.path) ? 'text-accent' : ''}`}
                       >
                           {item.name}
                       </Link>
@@ -124,7 +139,7 @@ const PublicNavbar = () => {
                         <div>
                             <button 
                                 onClick={() => setActiveDropdown(activeDropdown === index ? null : index)}
-                                className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors"
+                                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors ${isDropdownActive(item.subItems) ? 'text-accent' : 'text-white'}`}
                             >
                                 {item.name}
                                 <ChevronDown size={16} className={`transition-transform duration-300 ${activeDropdown === index ? 'rotate-180' : ''}`}/>
@@ -141,7 +156,7 @@ const PublicNavbar = () => {
                                             <Link 
                                                 key={subIdx} 
                                                 to={sub.path} 
-                                                className="block px-8 py-3 text-sm text-blue-100 border-b border-blue-800/30 hover:text-white hover:bg-blue-800 transition-colors"
+                                                className={`block px-8 py-3 text-sm border-b border-blue-800/30 hover:text-white hover:bg-blue-800 transition-colors ${location.pathname === sub.path.split('#')[0].split('?')[0] ? 'text-accent font-bold' : 'text-blue-100'}`}
                                                 onClick={() => setIsOpen(false)}
                                             >
                                                 {sub.name}
@@ -152,7 +167,7 @@ const PublicNavbar = () => {
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to={item.path} className="block px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors" onClick={() => setIsOpen(false)}>
+                        <Link to={item.path} className={`block px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors ${isActive(item.path) ? 'text-accent' : 'text-white'}`} onClick={() => setIsOpen(false)}>
                             {item.name}
                         </Link>
                     )}

@@ -321,7 +321,7 @@ const HomePage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Full Name <span className="text-red-500">*</span></label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
+                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Devendra Sonawane" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Mobile Number <span className="text-red-500">*</span></label>
@@ -332,7 +332,7 @@ const HomePage = () => {
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Email Address</label>
-                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" />
+                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="devson123@example.com" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" />
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">City <span className="text-red-500">*</span></label>
