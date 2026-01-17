@@ -26,6 +26,14 @@ const TRANSACTION_MENU = [
       { name: 'Visitors', path: '/transaction/visitors' }
     ]
   },
+  {
+    title: 'Attendance',
+    hasSubOptions: true,
+    subOptions: [
+      { name: 'Student', path: '/transaction/attendance/student' },
+      { name: 'Employee', path: '/transaction/attendance/employee' }
+    ]
+  },
   { title: 'Student Admission', path: '/master/student/new', hasSubOptions: false },
   { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees', hasSubOptions: false },
   { title: 'Pending Student Registration', path: '/transaction/pending-registration', hasSubOptions: false },

@@ -5,6 +5,7 @@ import masterReducer from '../features/master/masterSlice';
 import transactionReducer from '../features/transaction/transactionSlice';
 import employeeReducer from '../features/employee/employeeSlice';
 import userRightsReducer from '../features/userRights/userRightsSlice';
+import attendanceReducer from '../features/transaction/attendanceSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     students: studentReducer,
     master: masterReducer,
     transaction: transactionReducer,
+    attendance: attendanceReducer,
     employees: employeeReducer,
     userRights: userRightsReducer,
   },

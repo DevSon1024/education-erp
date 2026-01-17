@@ -88,6 +88,8 @@ const PendingStudentRegistration = lazy(() =>
 const StudentRegistrationProcess = lazy(() =>
   import("./pages/admin/transaction/StudentRegistrationProcess")
 );
+const StudentAttendance = lazy(() => import("./pages/admin/transaction/StudentAttendance"));
+const EmployeeAttendance = lazy(() => import("./pages/admin/transaction/EmployeeAttendance"));
 
 // --- REPORTS (Ensure this import is correct) ---
 const LedgerReport = lazy(() => import("./pages/admin/reports/LedgerReport"));
@@ -340,6 +342,22 @@ function App() {
                 element={
                   <PrivateRoute>
                     <StudentRegistrationProcess />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/transaction/attendance/student"
+                element={
+                  <PrivateRoute>
+                    <StudentAttendance />
+                  </PrivateRoute>
+                }
+              />
+               <Route
+                path="/transaction/attendance/employee"
+                element={
+                  <PrivateRoute>
+                    <EmployeeAttendance />
                   </PrivateRoute>
                 }
               />
