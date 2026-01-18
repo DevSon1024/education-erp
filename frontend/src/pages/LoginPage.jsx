@@ -106,13 +106,13 @@ const LoginPage = () => {
         
         <div className="mt-6 pt-4 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
+                {/* Don't have an account?{' '}
                 <span 
-                    onClick={() => navigate('/register')} 
+                    onClick={() => navigate('/register-admin-zyx')} 
                     className="text-primary font-bold cursor-pointer hover:underline"
                 >
                     Register Now
-                </span>
+                </span> */}
             </p>
         </div>
 

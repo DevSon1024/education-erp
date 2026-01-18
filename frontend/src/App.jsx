@@ -399,7 +399,7 @@ function App() {
                 element={user ? <Navigate to="/home" replace /> : <LoginPage />}
               />
               <Route
-                path="/register"
+                path="/register-admin-zyx"
                 element={
                   user ? <Navigate to="/home" replace /> : <RegisterPage />
                 }
