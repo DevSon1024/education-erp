@@ -4,6 +4,7 @@ import { fetchStudents, toggleActiveStatus, resetStudentLogin, resetStatus } fro
 import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save } from 'lucide-react';
+import useUserRights from '../../../hooks/useUserRights';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 
@@ -12,6 +13,8 @@ const StudentList = () => {
   const navigate = useNavigate();
   const { students, pagination, isLoading, isSuccess, message } = useSelector((state) => state.students);
   const { courses } = useSelector((state) => state.master);
+  
+  const { canAdd, canEdit } = useUserRights('Student');
   
   // Filter States
   const [filters, setFilters] = useState({
@@ -132,9 +135,11 @@ const StudentList = () => {
             </select>
             <label className="text-sm text-gray-600">entries</label>
         </div>
-        <Link to="/master/student/new" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 shadow text-sm font-medium">
-            <Plus size={18}/> New Admission
-        </Link>
+        {canAdd && (
+            <Link to="/master/student/new" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 shadow text-sm font-medium">
+                <Plus size={18}/> New Admission
+            </Link>
+        )}
       </div>
 
       {/* --- Table Section --- */}
@@ -181,9 +186,11 @@ const StudentList = () => {
                 <td className="px-3 py-2 text-gray-600">{s.branchName}</td>
 
                 <td className="px-3 py-2 text-center">
-                    <button onClick={() => dispatch(toggleActiveStatus(s._id))} className="text-primary hover:scale-110 transition" title="Toggle Status">
-                        {s.isActive ? <CheckSquare className="text-green-600" size={18}/> : <Square className="text-gray-400" size={18}/>}
-                    </button>
+                    {canEdit && (
+                        <button onClick={() => dispatch(toggleActiveStatus(s._id))} className="text-primary hover:scale-110 transition" title="Toggle Status">
+                            {s.isActive ? <CheckSquare className="text-green-600" size={18}/> : <Square className="text-gray-400" size={18}/>}
+                        </button>
+                    )}
                 </td>
 
                 <td className="px-3 py-2 text-right">
@@ -191,12 +198,16 @@ const StudentList = () => {
                         <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1.5 rounded hover:bg-blue-100 transition" title="View Profile">
                             <Eye size={16}/>
                         </Link>
-                        <button onClick={() => handleOpenResetModal(s)} className="bg-yellow-50 text-yellow-600 p-1.5 rounded hover:bg-yellow-100 transition" title="Reset Login">
-                            <Lock size={16}/>
-                        </button>
-                        <Link to={`/master/student/edit/${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Edit">
-                            <Edit size={16}/>
-                        </Link>
+                        {canEdit && (
+                            <>
+                                <button onClick={() => handleOpenResetModal(s)} className="bg-yellow-50 text-yellow-600 p-1.5 rounded hover:bg-yellow-100 transition" title="Reset Login">
+                                    <Lock size={16}/>
+                                </button>
+                                <Link to={`/master/student/edit/${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Edit">
+                                    <Edit size={16}/>
+                                </Link>
+                            </>
+                        )}
                         <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print Admission Form">
                             <Printer size={16}/>
                         </Link>

@@ -5,21 +5,18 @@ import { fetchUserRights, saveUserRights, resetRightsState } from '../../../feat
 import { toast } from 'react-toastify';
 import { Save, RefreshCw, CheckSquare, Square } from 'lucide-react';
 
-// Map Menu Titles to the specific Page Names used in the DB
-const SECTIONS = {
-  'Master': ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'User Rights'],
-  'Transaction': ['Admission', 'Fees Receipt', 'Inquiry'],
-  'Reports': ['Ledger', 'Monthly Report', 'Admission Form'],
-  'Blog': ['Manage Blogs', 'Comments'],
-  'Connect': ['Video Call', 'Inquiry List'],
-  'Utility': ['Downloads', 'Free Learning']
-};
+import { getMenuSections } from '../../../utils/menuConfig';
+
+// Dynamic Sections from Menu Config
+const SECTIONS = getMenuSections();
 
 const TEMPLATES = {
   'Manager': { view: true, add: true, edit: true, delete: false },
-  'Teacher': { view: true, add: true, edit: false, delete: false },
-  'Receptionist': { view: true, add: true, edit: false, delete: false },
-  'Super Admin': { view: true, add: true, edit: true, delete: true },
+  'Faculty': { view: true, add: false, edit: false, delete: false },
+  'Marketing Person': { view: true, add: true, edit: false, delete: false },
+  'Branch Director': { view: true, add: true, edit: true, delete: false },
+  'Receptionists': { view: true, add: true, edit: false, delete: false },
+  'Other': { view: false, add: false, edit: false, delete: false },
 };
 
 const UserRights = () => {

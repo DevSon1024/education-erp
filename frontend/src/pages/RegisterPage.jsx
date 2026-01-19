@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, reset } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
-import { User, Lock, Mail, Shield, Loader } from 'lucide-react';
+import { User, Lock, Mail, Shield, Loader, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -12,6 +12,8 @@ const RegisterPage = () => {
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.auth
   );
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -103,11 +105,18 @@ const RegisterPage = () => {
                 <Lock size={18} className="text-gray-400" />
               </div>
               <input
-                type="password"
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                type={showPassword ? "text" : "password"}
+                className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="••••••••"
                 {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Min 6 chars' } })}
               />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             {errors.password && <span className="text-xs text-red-500 mt-1">{errors.password.message}</span>}
           </div>

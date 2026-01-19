@@ -6,69 +6,7 @@ import { fetchMyPermissions } from '../../features/userRights/userRightsSlice';
 import { Menu, X, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Transaction menu with nested structure
-const TRANSACTION_MENU = [
-  {
-    title: 'Inquiry',
-    hasSubOptions: true,
-    subOptions: [
-      { name: 'Online', path: '/transaction/inquiry/online' },
-      { name: 'Offline', path: '/transaction/inquiry/offline' },
-      { name: 'DSR', path: '/transaction/inquiry/dsr' }
-    ]
-  },
-  {
-    title: 'Visitors',
-    hasSubOptions: true,
-    subOptions: [
-      { name: 'Todays Visitors List', path: '/transaction/visitors/todays-list' },
-      { name: 'Todays Visited Report', path: '/transaction/visitors/todays-report' },
-      { name: 'Visitors', path: '/transaction/visitors' }
-    ]
-  },
-  {
-    title: 'Attendance',
-    hasSubOptions: true,
-    subOptions: [
-      { name: 'Student', path: '/transaction/attendance/student' },
-      { name: 'Employee', path: '/transaction/attendance/employee' }
-    ]
-  },
-  { title: 'Student Admission', path: '/master/student/new', hasSubOptions: false },
-  { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees', hasSubOptions: false },
-  { title: 'Pending Student Registration', path: '/transaction/pending-registration', hasSubOptions: false },
-  { title: 'Student Cancellation', path: '/transaction/student-cancellation', hasSubOptions: false },
-  { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false },
-
-];
-
-const BASE_MENU_ITEMS = [
-  {
-    title: 'Home',
-    path: '/home',
-    subItems: [] 
-  },
-  { 
-    title: 'Master', 
-    path: '/master',
-    subItems: ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'Exam Request List', 'Exam Schedule', 'Exam Result', 'Manage News'] 
-  },
-  { 
-    title: 'Transaction', 
-    path: '/transaction',
-    isCustom: true,
-    customMenu: TRANSACTION_MENU,
-    subItems: []
-  },
-  { 
-    title: 'Reports', 
-    path: '/reports',
-    subItems: ['Ledger', 'Monthly Report', 'Admission Form'] 
-  },
-  { title: 'Blog', path: '/blog', subItems: ['Manage Blogs', 'Comments'] },
-  { title: 'Connect', path: '/connect', subItems: ['Video Call', 'Inquiry List'] },
-  { title: 'Utility', path: '/utility', subItems: ['Downloads', 'Free Learning'] },
-];
+import { BASE_MENU_ITEMS, TRANSACTION_MENU } from '../../utils/menuConfig';
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);

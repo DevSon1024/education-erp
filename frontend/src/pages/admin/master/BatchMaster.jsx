@@ -7,10 +7,13 @@ import {
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Clock, Users, Edit2, Trash2, CheckSquare, Square } from 'lucide-react';
+import useUserRights from '../../../hooks/useUserRights';
 
 const BatchMaster = () => {
   const dispatch = useDispatch();
   const { batches, courses, employees, isSuccess } = useSelector((state) => state.master);
+  
+  const { canAdd, canEdit, canDelete } = useUserRights('Batch');
   
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -118,12 +121,14 @@ const BatchMaster = () => {
       {/* --- SECTION 1: HEADER & ADD BUTTON --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Batches</h1>
-        <button 
-            onClick={() => setShowForm(true)} 
-            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all text-sm font-bold"
-        >
-            <Plus size={20}/> Add New Batch
-        </button>
+        {canAdd && (
+            <button 
+                onClick={() => setShowForm(true)} 
+                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all text-sm font-bold"
+            >
+                <Plus size={20}/> Add New Batch
+            </button>
+        )}
       </div>
 
       {/* --- SECTION 2: FILTERS --- */}
@@ -199,12 +204,16 @@ const BatchMaster = () => {
                         <td className="px-4 py-3 text-gray-600">{new Date(batch.startDate).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-gray-600">{new Date(batch.endDate).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleEdit(batch)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Edit2 size={12}/> Edit
-                            </button>
-                            <button onClick={() => handleDelete(batch._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Trash2 size={12}/> Delete
-                            </button>
+                            {canEdit && (
+                                <button onClick={() => handleEdit(batch)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
+                                    <Edit2 size={12}/> Edit
+                                </button>
+                            )}
+                            {canDelete && (
+                                <button onClick={() => handleDelete(batch._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
+                                    <Trash2 size={12}/> Delete
+                                </button>
+                            )}
                         </td>
                     </tr>
                 )) : (

@@ -7,10 +7,14 @@ import {
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye, Upload } from 'lucide-react';
+import useUserRights from '../../../hooks/useUserRights';
 
 const CourseMaster = () => {
   const dispatch = useDispatch();
   const { courses, subjects, isSuccess } = useSelector((state) => state.master);
+  
+  // Permission Check
+  const { canAdd, canEdit, canDelete } = useUserRights('Course');
   
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -152,12 +156,14 @@ const CourseMaster = () => {
       {/* --- Header --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Courses</h1>
-        <button 
-            onClick={() => setShowForm(true)} 
-            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all text-sm font-bold"
-        >
-            <Plus size={20}/> Add New Course
-        </button>
+        {canAdd && (
+            <button 
+                onClick={() => setShowForm(true)} 
+                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all text-sm font-bold"
+            >
+                <Plus size={20}/> Add New Course
+            </button>
+        )}
       </div>
 
       {/* --- Filter Section --- */}
@@ -232,12 +238,16 @@ const CourseMaster = () => {
                             </button>
                         </td>
                         <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleEdit(course)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Edit2 size={12}/> Edit
-                            </button>
-                            <button onClick={() => handleDelete(course._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Trash2 size={12}/> Delete
-                            </button>
+                            {canEdit && (
+                                <button onClick={() => handleEdit(course)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
+                                    <Edit2 size={12}/> Edit
+                                </button>
+                            )}
+                            {canDelete && (
+                                <button onClick={() => handleDelete(course._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
+                                    <Trash2 size={12}/> Delete
+                                </button>
+                            )}
                         </td>
                     </tr>
                 )) : (
