@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../../../features/employee/employeeSlice';
-import { fetchUserRights, saveUserRights, resetRightsState } from '../../../features/userRights/userRightsSlice';
+import { 
+  fetchUserRights, 
+  saveUserRights, 
+  resetRightsState,
+  fetchTemplates,
+  createTemplate,
+  deleteTemplate 
+} from '../../../features/userRights/userRightsSlice';
 import { toast } from 'react-toastify';
-import { Save, RefreshCw, CheckSquare, Square } from 'lucide-react';
-import { getMenuSections } from '../../../utils/menuConfig';
+import { Save, RefreshCw, CheckSquare, Square, Trash2, Plus } from 'lucide-react';import { getMenuSections } from '../../../utils/menuConfig';
 
 const UserRights = () => {
   const dispatch = useDispatch();
@@ -17,10 +23,14 @@ const UserRights = () => {
 
   // Redux State
   const { employees } = useSelector((state) => state.employees);
-  const { rights, isSuccess, message } = useSelector((state) => state.userRights);
+  const { rights, templates, isSuccess, message } = useSelector((state) => state.userRights);
+
+  // Filtered employees (Exclude Super Admin)
+  const filteredEmployees = employees.filter(emp => emp.type !== 'Super Admin' && emp.role !== 'Super Admin'); // Adjust based on actual data structure
 
   useEffect(() => {
     dispatch(fetchEmployees());
+    dispatch(fetchTemplates());
     setSections(getMenuSections());
   }, [dispatch]);
 
@@ -45,12 +55,9 @@ const UserRights = () => {
     }
   }, [rights, sections]);
 
-const TEMPLATES = {
-  'Manager': { view: true, add: true, edit: true, delete: false },
-  'Teacher': { view: true, add: true, edit: false, delete: false },
-  'Receptionist': { view: true, add: true, edit: false, delete: false },
-  'Super Admin': { view: true, add: true, edit: true, delete: true },
-};
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [showCreateWrapper, setShowCreateWrapper] = useState(false); // Using inline expansion instead of modal for simplicity
 
   const handleEmployeeChange = (e) => {
     const empId = e.target.value;
@@ -67,17 +74,44 @@ const TEMPLATES = {
   };
 
   const handleTemplateChange = (e) => {
-    const templateName = e.target.value;
-    if (templateName && TEMPLATES[templateName]) {
-      const tmpl = TEMPLATES[templateName];
-      const newPerms = permissions.map(p => ({
-        ...p,
-        view: tmpl.view,
-        add: tmpl.add,
-        edit: tmpl.edit,
-        delete: tmpl.delete
-      }));
-      setPermissions(newPerms);
+    const templateId = e.target.value;
+    setSelectedTemplate(templateId);
+    
+    if (templateId) {
+      const tmpl = templates.find(t => t._id === templateId);
+      if (tmpl) {
+        // Merge template permissions with current state structure
+        const newPerms = permissions.map(p => {
+            const tmplPerm = tmpl.permissions.find(tp => tp.page === p.page);
+            return tmplPerm ? { 
+                ...p, 
+                view: tmplPerm.view, 
+                add: tmplPerm.add, 
+                edit: tmplPerm.edit, 
+                delete: tmplPerm.delete 
+            } : p;
+        });
+        setPermissions(newPerms);
+      }
+    }
+  };
+
+  const handleCreateTemplate = () => {
+    if (!newTemplateName.trim()) {
+        toast.error("Please enter a template name");
+        return;
+    }
+    dispatch(createTemplate({ name: newTemplateName, permissions }));
+    setNewTemplateName('');
+    setShowCreateWrapper(false);
+  };
+
+  const handleDeleteTemplate = () => {
+    if (selectedTemplate) {
+        if(window.confirm("Are you sure you want to delete this template?")) {
+            dispatch(deleteTemplate(selectedTemplate));
+            setSelectedTemplate('');
+        }
     }
   };
 
@@ -124,39 +158,86 @@ const TEMPLATES = {
       <h2 className="text-2xl font-bold mb-6 text-gray-800">User Rights Management</h2>
 
       {/* Filter Section */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-wrap gap-4 items-end border-t-4 border-primary">
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Employee</label>
-          <select 
-            className="w-full border rounded p-2"
-            value={selectedEmployee}
-            onChange={handleEmployeeChange}
-          >
-            <option value="">-- Select Employee --</option>
-            {employees.map(emp => (
-              <option key={emp._id} value={emp._id}>{emp.name} ({emp.type})</option>
-            ))}
-          </select>
+      {/* Filter Section */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-6 border-t-4 border-primary">
+        <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Employee</label>
+            <select 
+                className="w-full border rounded p-2"
+                value={selectedEmployee}
+                onChange={handleEmployeeChange}
+            >
+                <option value="">-- Select Employee --</option>
+                {filteredEmployees.map(emp => (
+                <option key={emp._id} value={emp._id}>{emp.name}</option> // Removed ({emp.type}) as it might be redundant or confusing if type is internal code
+                ))}
+            </select>
+            </div>
+
+            <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Template</label>
+            <div className="flex gap-2">
+                <select 
+                    className="w-full border rounded p-2" 
+                    value={selectedTemplate}
+                    onChange={handleTemplateChange}
+                >
+                    <option value="">-- Select Template --</option>
+                    {templates.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                </select>
+                {selectedTemplate && (
+                    <button 
+                        onClick={handleDeleteTemplate}
+                        className="text-red-500 hover:text-red-700 p-2 border rounded hover:bg-red-50"
+                        title="Delete Template"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                )}
+            </div>
+            </div>
+
+            <div className="flex gap-2">
+                 <button 
+                    onClick={() => setShowCreateWrapper(!showCreateWrapper)}
+                    className="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 flex items-center gap-2"
+                 >
+                    <Plus size={18}/> Create Template
+                 </button>
+
+                <button 
+                    onClick={() => {
+                        setPermissions(prev => prev.map(p => ({ ...p, view: true, add: true, edit: true, delete: true })))
+                    }}
+                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 flex items-center gap-2"
+                >
+                    <CheckSquare size={18}/> Select All
+                </button>
+            </div>
         </div>
 
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Apply Template</label>
-          <select className="w-full border rounded p-2" onChange={handleTemplateChange}>
-            <option value="">-- Custom --</option>
-            {Object.keys(TEMPLATES).map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-
-        <button 
-          onClick={() => {
-             // Reset all to full permissions? Or just fetch again? 
-             // Currently just setting everything to true for demo
-             setPermissions(prev => prev.map(p => ({ ...p, view: true, add: true, edit: true, delete: true })))
-          }}
-          className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 flex items-center gap-2"
-        >
-          <RefreshCw size={18}/> Grant All
-        </button>
+        {/* Create Template Inline Form */}
+        {showCreateWrapper && (
+            <div className="mt-4 p-4 bg-gray-50 rounded border flex items-end gap-2 animate-fadeIn">
+                <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">New Template Name</label>
+                    <input 
+                        type="text" 
+                        className="w-full border rounded p-2"
+                        placeholder="e.g. Junior Accountant"
+                        value={newTemplateName}
+                        onChange={(e) => setNewTemplateName(e.target.value)}
+                    />
+                </div>
+                <button 
+                    onClick={handleCreateTemplate}
+                    className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark"
+                >
+                    Save Template
+                </button>
+            </div>
+        )}
       </div>
 
       {selectedEmployee && (

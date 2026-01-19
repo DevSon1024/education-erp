@@ -38,11 +38,42 @@ export const fetchMyPermissions = createAsyncThunk('userRights/fetchMy', async (
   }
 });
 
+// Fetch All Templates
+export const fetchTemplates = createAsyncThunk('userRights/fetchTemplates', async (_, thunkAPI) => {
+  try {
+    const response = await axios.get(API_URL + 'templates');
+    return response.data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response.data.message);
+  }
+});
+
+// Create Template
+export const createTemplate = createAsyncThunk('userRights/createTemplate', async (data, thunkAPI) => {
+  try {
+    const response = await axios.post(API_URL + 'templates', data);
+    return response.data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response.data.message);
+  }
+});
+
+// Delete Template
+export const deleteTemplate = createAsyncThunk('userRights/deleteTemplate', async (id, thunkAPI) => {
+  try {
+    await axios.delete(API_URL + 'templates/' + id);
+    return id;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response.data.message);
+  }
+});
+
 const userRightsSlice = createSlice({
   name: 'userRights',
   initialState: {
     rights: { permissions: [] }, // The rights being edited
     myPermissions: [], // The logged-in user's permissions
+    templates: [], // List of templates
     isLoading: false,
     isSuccess: false,
     isError: false,
@@ -69,6 +100,19 @@ const userRightsSlice = createSlice({
       })
       .addCase(fetchMyPermissions.fulfilled, (state, action) => {
         state.myPermissions = action.payload;
+      })
+      .addCase(fetchTemplates.fulfilled, (state, action) => {
+        state.templates = action.payload;
+      })
+      .addCase(createTemplate.fulfilled, (state, action) => {
+        state.templates.push(action.payload);
+        state.isSuccess = true;
+        state.message = 'Template created successfully';
+      })
+      .addCase(deleteTemplate.fulfilled, (state, action) => {
+        state.templates = state.templates.filter(t => t._id !== action.payload);
+        state.isSuccess = true;
+        state.message = 'Template deleted successfully';
       });
   }
 });
