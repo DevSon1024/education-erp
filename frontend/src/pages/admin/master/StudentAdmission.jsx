@@ -9,6 +9,10 @@ import {
 import {
   fetchCourses,
   fetchBatches,
+  fetchReferences,
+  fetchEducations,
+  createReference,
+  createEducation,
 } from "../../../features/master/masterSlice";
 import { fetchInquiries } from "../../../features/transaction/transactionSlice";
 import { fetchEmployees } from "../../../features/employee/employeeSlice";
@@ -34,18 +38,7 @@ const LOCATION_DATA = {
   Delhi: ["New Delhi", "Noida", "Gurgaon"],
 };
 
-const getUniqueEducation = (students) => {
-  const methods = new Set([
-    "10th Pass",
-    "12th Pass",
-    "Graduate",
-    "Post Graduate",
-  ]);
-  students?.forEach((s) => {
-    if (s.education) methods.add(s.education);
-  });
-  return Array.from(methods);
-};
+// getUniqueEducation removed - using centralized master list instead
 
 const StudentAdmission = () => {
   const dispatch = useDispatch();
@@ -55,7 +48,7 @@ const StudentAdmission = () => {
     (state) => state.students
   );
   const { inquiries } = useSelector((state) => state.transaction);
-  const { courses, batches } = useSelector((state) => state.master);
+  const { courses, batches, references, educations } = useSelector((state) => state.master);
   const { employees } = useSelector((state) => state.employees) || {
     employees: [],
   };
@@ -69,7 +62,11 @@ const StudentAdmission = () => {
   const [isNewReference, setIsNewReference] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); 
 
-  const [educationOptions, setEducationOptions] = useState([]);
+  // Modal & New Entry States
+  const [showRefModal, setShowRefModal] = useState(false);
+  const [showEduModal, setShowEduModal] = useState(false);
+  const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
+  const [newEdu, setNewEdu] = useState('');
 
   const {
     register,
@@ -105,11 +102,11 @@ const StudentAdmission = () => {
     dispatch(fetchInquiries({ status: "Open" }));
     dispatch(fetchStudents());
     dispatch(fetchEmployees());
+    dispatch(fetchReferences());
+    dispatch(fetchEducations());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (students) setEducationOptions(getUniqueEducation(students));
-  }, [students]);
+// educationOptions effect removed
 
   useEffect(() => {
     if (isSuccess) {
@@ -153,9 +150,7 @@ const StudentAdmission = () => {
     }
   }, [watchFirstName, watchLastName, inquiries, students]);
 
-  useEffect(() => {
-    setIsNewReference(watchReference === "NEW_REF");
-  }, [watchReference]);
+// isNewReference effect removed
 
   const handleAutofillInquiry = () => {
     if (foundInquiry) {
@@ -170,6 +165,14 @@ const StudentAdmission = () => {
       setValue("state", foundInquiry.state || "Gujarat");
       setValue("city", foundInquiry.city || "Surat");
       setValue("education", foundInquiry.education || "");
+      setValue("dob", foundInquiry.dob ? new Date(foundInquiry.dob).toISOString().split('T')[0] : "");
+      setValue("reference", foundInquiry.referenceBy || "");
+      
+      if (foundInquiry.studentPhoto) {
+          setPreviewImage(foundInquiry.studentPhoto);
+          setValue("studentPhoto", foundInquiry.studentPhoto);
+      }
+
       toast.info("Data Autofilled from Inquiry");
       setFoundInquiry(null);
     }
@@ -250,14 +253,9 @@ const StudentAdmission = () => {
       batch: primaryCourse.batch,
       totalFees: primaryCourse.fees,
       paymentPlan: primaryCourse.paymentType,
-      reference: isNewReference ? "New Reference" : data.reference,
-      referenceDetails: isNewReference
-        ? {
-            name: data.refName,
-            mobile: data.refMobile,
-            address: data.refAddress,
-          }
-        : null,
+      reference: data.reference,
+      // Legacy referenceDetails removed in favor of standardized Reference Master
+      referenceDetails: null,
       feeDetails: payAdmissionFee
         ? {
             amount: Number(data.amountPaid),
@@ -338,7 +336,87 @@ const StudentAdmission = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-8 relative">
+          {/* Modals placed relative to form container */}
+          {showRefModal && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 rounded-xl">
+                <div className="bg-white p-5 rounded-lg shadow-2xl w-96 border animate-fadeIn">
+                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+                        <h4 className="font-bold text-gray-800">Add New Reference</h4>
+                        <button type="button" onClick={() => setShowRefModal(false)}><X size={18} className="text-gray-500 hover:text-red-500"/></button>
+                    </div>
+                    <div className="space-y-3">
+                        <input 
+                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Full Name *"
+                            value={newRef.name}
+                            onChange={e => setNewRef({...newRef, name: e.target.value})}
+                        />
+                        <input 
+                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Mobile Number *"
+                            value={newRef.mobile}
+                            onChange={e => setNewRef({...newRef, mobile: e.target.value})}
+                        />
+                        <input 
+                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="City / Address"
+                            value={newRef.address}
+                            onChange={e => setNewRef({...newRef, address: e.target.value})}
+                        />
+                        <button 
+                            type="button" 
+                            onClick={() => {
+                                if(!newRef.name || !newRef.mobile) return toast.error('Name & Mobile required');
+                                dispatch(createReference(newRef)).then((res) => {
+                                    if(!res.error) {
+                                        setValue('reference', newRef.name);
+                                        setShowRefModal(false);
+                                        toast.success('Reference Added!');
+                                        setNewRef({ name: '', mobile: '', address: '' });
+                                    }
+                                });
+                            }}
+                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+                        >
+                            Save Reference
+                        </button>
+                    </div>
+                </div>
+            </div>
+          )}
+
+          {showEduModal && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 rounded-xl">
+                <div className="bg-white p-5 rounded-lg shadow-2xl w-80 border animate-fadeIn">
+                     <div className="flex justify-between items-center mb-4 border-b pb-2">
+                        <h4 className="font-bold text-gray-800">Add Education</h4>
+                        <button type="button" onClick={() => setShowEduModal(false)}><X size={18} className="text-gray-500 hover:text-red-500"/></button>
+                    </div>
+                     <div className="space-y-3">
+                        <input 
+                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Degree / Certificate Name *"
+                            value={newEdu}
+                            onChange={e => setNewEdu(e.target.value)}
+                        />
+                        <button 
+                            type="button" 
+                            onClick={() => {
+                                if(!newEdu) return toast.error('Education Name required');
+                                dispatch(createEducation({ name: newEdu })).then((res) => {
+                                     if(!res.error) {
+                                        setValue('education', newEdu);
+                                        setShowEduModal(false);
+                                        toast.success('Education Added!');
+                                        setNewEdu('');
+                                     }
+                                });
+                            }}
+                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+                        >
+                            Save Education
+                        </button>
+                     </div>
+                </div>
+            </div>
+          )}
           {renderStepHeader()}
 
           {foundInquiry && step === 1 && (
@@ -385,6 +463,8 @@ const StudentAdmission = () => {
                   {...register("aadharCard", { required: true, minLength: 12 })}
                   placeholder="12 Digit Number"
                   className="input"
+                  maxLength={12}
+                  onInput={(e) => { if (e.target.value.length > 12) e.target.value = e.target.value.slice(0, 12); }}
                 />
               </div>
               <div className="col-span-12 md:col-span-4 flex justify-center">
@@ -511,6 +591,8 @@ const StudentAdmission = () => {
                   {...register("contactHome", { maxLength: 10 })}
                   className="input"
                   placeholder="Landline/Other"
+                  maxLength={10}
+                  onInput={(e) => { if (e.target.value.length > 10) e.target.value = e.target.value.slice(0, 10); }}
                 />
               </div>
               <div className="col-span-12 md:col-span-4">
@@ -518,6 +600,8 @@ const StudentAdmission = () => {
                 <input
                   {...register("mobileStudent", { maxLength: 10 })}
                   className="input"
+                  maxLength={10}
+                  onInput={(e) => { if (e.target.value.length > 10) e.target.value = e.target.value.slice(0, 10); }}
                 />
               </div>
               <div className="col-span-12 md:col-span-4">
@@ -531,22 +615,34 @@ const StudentAdmission = () => {
                     minLength: 10,
                   })}
                   className="input border-blue-300 bg-blue-50"
+                  maxLength={10}
+                  onInput={(e) => { if (e.target.value.length > 10) e.target.value = e.target.value.slice(0, 10); }}
                 />
               </div>
 
               <div className="col-span-12">
                 <label className="label">6. Education</label>
-                <input
-                  list="eduOptions"
-                  {...register("education")}
-                  className="input"
-                  placeholder="Select or type to add new..."
-                />
-                <datalist id="eduOptions">
-                  {educationOptions.map((opt, i) => (
-                    <option key={i} value={opt} />
-                  ))}
-                </datalist>
+                <div className="flex gap-2">
+                    <select
+                      {...register("education")}
+                      className="input w-full"
+                    >
+                      <option value="">-- Select Education --</option>
+                      {educations.map((opt, i) => (
+                        <option key={opt._id || i} value={opt.name}>
+                          {opt.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowEduModal(true)}
+                      className="p-2 bg-blue-50 text-blue-600 rounded border hover:bg-blue-100 flex-shrink-0"
+                      title="Add New Education"
+                    >
+                      <Plus size={20} />
+                    </button>
+                </div>
               </div>
 
               <div className="col-span-12">
@@ -596,36 +692,29 @@ const StudentAdmission = () => {
                   9. Reference Details
                 </label>
                 <div className="flex gap-4 items-center">
-                  <select {...register("reference")} className="input w-1/3">
+                  <select {...register("reference")} className="input w-full">
                     <option value="Direct">Direct / Walk-in</option>
-                    {employees?.map((e) => (
-                      <option key={e._id} value={e.name}>
-                        {e.name} ({e.type})
-                      </option>
-                    ))}
-                    <option value="NEW_REF">
-                      + Add New External Reference
-                    </option>
+                    <optgroup label="Staff">
+                        {employees?.map((e) => (
+                          <option key={e._id} value={e.name}>
+                            {e.name} ({e.type})
+                          </option>
+                        ))}
+                    </optgroup>
+                    <optgroup label="External References">
+                        {references.map((r, i) => (
+                             <option key={r._id || i} value={r.name}>{r.name}</option>
+                        ))}
+                    </optgroup>
                   </select>
-                  {isNewReference && (
-                    <div className="flex-1 grid grid-cols-3 gap-2">
-                      <input
-                        {...register("refName")}
-                        placeholder="Name"
-                        className="input text-sm"
-                      />
-                      <input
-                        {...register("refMobile")}
-                        placeholder="Mobile"
-                        className="input text-sm"
-                      />
-                      <input
-                        {...register("refAddress")}
-                        placeholder="City/Area"
-                        className="input text-sm"
-                      />
-                    </div>
-                  )}
+                  <button
+                      type="button"
+                      onClick={() => setShowRefModal(true)}
+                      className="p-2 bg-blue-50 text-blue-600 rounded border hover:bg-blue-100 flex-shrink-0"
+                      title="Add New Reference"
+                    >
+                      <Plus size={20} />
+                  </button>
                 </div>
               </div>
 

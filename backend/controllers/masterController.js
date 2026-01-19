@@ -25,7 +25,22 @@ const getCourses = asyncHandler(async (req, res) => {
 });
 
 const createCourse = asyncHandler(async (req, res) => {
-    const course = await Course.create(req.body);
+    const data = { ...req.body };
+    if (req.file) {
+        data.image = req.file.path.replace(/\\/g, "/");
+    }
+    
+    // Parse subjects if it comes as a string (from FormData)
+    if (data.subjects && typeof data.subjects === 'string') {
+        try {
+            data.subjects = JSON.parse(data.subjects);
+        } catch (e) {
+            console.error("Error parsing subjects", e);
+            data.subjects = [];
+        }
+    }
+
+    const course = await Course.create(data);
     res.status(201).json(course);
 });
 
@@ -34,7 +49,25 @@ const updateCourse = asyncHandler(async (req, res) => {
     const course = await Course.findById(id);
 
     if (course) {
-        const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true })
+        const data = { ...req.body };
+        if (req.file) {
+            data.image = req.file.path.replace(/\\/g, "/");
+        }
+
+        // Parse subjects if it comes as a string
+        if (data.subjects && typeof data.subjects === 'string') {
+            try {
+                data.subjects = JSON.parse(data.subjects);
+            } catch (e) {
+                console.error("Error parsing subjects", e);
+                // Keep existing subjects if parse fails or handle error?
+                // Better to just not update subjects if parse fails in this context or set empty
+                // But usually it should work.
+                delete data.subjects; 
+            }
+        }
+
+        const updatedCourse = await Course.findByIdAndUpdate(id, data, { new: true })
             .populate({
                 path: 'subjects.subject',
                 select: 'name printedName'

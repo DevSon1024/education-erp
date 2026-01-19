@@ -17,14 +17,46 @@ export const fetchCourses = createAsyncThunk('master/fetchCourses', async (param
 
 export const createCourse = createAsyncThunk('master/createCourse', async (data, thunkAPI) => {
     try {
-        const response = await axios.post(API_URL + 'course', data);
+        let payload = data;
+        let headers = {};
+
+        if (data.image instanceof File) {
+            const formData = new FormData();
+            Object.keys(data).forEach(key => {
+                if (key === 'subjects') {
+                    formData.append(key, JSON.stringify(data[key]));
+                } else if (data[key] !== null) {
+                    formData.append(key, data[key]);
+                }
+            });
+            payload = formData;
+            headers = { 'Content-Type': 'multipart/form-data' };
+        }
+
+        const response = await axios.post(API_URL + 'course', payload, { headers });
         return response.data;
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });
 
 export const updateCourse = createAsyncThunk('master/updateCourse', async ({ id, data }, thunkAPI) => {
     try {
-        const response = await axios.put(`${API_URL}course/${id}`, data);
+        let payload = data;
+        let headers = {};
+
+        if (data.image instanceof File) {
+            const formData = new FormData();
+            Object.keys(data).forEach(key => {
+                if (key === 'subjects') {
+                    formData.append(key, JSON.stringify(data[key]));
+                } else if (data[key] !== null) {
+                    formData.append(key, data[key]);
+                }
+            });
+            payload = formData;
+            headers = { 'Content-Type': 'multipart/form-data' };
+        }
+
+        const response = await axios.put(`${API_URL}course/${id}`, payload, { headers });
         return response.data;
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });

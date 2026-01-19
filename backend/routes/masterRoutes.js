@@ -14,13 +14,15 @@ const { getExamRequests, cancelExamRequest, createExamRequest, getPendingExams }
 const { getExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, getExamScheduleDetails } = require('../controllers/examScheduleController');
 const { getExamResults, createExamResult, updateExamResult } = require('../controllers/examResultController');
 
+const upload = require('../middlewares/uploadMiddleware');
+
 // --- Course Routes ---
 router.route('/course')
     .get(getCourses) // Public Access
-    .post(protect, checkPermission('Course', 'add'), createCourse);
+    .post(protect, checkPermission('Course', 'add'), upload.single('image'), createCourse);
 
 router.route('/course/:id')
-    .put(protect, checkPermission('Course', 'edit'), updateCourse)
+    .put(protect, checkPermission('Course', 'edit'), upload.single('image'), updateCourse)
     .delete(protect, checkPermission('Course', 'delete'), deleteCourse);
 
 // --- Batch Routes ---

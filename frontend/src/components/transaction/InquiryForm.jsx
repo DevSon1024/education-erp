@@ -111,9 +111,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                 
                 // If photo exists (and is string path), show preview logic could be added here if backend serves static files
                 if (initialData.studentPhoto) {
-                    // Assuming backend static file serving is set up at root or specific URL
-                    // For now just showing a placeholder if string, real preview needs full URL
-                    // setPreview(`http://localhost:5000/${initialData.studentPhoto}`);
+                    setPreview(initialData.studentPhoto);
                 }
 
                 reset(formattedData);

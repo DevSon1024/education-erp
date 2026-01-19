@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Search, FileText, X, Edit, Trash2, Calendar, Clock, BookOpen, User as UserIcon, ArrowRightCircle } from 'lucide-react';
-import visitorService from '../../../services/visitorService';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchReferences, createReference } from '../../../features/master/masterSlice';
+import { toast } from 'react-toastify';
 import axios from 'axios'; 
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../../../utils/dateUtils';
+import visitorService from '../../../services/visitorService';
 
 const Visitors = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { references } = useSelector((state) => state.master);
+    
     // State
     const [visitors, setVisitors] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -36,12 +42,18 @@ const Visitors = () => {
     // Dropdown Data State
     const [courses, setCourses] = useState([]);
     const [employees, setEmployees] = useState([]);
-    const [isNewReference, setIsNewReference] = useState(false);
+    // isNewReference state removed as creation is now via modal
+    
+    // Modal State
+    const [showRefModal, setShowRefModal] = useState(false);
+    const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
 
     // Fetch Initial Data
+
     useEffect(() => {
         fetchVisitors();
         fetchDropdowns();
+        dispatch(fetchReferences());
     }, []);
 
     const fetchVisitors = async () => {
@@ -100,7 +112,7 @@ const Visitors = () => {
 
     const handleAddNew = () => {
         setEditMode(false);
-        setIsNewReference(false);
+        // setIsNewReference(false); removed
         setFormData({
             visitingDate: new Date().toISOString().split('T')[0],
             studentName: '',
@@ -123,8 +135,8 @@ const Visitors = () => {
         
         // Determine if reference is likely new/external (basic heuristic: not in employee list logic could be added)
         // For now, if referenceContact exists, assume it was a 'New Reference'
-        const isExternal = !!visitor.referenceContact; 
-        setIsNewReference(isExternal);
+        // const isExternal = !!visitor.referenceContact; 
+        // setIsNewReference(isExternal);
 
         setFormData({
             visitingDate: visitor.visitingDate ? visitor.visitingDate.split('T')[0] : '',
@@ -374,58 +386,53 @@ const Visitors = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Reference</label>
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex gap-2">
                                         <select 
                                             name="reference"
-                                            value={isNewReference ? 'new_ref_option' : formData.reference}
+                                            value={formData.reference}
                                             onChange={(e) => {
-                                                if (e.target.value === 'new_ref_option') {
-                                                    setIsNewReference(true);
-                                                    setFormData(prev => ({ ...prev, reference: '' }));
+                                                const val = e.target.value;
+                                                // Try to find if it matches an external reference to auto-fill contact
+                                                const extRef = references.find(r => r.name === val);
+                                                if(extRef) {
+                                                    setFormData(prev => ({ 
+                                                        ...prev, 
+                                                        reference: val,
+                                                        referenceContact: extRef.mobile || '',
+                                                        referenceAddress: extRef.address || ''
+                                                    }));
                                                 } else {
-                                                    setIsNewReference(false);
+                                                    // Standard update
                                                     handleInputChange(e);
                                                 }
                                             }}
                                             className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <option value="">Select Reference</option>
-                                            {employees.map(emp => (
-                                                <option key={emp._id} value={emp.name || `${emp.firstName} ${emp.lastName}`}>
-                                                    {emp.name || `${emp.firstName} ${emp.lastName}`} (Staff)
-                                                </option>
-                                            ))}
-                                            <option value="new_ref_option" className="font-bold text-blue-600">+ Add New Reference</option>
+                                            <optgroup label="Staff">
+                                                {employees.map(emp => (
+                                                    <option key={emp._id} value={emp.name || `${emp.firstName} ${emp.lastName}`}>
+                                                        {emp.name || `${emp.firstName} ${emp.lastName}`} (Staff)
+                                                    </option>
+                                                ))}
+                                            </optgroup>
+                                            <optgroup label="External References">
+                                                {references.map((r, i) => (
+                                                    <option key={r._id || i} value={r.name}>{r.name}</option>
+                                                ))}
+                                            </optgroup>
                                         </select>
-                                        {isNewReference && (
-                                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mt-1">
-                                                <input 
-                                                    type="text" 
-                                                    name="reference"
-                                                    value={formData.reference}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Reference Name"
-                                                    className="w-full border rounded p-1 mb-2 text-sm"
-                                                    required
-                                                />
-                                                <input 
-                                                    type="tel" 
-                                                    name="referenceContact"
-                                                    value={formData.referenceContact}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Mobile Number"
-                                                    className="w-full border rounded p-1 mb-2 text-sm"
-                                                />
-                                                <input 
-                                                    type="text" 
-                                                    name="referenceAddress"
-                                                    value={formData.referenceAddress}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Address / Remarks"
-                                                    className="w-full border rounded p-1 text-sm"
-                                                />
-                                            </div>
-                                        )}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowRefModal(true)}
+                                            className="p-2 bg-indigo-50 text-indigo-600 rounded border hover:bg-indigo-100 flex-shrink-0"
+                                            title="Add New Reference"
+                                        >
+                                            <Plus size={20} />
+                                        </button>
+                                    </div>
+                                    <div className="mt-2 text-xs text-gray-500">
+                                         {/* Hidden inputs to store details implicitly if needed, but fields below are visible for manual edit if standard ref selected */}
                                     </div>
                                 </div>
                                 <div>
@@ -504,9 +511,61 @@ const Visitors = () => {
                                 </div>
                             </form>
                         </div>
+                        
+                        {/* Reference Modal - Overlaid on top of Visitor Modal */}
+                        {showRefModal && (
+                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[60] p-4">
+                                <div className="bg-white p-5 rounded-lg shadow-2xl w-96 border animate-fadeIn">
+                                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                        <h4 className="font-bold text-gray-800">Add New Reference</h4>
+                                        <button type="button" onClick={() => setShowRefModal(false)}><X size={18} className="text-gray-500 hover:text-red-500"/></button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <input 
+                                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Full Name *"
+                                            value={newRef.name}
+                                            onChange={e => setNewRef({...newRef, name: e.target.value})}
+                                        />
+                                        <input 
+                                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Mobile Number *"
+                                            value={newRef.mobile}
+                                            onChange={e => setNewRef({...newRef, mobile: e.target.value})}
+                                        />
+                                        <input 
+                                            className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="City / Address"
+                                            value={newRef.address}
+                                            onChange={e => setNewRef({...newRef, address: e.target.value})}
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                if(!newRef.name || !newRef.mobile) return alert('Name & Mobile required');
+                                                dispatch(createReference(newRef)).then((res) => {
+                                                    if(!res.error) {
+                                                        // Update formData with new reference
+                                                        setFormData(prev => ({ 
+                                                            ...prev, 
+                                                            reference: newRef.name,
+                                                            referenceContact: newRef.mobile,
+                                                            referenceAddress: newRef.address
+                                                        }));
+                                                        setShowRefModal(false);
+                                                        setNewRef({ name: '', mobile: '', address: '' });
+                                                    }
+                                                });
+                                            }}
+                                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+                                        >
+                                            Save Reference
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
+
         </div>
     );
 };

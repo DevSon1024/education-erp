@@ -6,7 +6,7 @@ import {
     fetchSubjects, resetMasterStatus 
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
-import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye } from 'lucide-react';
+import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye, Upload } from 'lucide-react';
 
 const CourseMaster = () => {
   const dispatch = useDispatch();
@@ -19,6 +19,7 @@ const CourseMaster = () => {
   // Subject Selection State: { subjectId: sortOrder }
   const [selectedSubjectMap, setSelectedSubjectMap] = useState({});
   const [viewingSubjects, setViewingSubjects] = useState(null); // For viewing subjects in table
+  const [previewImage, setPreviewImage] = useState(null); // Image Preview State
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   
@@ -63,6 +64,7 @@ const CourseMaster = () => {
   const closeForm = () => {
       reset();
       setSelectedSubjectMap({});
+      setPreviewImage(null);
       setIsEditing(false);
       setCurrentCourseId(null);
       setShowForm(false);
@@ -109,6 +111,12 @@ const CourseMaster = () => {
       setSelectedSubjectMap(subjMap);
 
       setCurrentCourseId(course._id);
+      
+      if (course.image) {
+          setPreviewImage(course.image);
+          setValue('image', course.image); // Keep existing URL if not changed
+      }
+      
       setIsEditing(true);
       setShowForm(true);
   };
@@ -350,8 +358,29 @@ const CourseMaster = () => {
                             <input type="number" {...register('sorting')} className="input-field" placeholder="0"/>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="label">Image URL</label>
-                            <input {...register('image')} className="input-field" placeholder="https://..."/>
+                            <label className="label">Course Image</label>
+                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition relative overflow-hidden">
+                                {previewImage ? (
+                                    <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                                        <p className="text-xs text-center text-gray-500 font-semibold">Click to upload or drag and drop</p>
+                                    </div>
+                                )}
+                                <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setPreviewImage(URL.createObjectURL(file));
+                                            setValue('image', file);
+                                        }
+                                    }}
+                                />
+                            </label>
                         </div>
 
                         {/* Row 5: Descriptions */}
@@ -421,7 +450,7 @@ const CourseMaster = () => {
 
                 <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 shrink-0">
                     <button type="button" onClick={closeForm} className="px-4 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
-                    <button type="button" onClick={() => {reset(); setSelectedSubjectMap({})}} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium">Reset</button>
+                    <button type="button" onClick={() => {reset(); setSelectedSubjectMap({}); setPreviewImage(null);}} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium">Reset</button>
                     <button onClick={handleSubmit(onSubmit)} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 shadow text-sm font-bold transition">
                         {isEditing ? 'Update Course' : 'Save Course'}
                     </button>

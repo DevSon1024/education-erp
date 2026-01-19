@@ -89,10 +89,24 @@ studentSchema.index({ name: "text" }); // Enable text search on name if needed, 
 // Middleware for Enrollment No
 studentSchema.pre("save", async function () {
   if (this.isNew && !this.enrollmentNo) {
-    const count = await mongoose.model("Student").countDocuments();
-    this.enrollmentNo = `ENR${new Date().getFullYear()}${String(
-      count + 1
-    ).padStart(4, "0")}`;
+    const currentYear = new Date().getFullYear();
+    const prefix = `ENR${currentYear}`;
+    
+    // Find the latest enrollment number for the current year
+    const lastStudent = await mongoose.model("Student").findOne({
+      enrollmentNo: { $regex: `^${prefix}` }
+    }).sort({ enrollmentNo: -1 });
+
+    let nextNum = 1;
+    if (lastStudent && lastStudent.enrollmentNo) {
+      const lastNumStr = lastStudent.enrollmentNo.replace(prefix, '');
+      const lastNum = parseInt(lastNumStr, 10);
+      if (!isNaN(lastNum)) {
+        nextNum = lastNum + 1;
+      }
+    }
+
+    this.enrollmentNo = `${prefix}${String(nextNum).padStart(4, "0")}`;
   }
 });
 
