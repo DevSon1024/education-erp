@@ -5,70 +5,7 @@ import { logout } from '../../features/auth/authSlice';
 import { fetchMyPermissions } from '../../features/userRights/userRightsSlice';
 import { Menu, X, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// Transaction menu with nested structure
-const TRANSACTION_MENU = [
-  {
-    title: 'Inquiry',
-    hasSubOptions: true,
-    subOptions: [
-      { name: 'Online', path: '/transaction/inquiry/online' },
-      { name: 'Offline', path: '/transaction/inquiry/offline' },
-      { name: 'DSR', path: '/transaction/inquiry/dsr' }
-    ]
-  },
-  {
-    title: 'Visitors',
-    hasSubOptions: true,
-    subOptions: [
-      { name: 'Todays Visitors List', path: '/transaction/visitors/todays-list' },
-      { name: 'Todays Visited Report', path: '/transaction/visitors/todays-report' },
-      { name: 'Visitors', path: '/transaction/visitors' }
-    ]
-  },
-  {
-    title: 'Attendance',
-    hasSubOptions: true,
-    subOptions: [
-      { name: 'Student', path: '/transaction/attendance/student' },
-      { name: 'Employee', path: '/transaction/attendance/employee' }
-    ]
-  },
-  { title: 'Student Admission', path: '/master/student/new', hasSubOptions: false },
-  { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees', hasSubOptions: false },
-  { title: 'Pending Student Registration', path: '/transaction/pending-registration', hasSubOptions: false },
-  { title: 'Student Cancellation', path: '/transaction/student-cancellation', hasSubOptions: false },
-  { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false },
-
-];
-
-const BASE_MENU_ITEMS = [
-  {
-    title: 'Home',
-    path: '/home',
-    subItems: [] 
-  },
-  { 
-    title: 'Master', 
-    path: '/master',
-    subItems: ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'Exam Request List', 'Exam Schedule', 'Exam Result', 'Manage News'] 
-  },
-  { 
-    title: 'Transaction', 
-    path: '/transaction',
-    isCustom: true,
-    customMenu: TRANSACTION_MENU,
-    subItems: []
-  },
-  { 
-    title: 'Reports', 
-    path: '/reports',
-    subItems: ['Ledger', 'Monthly Report', 'Admission Form'] 
-  },
-  { title: 'Blog', path: '/blog', subItems: ['Manage Blogs', 'Comments'] },
-  { title: 'Connect', path: '/connect', subItems: ['Video Call', 'Inquiry List'] },
-  { title: 'Utility', path: '/utility', subItems: ['Downloads', 'Free Learning'] },
-];
+import { MENU_CONFIG } from '../../utils/menuConfig';
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -119,22 +56,37 @@ const Navbar = () => {
     if (!user) return;
 
     if (user.role === 'Super Admin') {
-      const adminMenu = BASE_MENU_ITEMS.map(item => {
-        if (item.title === 'Master') {
-          return item.subItems.includes('User Rights') ? item : { ...item, subItems: [...item.subItems, 'User Rights'] };
-        }
-        return item;
-      });
-      setFilteredMenu(adminMenu);
+      setFilteredMenu(MENU_CONFIG);
       return;
     }
 
-    const newMenu = BASE_MENU_ITEMS.map(item => {
-      if (item.title === 'Home') return item;
-      if (item.isCustom) return item;
-
+    // Filter menu based on permissions
+    const newMenu = MENU_CONFIG.map(item => {
+      if (item.type === 'single') return item;
+      
       const visibleSubItems = item.subItems ? item.subItems.filter(sub => {
-        const perm = myPermissions.find(p => p.page === sub);
+        // Handle nested items (e.g. Transaction -> Inquiry -> Online)
+        if (sub.type === 'nested') {
+             // Check if ANY of the nested items are permitted. 
+             // Ideally we filter the nested items themselves too.
+             const visibleNested = sub.subItems.filter(nested => {
+                 const pageName = `${sub.title} - ${nested.title}`;
+                 const perm = myPermissions.find(p => p.page === pageName);
+                 return perm && perm.view === true;
+             });
+             
+             // If we have visible nested items, we keep this parent sub-item, 
+             // BUT we should probably modify it to only contain the visible nested ones.
+             // For simplicity in this map/filter structure, we'll mutate a copy if needed or just return true/false
+             // A better approach is to map then filter.
+             if (visibleNested.length > 0) {
+                 sub.filteredSubItems = visibleNested; // Temporary property
+                 return true;
+             }
+             return false;
+        }
+
+        const perm = myPermissions.find(p => p.page === sub.title);
         return perm && perm.view === true;
       }) : [];
 
@@ -145,25 +97,26 @@ const Navbar = () => {
     setFilteredMenu(newMenu);
   }, [user, myPermissions]);
 
-  const TransactionDropdown = ({ isHovered, isMobile = false }) => {
+  const TransactionDropdown = ({ isHovered, isMobile = false, item }) => {
     // Mobile View
     if (isMobile) {
       return (
         <div className="bg-gray-50 border-t border-gray-100">
-          {TRANSACTION_MENU.map((item, idx) => (
+          {item.subItems.map((sub, idx) => (
             <div key={idx} className="border-b border-gray-200 last:border-0 border-dashed">
-              {item.hasSubOptions ? (
+              {sub.type === 'nested' ? (
                 <div>
-                  <button onClick={() => toggleSubItem(item.title)} className="w-full flex items-center justify-between px-6 py-3 text-sm text-gray-700 hover:text-primary hover:bg-blue-50 transition-colors font-medium">
-                    <span>{item.title}</span>
-                    <ChevronRight size={16} className={`transition-transform duration-200 ${expandedSubItems[item.title] ? 'rotate-90' : ''}`} />
+                  <button onClick={() => toggleSubItem(sub.title)} className="w-full flex items-center justify-between px-6 py-3 text-sm text-gray-700 hover:text-primary hover:bg-blue-50 transition-colors font-medium">
+                    <span>{sub.title}</span>
+                    <ChevronRight size={16} className={`transition-transform duration-200 ${expandedSubItems[sub.title] ? 'rotate-90' : ''}`} />
                   </button>
                   <AnimatePresence>
-                    {expandedSubItems[item.title] && (
+                    {expandedSubItems[sub.title] && (
                       <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="bg-white overflow-hidden border-t border-gray-100">
-                        {item.subOptions.map((subOpt, subIdx) => (
-                          <Link key={subIdx} to={subOpt.path} className="block px-10 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 border-l-4 border-transparent hover:border-primary transition-all" onClick={() => setIsMobileMenuOpen(false)}>
-                            {subOpt.name}
+                        {/* Use filteredSubItems if available (from permission logic), else subItems */}
+                        {(sub.filteredSubItems || sub.subItems).map((nested, nestedIdx) => (
+                          <Link key={nestedIdx} to={nested.path} className="block px-10 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 border-l-4 border-transparent hover:border-primary transition-all" onClick={() => setIsMobileMenuOpen(false)}>
+                            {nested.title}
                           </Link>
                         ))}
                       </motion.div>
@@ -171,8 +124,8 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
               ) : (
-                <Link to={item.path} className="block px-6 py-3 text-sm text-gray-700 hover:text-primary hover:bg-blue-50 transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                  {item.title}
+                <Link to={sub.path} className="block px-6 py-3 text-sm text-gray-700 hover:text-primary hover:bg-blue-50 transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                  {sub.title}
                 </Link>
               )}
             </div>
@@ -190,39 +143,39 @@ const Navbar = () => {
             animate={{ opacity: 1, y: 0 }} 
             exit={{ opacity: 0, y: 10 }} 
             transition={{ duration: 0.2 }} 
-            className="absolute left-0 top-full pt-2 w-64 z-50" // Aligned left naturally
+            className="absolute left-0 top-full pt-2 w-64 z-50" 
           >
             <div className="bg-white text-gray-800 shadow-xl rounded-md overflow-hidden border border-gray-200 ring-1 ring-black/5">
               <div className="h-1 bg-primary w-full"></div>
-              {TRANSACTION_MENU.map((item, idx) => (
+              {item.subItems.map((sub, idx) => (
                 <div key={idx} className="border-b border-gray-100 last:border-0">
-                  {item.hasSubOptions ? (
+                  {sub.type === 'nested' ? (
                     <div className="group/item relative">
                        {/* Nested Submenu Trigger */}
                       <button 
-                        onClick={() => toggleSubItem(item.title)} 
+                        onClick={() => toggleSubItem(sub.title)} 
                         className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
                       >
-                        <span>{item.title}</span>
+                        <span>{sub.title}</span>
                         <ChevronDown size={14}/> 
                       </button>
                       
-                       {/* Nested Submenu Display (Simple Expansion for now to avoid complexity or side popout) */}
+                       {/* Nested Submenu Display */}
                         <div className="bg-gray-50 border-t border-gray-100 hidden group-hover/item:block">
-                           {item.subOptions.map((subOpt, subIdx) => (
-                              <Link key={subIdx} to={subOpt.path} 
+                           {(sub.filteredSubItems || sub.subItems).map((nested, nestedIdx) => (
+                              <Link key={nestedIdx} to={nested.path} 
                                 onClick={() => setHoveredMenu(null)}
                                 className="block px-6 py-2 text-xs font-semibold text-gray-600 hover:text-primary hover:bg-blue-50">
-                                {subOpt.name}
+                                {nested.title}
                               </Link>
                             ))}
                         </div>
                     </div>
                   ) : (
-                    <Link to={item.path} 
+                    <Link to={sub.path} 
                         onClick={() => setHoveredMenu(null)}
                         className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
-                      {item.title}
+                      {sub.title}
                     </Link>
                   )}
                 </div>
@@ -267,7 +220,7 @@ const Navbar = () => {
                                 <ChevronDown size={14} className={`transition-transform duration-200 ${hoveredMenu === index ? 'rotate-180 text-primary' : 'text-gray-400'}`}/>
                             </button>
                             {/* Dropdowns */}
-                            {item.isCustom ? <TransactionDropdown isHovered={hoveredMenu === index} /> : (
+                            {item.isCustom ? <TransactionDropdown isHovered={hoveredMenu === index} item={item} /> : (
                                 <AnimatePresence>
                                 {hoveredMenu === index && (
                                     <motion.div 
@@ -281,10 +234,10 @@ const Navbar = () => {
                                         <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
                                         <div className="py-2">
                                             {item.subItems.map((sub, subIdx) => (
-                                                <Link key={subIdx} to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`} 
+                                                <Link key={subIdx} to={sub.path} 
                                                     onClick={() => setHoveredMenu(null)}
                                                     className="block px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary transition-all border-l-4 border-transparent hover:border-primary">
-                                                    {sub}
+                                                    {sub.title}
                                                 </Link>
                                             ))}
                                         </div>
@@ -339,11 +292,11 @@ const Navbar = () => {
                                     {item.title}
                                     <ChevronDown size={14} className="text-gray-400"/>
                                 </div>
-                                {item.isCustom ? <TransactionDropdown isMobile={true} /> : (
+                                {item.isCustom ? <TransactionDropdown isMobile={true} item={item} /> : (
                                     <div className="bg-white">
                                     {item.subItems.map((sub, subIdx) => (
-                                        <Link key={subIdx} to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`} className="block px-8 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0" onClick={() => setIsMobileMenuOpen(false)}>
-                                        {sub}
+                                        <Link key={subIdx} to={sub.path} className="block px-8 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0" onClick={() => setIsMobileMenuOpen(false)}>
+                                        {sub.title}
                                         </Link>
                                     ))}
                                     </div>

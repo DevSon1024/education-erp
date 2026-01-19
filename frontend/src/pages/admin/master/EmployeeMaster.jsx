@@ -5,6 +5,8 @@ import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, resetEm
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw } from 'lucide-react';
 
+import { useUserRights } from '../../../hooks/useUserRights';
+
 const EmployeeMaster = () => {
   const dispatch = useDispatch();
   const { employees, isSuccess, isError, message } = useSelector((state) => state.employees);
@@ -15,6 +17,12 @@ const EmployeeMaster = () => {
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const watchName = watch('name');
+
+  // Permission Check
+  const { view, add, edit, delete: canDelete } = useUserRights('Employee');
+
+  // If view is false, we might want to redirect or show a message.
+  // For now, we just proceed but the list might be useless if they can't even see the page link in Navbar.
 
   // --- FILTERS STATE ---
   const initialFilters = {
@@ -70,14 +78,15 @@ const EmployeeMaster = () => {
   };
 
   const onSubmit = (data) => {
-    if (editMode) {
+    if (editMode && edit) {
         dispatch(updateEmployee({ id: currentId, data }));
-    } else {
+    } else if (add) {
         dispatch(createEmployee(data));
     }
   };
 
   const handleEdit = (emp) => {
+      if(!edit) return;
       setEditMode(true);
       setCurrentId(emp._id);
       setShowForm(true);
@@ -91,6 +100,7 @@ const EmployeeMaster = () => {
   };
 
   const handleDelete = (id) => {
+      if(!canDelete) return;
       if(window.confirm("Are you sure you want to delete this employee?")) {
           dispatch(deleteEmployee(id));
       }
@@ -114,12 +124,14 @@ const EmployeeMaster = () => {
       {/* --- Header --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Employees</h1>
-        <button 
-            onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
-            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold"
-        >
-            <Plus size={20}/> Add New Employee
-        </button>
+        {add && (
+            <button 
+                onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
+                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold"
+            >
+                <Plus size={20}/> Add New Employee
+            </button>
+        )}
       </div>
 
       {/* --- FILTER SECTION --- */}
@@ -221,7 +233,7 @@ const EmployeeMaster = () => {
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Role</th>
                     <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Joining Date</th>
                     <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
-                    <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>
+                    {(edit || canDelete) && <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>}
                 </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -243,10 +255,12 @@ const EmployeeMaster = () => {
                                 <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold">INACTIVE</span>
                             }
                         </td>
-                        <td className="px-4 py-3 text-right flex justify-end gap-2">
-                            <button onClick={() => handleEdit(emp)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit size={16}/></button>
-                            <button onClick={() => handleDelete(emp._id)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>
-                        </td>
+                        {(edit || canDelete) && (
+                            <td className="px-4 py-3 text-right flex justify-end gap-2">
+                                {edit && <button onClick={() => handleEdit(emp)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit size={16}/></button>}
+                                {canDelete && <button onClick={() => handleDelete(emp._id)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>}
+                            </td>
+                        )}
                     </tr>
                 )) : (
                     <tr><td colSpan="7" className="text-center py-8 text-gray-400">No employees found matching criteria</td></tr>

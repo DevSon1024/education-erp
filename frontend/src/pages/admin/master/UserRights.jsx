@@ -4,23 +4,7 @@ import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import { fetchUserRights, saveUserRights, resetRightsState } from '../../../features/userRights/userRightsSlice';
 import { toast } from 'react-toastify';
 import { Save, RefreshCw, CheckSquare, Square } from 'lucide-react';
-
-// Map Menu Titles to the specific Page Names used in the DB
-const SECTIONS = {
-  'Master': ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'User Rights'],
-  'Transaction': ['Admission', 'Fees Receipt', 'Inquiry'],
-  'Reports': ['Ledger', 'Monthly Report', 'Admission Form'],
-  'Blog': ['Manage Blogs', 'Comments'],
-  'Connect': ['Video Call', 'Inquiry List'],
-  'Utility': ['Downloads', 'Free Learning']
-};
-
-const TEMPLATES = {
-  'Manager': { view: true, add: true, edit: true, delete: false },
-  'Teacher': { view: true, add: true, edit: false, delete: false },
-  'Receptionist': { view: true, add: true, edit: false, delete: false },
-  'Super Admin': { view: true, add: true, edit: true, delete: true },
-};
+import { getMenuSections } from '../../../utils/menuConfig';
 
 const UserRights = () => {
   const dispatch = useDispatch();
@@ -29,6 +13,7 @@ const UserRights = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [permissions, setPermissions] = useState([]);
   const [activeTab, setActiveTab] = useState('Master'); // Default Tab
+  const [sections, setSections] = useState({});
 
   // Redux State
   const { employees } = useSelector((state) => state.employees);
@@ -36,6 +21,7 @@ const UserRights = () => {
 
   useEffect(() => {
     dispatch(fetchEmployees());
+    setSections(getMenuSections());
   }, [dispatch]);
 
   useEffect(() => {
@@ -49,7 +35,7 @@ const UserRights = () => {
   useEffect(() => {
     if (rights && rights.permissions) {
       // Flatten all pages from SECTIONS to ensure we have a complete list
-      const allPages = Object.values(SECTIONS).flat();
+      const allPages = Object.values(sections).flat();
       
       const mergedPermissions = allPages.map(page => {
         const existing = rights.permissions.find(p => p.page === page);
@@ -57,7 +43,14 @@ const UserRights = () => {
       });
       setPermissions(mergedPermissions);
     }
-  }, [rights]);
+  }, [rights, sections]);
+
+const TEMPLATES = {
+  'Manager': { view: true, add: true, edit: true, delete: false },
+  'Teacher': { view: true, add: true, edit: false, delete: false },
+  'Receptionist': { view: true, add: true, edit: false, delete: false },
+  'Super Admin': { view: true, add: true, edit: true, delete: true },
+};
 
   const handleEmployeeChange = (e) => {
     const empId = e.target.value;
@@ -107,7 +100,7 @@ const UserRights = () => {
 
   // Select all options for a specific column (Action) - ONLY FOR CURRENT TAB
   const handleColumnSelectAll = (field, isChecked) => {
-    const visiblePages = SECTIONS[activeTab];
+    const visiblePages = sections[activeTab] || [];
     setPermissions(prev => prev.map(p => {
       if (visiblePages.includes(p.page)) {
         return { ...p, [field]: isChecked };
@@ -124,7 +117,7 @@ const UserRights = () => {
   };
 
   // Filter permissions based on active tab
-  const visiblePermissions = permissions.filter(p => SECTIONS[activeTab]?.includes(p.page));
+  const visiblePermissions = permissions.filter(p => sections[activeTab]?.includes(p.page));
 
   return (
     <div className="container mx-auto p-6">
@@ -171,7 +164,7 @@ const UserRights = () => {
           
           {/* Tabs Section */}
           <div className="flex overflow-x-auto bg-gray-50 border-b scrollbar-hide">
-            {Object.keys(SECTIONS).map((tab) => (
+            {Object.keys(sections).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
