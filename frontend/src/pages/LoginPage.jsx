@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,11 +9,10 @@ import { User, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = React.useState(false);
   const { user, isLoading, isError, isSuccess, message } = useSelector(
     (state) => state.auth
   );
-
-  const [showPassword, setShowPassword] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -80,7 +79,7 @@ const LoginPage = () => {
             {errors.email && <span className="text-xs text-red-500 mt-1">{errors.email.message}</span>}
           </div>
 
-          {/* Password Field */}
+    {/* Password Field */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
             <div className="relative">
@@ -95,7 +94,7 @@ const LoginPage = () => {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

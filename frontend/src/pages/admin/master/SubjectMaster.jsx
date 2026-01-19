@@ -4,13 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchSubjects, createSubject, updateSubject, deleteSubject, resetMasterStatus } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, BookOpen, Edit, Trash2, Loader, Eye, RotateCcw } from 'lucide-react';
-import useUserRights from '../../../hooks/useUserRights';
 
 const SubjectMaster = () => {
   const dispatch = useDispatch();
   const { subjects, isSuccess, isLoading, message } = useSelector((state) => state.master);
-  
-  const { canAdd, canEdit, canDelete } = useUserRights('Subject');
   
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -93,14 +90,12 @@ const SubjectMaster = () => {
       {/* --- Header & Add Button --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Subjects</h1>
-        {canAdd && (
-            <button 
-                onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
-                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold transition-all"
-            >
-                <Plus size={20}/> Add New Subject
-            </button>
-        )}
+        <button 
+            onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
+            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold transition-all"
+        >
+            <Plus size={20}/> Add New Subject
+        </button>
       </div>
 
       {/* --- Filter Section --- */}
@@ -174,18 +169,14 @@ const SubjectMaster = () => {
                             }
                         </td>
                         <td className="px-6 py-4 text-center">
-                            {canEdit && (
-                                <button onClick={() => handleEdit(sub)} className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-2 rounded-full transition">
-                                    <Edit size={18}/>
-                                </button>
-                            )}
+                            <button onClick={() => handleEdit(sub)} className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-2 rounded-full transition">
+                                <Edit size={18}/>
+                            </button>
                         </td>
                         <td className="px-6 py-4 text-center">
-                            {canDelete && (
-                                <button onClick={() => handleDelete(sub._id)} className="text-red-600 hover:text-red-900 hover:bg-red-100 p-2 rounded-full transition">
-                                    <Trash2 size={18}/>
-                                </button>
-                            )}
+                            <button onClick={() => handleDelete(sub._id)} className="text-red-600 hover:text-red-900 hover:bg-red-100 p-2 rounded-full transition">
+                                <Trash2 size={18}/>
+                            </button>
                         </td>
                     </tr>
                 )) : (

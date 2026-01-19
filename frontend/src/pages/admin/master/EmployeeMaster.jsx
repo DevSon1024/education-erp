@@ -4,14 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, resetEmployeeStatus } from '../../../features/employee/employeeSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw } from 'lucide-react';
-import useUserRights from '../../../hooks/useUserRights';
 
 const EmployeeMaster = () => {
   const dispatch = useDispatch();
   const { employees, isSuccess, isError, message } = useSelector((state) => state.employees);
-  
-  const { canAdd, canEdit, canDelete } = useUserRights('Employee');
-  
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -118,14 +114,12 @@ const EmployeeMaster = () => {
       {/* --- Header --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Employees</h1>
-        {canAdd && (
-            <button 
-                onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
-                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold"
-            >
-                <Plus size={20}/> Add New Employee
-            </button>
-        )}
+        <button 
+            onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
+            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold"
+        >
+            <Plus size={20}/> Add New Employee
+        </button>
       </div>
 
       {/* --- FILTER SECTION --- */}
@@ -250,8 +244,8 @@ const EmployeeMaster = () => {
                             }
                         </td>
                         <td className="px-4 py-3 text-right flex justify-end gap-2">
-                            {canEdit && <button onClick={() => handleEdit(emp)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit size={16}/></button>}
-                            {canDelete && <button onClick={() => handleDelete(emp._id)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>}
+                            <button onClick={() => handleEdit(emp)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit size={16}/></button>
+                            <button onClick={() => handleDelete(emp._id)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>
                         </td>
                     </tr>
                 )) : (

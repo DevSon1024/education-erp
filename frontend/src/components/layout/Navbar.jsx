@@ -6,7 +6,69 @@ import { fetchMyPermissions } from '../../features/userRights/userRightsSlice';
 import { Menu, X, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { BASE_MENU_ITEMS, TRANSACTION_MENU } from '../../utils/menuConfig';
+// Transaction menu with nested structure
+const TRANSACTION_MENU = [
+  {
+    title: 'Inquiry',
+    hasSubOptions: true,
+    subOptions: [
+      { name: 'Online', path: '/transaction/inquiry/online' },
+      { name: 'Offline', path: '/transaction/inquiry/offline' },
+      { name: 'DSR', path: '/transaction/inquiry/dsr' }
+    ]
+  },
+  {
+    title: 'Visitors',
+    hasSubOptions: true,
+    subOptions: [
+      { name: 'Todays Visitors List', path: '/transaction/visitors/todays-list' },
+      { name: 'Todays Visited Report', path: '/transaction/visitors/todays-report' },
+      { name: 'Visitors', path: '/transaction/visitors' }
+    ]
+  },
+  {
+    title: 'Attendance',
+    hasSubOptions: true,
+    subOptions: [
+      { name: 'Student', path: '/transaction/attendance/student' },
+      { name: 'Employee', path: '/transaction/attendance/employee' }
+    ]
+  },
+  { title: 'Student Admission', path: '/master/student/new', hasSubOptions: false },
+  { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees', hasSubOptions: false },
+  { title: 'Pending Student Registration', path: '/transaction/pending-registration', hasSubOptions: false },
+  { title: 'Student Cancellation', path: '/transaction/student-cancellation', hasSubOptions: false },
+  { title: 'Fees Receipt', path: '/transaction/fees-receipt', hasSubOptions: false },
+
+];
+
+const BASE_MENU_ITEMS = [
+  {
+    title: 'Home',
+    path: '/home',
+    subItems: [] 
+  },
+  { 
+    title: 'Master', 
+    path: '/master',
+    subItems: ['Student', 'Employee', 'Batch', 'Course', 'Subject', 'Exam Request List', 'Exam Schedule', 'Exam Result', 'Manage News'] 
+  },
+  { 
+    title: 'Transaction', 
+    path: '/transaction',
+    isCustom: true,
+    customMenu: TRANSACTION_MENU,
+    subItems: []
+  },
+  { 
+    title: 'Reports', 
+    path: '/reports',
+    subItems: ['Ledger', 'Monthly Report', 'Admission Form'] 
+  },
+  { title: 'Blog', path: '/blog', subItems: ['Manage Blogs', 'Comments'] },
+  { title: 'Connect', path: '/connect', subItems: ['Video Call', 'Inquiry List'] },
+  { title: 'Utility', path: '/utility', subItems: ['Downloads', 'Free Learning'] },
+];
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -17,14 +79,33 @@ const Navbar = () => {
   const location = useLocation();
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [hoveredMenu, setHoveredMenu] = useState(null); // Acts as "activeMenu" for click behavior
   const [filteredMenu, setFilteredMenu] = useState([]);
   const [expandedSubItems, setExpandedSubItems] = useState({});
+  const navRef = React.useRef(null);
 
   const handleLogout = async () => {
     await dispatch(logout());
     navigate('/');
   };
+
+  const handleMenuClick = (index) => {
+    setHoveredMenu(hoveredMenu === index ? null : index);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setHoveredMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const toggleSubItem = (title) => {
     setExpandedSubItems(prev => ({ ...prev, [title]: !prev[title] }));
@@ -110,8 +191,6 @@ const Navbar = () => {
             exit={{ opacity: 0, y: 10 }} 
             transition={{ duration: 0.2 }} 
             className="absolute left-0 top-full pt-2 w-64 z-50" // Aligned left naturally
-            onMouseEnter={() => setHoveredMenu(filteredMenu.findIndex(m => m.title === 'Transaction'))} 
-            onMouseLeave={() => setHoveredMenu(null)}
           >
             <div className="bg-white text-gray-800 shadow-xl rounded-md overflow-hidden border border-gray-200 ring-1 ring-black/5">
               <div className="h-1 bg-primary w-full"></div>
@@ -131,14 +210,18 @@ const Navbar = () => {
                        {/* Nested Submenu Display (Simple Expansion for now to avoid complexity or side popout) */}
                         <div className="bg-gray-50 border-t border-gray-100 hidden group-hover/item:block">
                            {item.subOptions.map((subOpt, subIdx) => (
-                              <Link key={subIdx} to={subOpt.path} className="block px-6 py-2 text-xs font-semibold text-gray-600 hover:text-primary hover:bg-blue-50">
+                              <Link key={subIdx} to={subOpt.path} 
+                                onClick={() => setHoveredMenu(null)}
+                                className="block px-6 py-2 text-xs font-semibold text-gray-600 hover:text-primary hover:bg-blue-50">
                                 {subOpt.name}
                               </Link>
                             ))}
                         </div>
                     </div>
                   ) : (
-                    <Link to={item.path} className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                    <Link to={item.path} 
+                        onClick={() => setHoveredMenu(null)}
+                        className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
                       {item.title}
                     </Link>
                   )}
@@ -169,13 +252,14 @@ const Navbar = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1 h-full">
+            <nav className="hidden lg:flex items-center gap-1 h-full" ref={navRef}>
                 {filteredMenu.map((item, index) => (
-                    <div key={index} className="relative h-full flex items-center px-1" onMouseEnter={() => setHoveredMenu(index)} onMouseLeave={() => setHoveredMenu(null)}>
+                    <div key={index} className="relative h-full flex items-center px-1">
                     {/* FIX: Safely check for subItems using optional chaining */}
                     {(item.subItems?.length > 0) || item.isCustom ? (
                         <>
                             <button 
+                                onClick={() => handleMenuClick(index)}
                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-bold transition-all duration-200 
                                 ${hoveredMenu === index ? 'text-primary bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
                             >
@@ -197,7 +281,9 @@ const Navbar = () => {
                                         <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
                                         <div className="py-2">
                                             {item.subItems.map((sub, subIdx) => (
-                                                <Link key={subIdx} to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`} className="block px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary transition-all border-l-4 border-transparent hover:border-primary">
+                                                <Link key={subIdx} to={`${item.path}/${sub.toLowerCase().replace(/\s+/g, '-')}`} 
+                                                    onClick={() => setHoveredMenu(null)}
+                                                    className="block px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary transition-all border-l-4 border-transparent hover:border-primary">
                                                     {sub}
                                                 </Link>
                                             ))}
@@ -211,6 +297,7 @@ const Navbar = () => {
                     ) : (
                         <Link 
                             to={item.path} 
+                            onClick={() => setHoveredMenu(null)}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-bold transition-all duration-200 
                             ${location.pathname.startsWith(item.path) ? 'text-primary bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
