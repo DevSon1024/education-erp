@@ -1,10 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/master/';
-
-// for production use uncomment below one line
-// const API_URL = '/api/master/';
+const API_URL = import.meta.env.VITE_API_URL + '/master/';
 axios.defaults.withCredentials = true;
 
 // --- Course Thunks ---
