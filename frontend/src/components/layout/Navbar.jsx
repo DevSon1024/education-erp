@@ -68,6 +68,9 @@ const Navbar = () => {
       if (item.type === 'single') return item;
       
       const visibleSubItems = item.subItems ? item.subItems.filter(sub => {
+        // Explicitly hide restricted items for non-Super Admins
+        if (sub.restricted) return false;
+
         // Handle nested items (e.g. Transaction -> Inquiry -> Online)
         if (sub.type === 'nested') {
              // Check if ANY of the nested items are permitted. 

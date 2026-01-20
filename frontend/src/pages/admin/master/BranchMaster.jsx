@@ -108,10 +108,7 @@ const BranchMaster = () => {
         });
     };
 
-    // Access Control check (extra safety)
-    if (user && user.role !== 'Super Admin') {
-        return <div className="p-8 text-center text-red-600 font-bold">Access Denied. Super Admin only.</div>;
-    }
+
 
     const filteredBranches = Array.isArray(branches) ? branches.filter(branch => 
         branch && (
