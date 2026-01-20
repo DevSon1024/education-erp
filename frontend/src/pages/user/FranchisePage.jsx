@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin, 
@@ -10,45 +10,46 @@ import { motion } from 'framer-motion';
 // Import logo from assets
 import logoImage from '../../assets/logo2.png';
 
+import axios from 'axios';
+
 const FranchisePage = () => {
-  const [selectedState, setSelectedState] = useState('Gujarat');
-  const [selectedCity, setSelectedCity] = useState('Surat');
-  const [showFranchise, setShowFranchise] = useState(true);
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [showFranchise, setShowFranchise] = useState(false);
+  const [branches, setBranches] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState({});
 
-  const states = [
-    'Gujarat', 'Maharashtra', 'Rajasthan', 'Madhya Pradesh', 
-    'Uttar Pradesh', 'Delhi', 'Karnataka', 'Tamil Nadu'
-  ];
+  useEffect(() => {
+      const fetchBranches = async () => {
+          try {
+              const { data } = await axios.get('/api/branches/public'); // Use relative path via proxy
+              // Actually, use relative path if proxy is set. The user mentioned proxy in vite config.
+              // Let's us '/api/branches/public' assuming proxy works.
+              // But wait, the user's vite config had proxy.
+              
+              setBranches(data);
 
-  const cities = {
-    'Gujarat': ['Surat', 'Ahmedabad', 'Vadodara', 'Rajkot', 'Gandhinagar'],
-    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Aurangabad'],
-    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer'],
-    'Madhya Pradesh': ['Bhopal', 'Indore', 'Gwalior', 'Jabalpur', 'Ujjain'],
-    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Ghaziabad', 'Agra', 'Varanasi'],
-    'Delhi': ['New Delhi', 'North Delhi', 'South Delhi', 'East Delhi', 'West Delhi'],
-    'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum'],
-    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem']
-  };
+              // Extract unique states
+              const uniqueStates = [...new Set(data.map(b => b.state).filter(Boolean))];
+              setStates(uniqueStates);
 
-  const franchiseLocations = [
-    {
-      name: 'Godadara',
-      address: '1st & 2nd Floor, 50 Kuber Nagar, Opp. Baba Baijnath Mandir, Nilgiri Road, Aas Pass Circle, Godadara, Surat, Gujarat-395010 (INDIA)',
-      phone: '9898830409',
-      mobile: '9601749300',
-      state: 'Gujarat',
-      city: 'Surat'
-    },
-    {
-      name: 'Bhestan',
-      address: '309-A, 309-B, 3rd Floor, Sai Square Building, Bhestan Circle, Bhestan Surat Gujarat-395023 (INDIA)',
-      phone: '9601749300',
-      mobile: '9898830409',
-      state: 'Gujarat',
-      city: 'Surat'
-    }
-  ];
+              // Map cities by state
+              const cityMap = {};
+              data.forEach(b => {
+                  if (b.state && b.city) {
+                      if (!cityMap[b.state]) cityMap[b.state] = [];
+                      if (!cityMap[b.state].includes(b.city)) cityMap[b.state].push(b.city);
+                  }
+              });
+              setCities(cityMap);
+
+          } catch (error) {
+              console.error("Failed to fetch branches:", error);
+          }
+      };
+      fetchBranches();
+  }, []);
 
   const benefits = [
     {
@@ -105,7 +106,7 @@ const FranchisePage = () => {
     }
   };
 
-  const filteredFranchises = franchiseLocations.filter(
+  const filteredFranchises = branches.filter(
     franchise => franchise.state === selectedState && franchise.city === selectedCity
   );
 

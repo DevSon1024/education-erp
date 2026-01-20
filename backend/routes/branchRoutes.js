@@ -5,9 +5,13 @@ const {
     getBranches,
     getBranchById,
     updateBranch,
-    deleteBranch
+    deleteBranch,
+    getPublicBranches
 } = require('../controllers/branchController');
 const { protect, admin } = require('../middlewares/authMiddleware'); // Assuming these exist
+
+// Public Routes
+router.get('/public', getPublicBranches);
 
 // Apply protect middleware to all routes
 router.use(protect);

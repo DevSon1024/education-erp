@@ -45,6 +45,14 @@ const getBranches = asyncHandler(async (req, res) => {
     res.json(branches);
 });
 
+// @desc    Get all active branches for public view
+// @route   GET /api/branches/public
+// @access  Public
+const getPublicBranches = asyncHandler(async (req, res) => {
+    const branches = await Branch.find({ isActive: true }).select('-createdAt -updatedAt -__v').sort({ state: 1, city: 1 });
+    res.json(branches);
+});
+
 // @desc    Get branch by ID
 // @route   GET /api/branches/:id
 // @access  Private
@@ -121,5 +129,6 @@ module.exports = {
     getBranches,
     getBranchById,
     updateBranch,
-    deleteBranch
+    deleteBranch,
+    getPublicBranches
 };
