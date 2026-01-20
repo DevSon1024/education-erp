@@ -30,6 +30,7 @@ const inquirySchema = new mongoose.Schema(
 
     // Inquiry Specifics
     interestedCourse: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
+    branchId: { type: mongoose.Schema.Types.ObjectId, ref: "Branch" }, // Added for branch scoping
 
     // System Source (Defines if it's DSR, Walk-in/Offline, etc.)
     source: {

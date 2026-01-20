@@ -3,6 +3,7 @@ const User = require('../models/User');
 const FeeReceipt = require('../models/FeeReceipt'); 
 const Course = require('../models/Course');
 const Batch = require('../models/Batch'); 
+const Branch = require('../models/Branch'); 
 const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
 
@@ -155,8 +156,46 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
 
     let finalRegNo = regNo;
     if (!finalRegNo) {
-        const count = await Student.countDocuments({ isRegistered: true });
-        finalRegNo = `${new Date().getFullYear()}-${1001 + count}`;
+        // --- New Logic: <Sequence>-<BranchCode> ---
+        
+        // 1. Find Max numeric sequence from existing "New Format" reg numbers (e.g. "105-GOD")
+        // We look for patterns starting with digits, followed by hyphen
+        const maxSeqResult = await Student.aggregate([
+            { 
+               $match: { 
+                    isRegistered: true,
+                    regNo: { $regex: /^\d+-[A-Z0-9]+$/ } 
+               } 
+            },
+            {
+                $project: {
+                     // Split by '-' and take the first part, convert to Int
+                     sequence: { $toInt: { $arrayElemAt: [ { $split: ["$regNo", "-"] }, 0 ] } }
+                }
+            },
+            { $sort: { sequence: -1 } },
+            { $limit: 1 }
+        ]);
+
+        let nextSequence = 1;
+        if (maxSeqResult.length > 0) {
+             nextSequence = maxSeqResult[0].sequence + 1;
+        } else {
+             // Fallback/Seed: If no new format exists, count all registered students + 1
+             const count = await Student.countDocuments({ isRegistered: true });
+             nextSequence = count + 1;
+        }
+
+        // 2. Get Branch Short Code
+        let branchCode = 'MN'; // Default
+        if (student.branchId) {
+             const branch = await Branch.findById(student.branchId);
+             if (branch && branch.shortCode) {
+                 branchCode = branch.shortCode;
+             }
+        }
+
+        finalRegNo = `${nextSequence}-${branchCode}`;
     }
 
     const newUser = await User.create({
@@ -164,7 +203,8 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         email: student.email || `${finalRegNo}@institute.com`, 
         username: username,
         password: password,
-        role: 'Student'
+        role: 'Student',
+        branchId: student.branchId // Link user to the same branch
     });
 
     if (student.paymentPlan !== 'One Time' && feeDetails && feeDetails.amount > 0) {

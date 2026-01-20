@@ -57,6 +57,25 @@ export const getBranches = createAsyncThunk(
   }
 );
 
+// Get all public active branches
+export const getPublicBranches = createAsyncThunk(
+  'branches/getPublic',
+  async (_, thunkAPI) => {
+    try {
+      const response = await axios.get(API_URL + 'public');
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 // Update branch
 export const updateBranch = createAsyncThunk(
   'branches/update',
@@ -145,6 +164,19 @@ const branchSlice = createSlice({
         state.branches = action.payload;
       })
       .addCase(getBranches.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(getPublicBranches.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getPublicBranches.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.branches = action.payload;
+      })
+      .addCase(getPublicBranches.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

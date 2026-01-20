@@ -11,9 +11,18 @@ const {
 const upload = require('../middlewares/uploadMiddleware'); // Import Upload Middleware
 
 // --- Inquiry Routes ---
+// Custom middleware to allow Inquiry View for Branch Directors/Admins automatically
+const allowInquiryView = (req, res, next) => {
+    if (req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin')) {
+        return next();
+    }
+    // Otherwise fall back to standard permission check
+    checkPermission('Inquiry', 'view')(req, res, next);
+};
+
 router.route('/inquiry')
-    .get(protect, checkPermission('Inquiry', 'view'), getInquiries)
-    .post(upload.single('studentPhoto'), createInquiry); // Added Middleware
+    .get(protect, allowInquiryView, getInquiries)
+    .post(protect, checkPermission('Inquiry', 'add'), upload.single('studentPhoto'), createInquiry); // Added Middleware
 
 router.route('/inquiry/:id')
     .put(protect, checkPermission('Inquiry', 'edit'), upload.single('studentPhoto'), updateInquiryStatus); // Added Middleware

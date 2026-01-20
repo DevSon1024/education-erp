@@ -35,9 +35,21 @@ const getInquiries = asyncHandler(async (req, res) => {
     ];
   }
 
+  // --- BRANCH SCOPING ---
+  // If user is a Branch Director OR Branch Admin, restrict to their branch
+  if (req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin') && req.user.branchId) {
+      query.branchId = req.user.branchId;
+  }
+  // If Super Admin specifically requests a branch (future proofing), allow it
+  if (req.query.branchId) {
+      query.branchId = req.query.branchId;
+  }
+  // ----------------------
+
   const inquiries = await Inquiry.find(query)
     .populate("interestedCourse", "name")
     .populate("allocatedTo", "name")
+    .populate("branchId", "name shortCode") // Populate branch details
     .sort({ createdAt: -1 });
 
   res.json(inquiries);

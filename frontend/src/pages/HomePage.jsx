@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCourses } from '../features/master/masterSlice';
+import { getPublicBranches } from '../features/master/branchSlice';
 import { createInquiry } from '../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
+import { Link, useNavigate } from 'react-router-dom';
 import newsService from '../services/newsService';
-import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle, Quote, Star, Users, BookOpen } from 'lucide-react';
+import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle, Quote, Star, Users, BookOpen, ChevronDown } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import HeroCarousel from '../components/ui/HeroCarousel';
 import HeroImage1 from '../assets/6.jpg'
@@ -76,7 +78,9 @@ const Carousel = ({ items, type = "hero" }) => {
 
 const HomePage = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { courses } = useSelector((state) => state.master);
+    const { branches } = useSelector((state) => state.branch);
     const [captcha, setCaptcha] = useState('');
     const [userCaptcha, setUserCaptcha] = useState('');
     const [formLoading, setFormLoading] = useState(false);
@@ -88,8 +92,9 @@ const HomePage = () => {
       email: '',
       phone: '',
       state: '',
-      city: 'Surat',
-      interestedCourse: '',
+      city: '',
+      course: '',
+      branchId: '',
       message: ''
     });
   
@@ -104,6 +109,7 @@ const HomePage = () => {
   
     useEffect(() => {
       dispatch(fetchCourses());
+      dispatch(getPublicBranches());
       generateCaptcha();
       fetchLatestNews();
     }, [dispatch]);
@@ -133,7 +139,7 @@ const HomePage = () => {
         return;
       }
   
-      if (!formData.name || !formData.phone || !formData.state || !formData.city || !formData.interestedCourse) {
+      if (!formData.name || !formData.phone || !formData.state || !formData.city || !formData.course || !formData.branchId) {
         toast.error('Please fill all required fields (*)!');
         return;
       }
@@ -146,7 +152,8 @@ const HomePage = () => {
           email: formData.email,
           state: formData.state,
           city: formData.city,
-          interestedCourse: formData.interestedCourse,
+          interestedCourse: formData.course,
+          branchId: formData.branchId,
           remarks: formData.message,
           source: 'QuickContact',
           status: 'Pending'
@@ -160,8 +167,9 @@ const HomePage = () => {
           email: '',
           phone: '',
           state: '',
-          city: 'Surat',
-          interestedCourse: '',
+          city: '',
+          course: '',
+          branchId: '',
           message: ''
         });
         setUserCaptcha('');
@@ -345,17 +353,32 @@ const HomePage = () => {
                              <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">State <span className="text-red-500">*</span></label>
                              <input type="text" name="state" value={formData.state} onChange={handleChange} placeholder="Enter State" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
                         </div>
-                         <div className="space-y-1.5">
-                             <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Branch Preference</label>
-                             <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-500 font-medium disabled:opacity-60 cursor-not-allowed" disabled>
-                                <option>Main Branch (Varachha)</option>
-                             </select>
-                        </div>
+                         {/* Branch Selection - Dynamic */}
+            <div>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Select Branch <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select 
+                  name="branchId"
+                  value={formData.branchId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all appearance-none text-gray-700 font-medium cursor-pointer hover:bg-white"
+                  required
+                >
+                  <option value="">Choose a Branch...</option>
+                  {branches && branches.map(branch => (
+                      <option key={branch._id} value={branch._id}>{branch.name} ({branch.city})</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <ChevronDown size={20} />
+                </div>
+              </div>
+            </div>
                     </div>
                   
                   <div className="space-y-1.5">
                      <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Interested Course <span className="text-red-500">*</span></label>
-                     <select name="interestedCourse" value={formData.interestedCourse} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-700 font-medium cursor-pointer hover:bg-white transition-colors" required>
+                     <select name="course" value={formData.course} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-700 font-medium cursor-pointer hover:bg-white transition-colors" required>
                         <option value="">Select a Course...</option>
                         {courses.map(course => (
                             <option key={course._id} value={course._id}>{course.name}</option>

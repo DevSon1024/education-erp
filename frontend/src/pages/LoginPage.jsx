@@ -51,13 +51,17 @@ const LoginPage = () => {
             <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-gray-50"
                 {...register('role', { required: 'Please select a role' })}
+                defaultValue="Student" 
             >
-                <option value="">-- Select Role --</option>
-                <option value="Super Admin">Super Admin</option>
-                <option value="Admin">Admin</option>
-                <option value="Counselor">Counselor</option>
-                <option value="Faculty">Faculty</option>
                 <option value="Student">Student</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Branch Director">Branch Director</option>
+                <option value="Manager">Manager</option>
+                <option value="Marketing Person">Marketing Person</option>
+                <option value="Receptionist">Receptionist</option>
+                <option value="Super Admin">Super Admin</option>
+                {/* <option value="Admin">Admin</option> */}
+                {/* <option value="Counselor">Counselor</option> */}
             </select>
             {errors.role && <span className="text-xs text-red-500 mt-1">{errors.role.message}</span>}
           </div>

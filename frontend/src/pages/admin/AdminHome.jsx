@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInquiries, updateInquiry } from '../../features/transaction/transactionSlice';
-import { fetchPendingExams, fetchCourses } from '../../features/master/masterSlice';
+import { fetchExamRequests, fetchCourses } from '../../features/master/masterSlice';
+import EmployeeDashboard from './EmployeeDashboard'; // Import Fallback Dashboard
+import { useUserRights } from '../../hooks/useUserRights'; // Import Rights Hook (Named Import)
 import { useNavigate } from 'react-router-dom';
 import { Search, RefreshCw, ExternalLink, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -13,6 +15,7 @@ const AdminHome = () => {
   // Redux Data
   const { inquiries } = useSelector((state) => state.transaction);
   const { pendingExams, courses } = useSelector((state) => state.master);
+  const { user } = useSelector((state) => state.auth);
 
   // Local State
   const [activeTab, setActiveTab] = useState('inquiry'); // 'inquiry' or 'exam'
@@ -27,17 +30,17 @@ const AdminHome = () => {
   useEffect(() => {
     // Fetching ONLY "QuickContact" for dashboard as per requirements
     dispatch(fetchInquiries({ source: 'QuickContact' })); 
-    dispatch(fetchPendingExams());
+    dispatch(fetchExamRequests()); // Changed from fetchPendingExams
     dispatch(fetchCourses());
   }, [dispatch]);
 
   const handleExamFilter = () => {
-    dispatch(fetchPendingExams(examFilters));
+    dispatch(fetchExamRequests(examFilters)); // Changed from fetchPendingExams
   };
 
   const handleResetExamFilter = () => {
     setExamFilters({ courseId: '', minPendingDays: '' });
-    dispatch(fetchPendingExams());
+    dispatch(fetchExamRequests()); // Changed from fetchPendingExams
   };
 
   const handleAddToOnline = (inquiry) => {
@@ -54,8 +57,20 @@ const AdminHome = () => {
     }
   };
 
+  
+  // Check User Rights
+  const { view: hasDashboardAccess } = useUserRights('Admin Home');
+  const { view: canViewInquiryList } = useUserRights('Admin Home - Inquiry List');
+  const { view: canViewExamList } = useUserRights('Admin Home - Exam Pending List');
+
+  // Conditionally Render Fallback
+  // If user is logged in, NOT a Super Admin, and does NOT have 'Admin Home' view rights
+  if (user && user.type !== 'Super Admin' && user.role !== 'Super Admin' && !hasDashboardAccess) {
+      return <EmployeeDashboard />;
+  }
+
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <div className="container mx-auto p-6 max-w-7xl animate-fadeIn">
       
       {/* --- Dashboard Header --- */}
       <div className="mb-8 text-center">
@@ -66,6 +81,7 @@ const AdminHome = () => {
       {/* --- Tab Navigation --- */}
       <div className="flex justify-center mb-8">
         <div className="bg-white p-1 rounded-full shadow-md inline-flex border">
+          {(canViewInquiryList || (user && user.role === 'Super Admin')) && (
           <button 
             onClick={() => setActiveTab('inquiry')}
             className={`px-8 py-2 rounded-full font-medium transition-all ${
@@ -76,6 +92,9 @@ const AdminHome = () => {
           >
             Inquiry List
           </button>
+          )}
+          
+          {(canViewExamList || (user && user.role === 'Super Admin')) && (
           <button 
             onClick={() => setActiveTab('exam')}
             className={`px-8 py-2 rounded-full font-medium transition-all ${
@@ -86,11 +105,12 @@ const AdminHome = () => {
           >
             Student Exam Pending List
           </button>
+          )}
         </div>
       </div>
 
       {/* --- CONTENT: INQUIRY LIST --- */}
-      {activeTab === 'inquiry' && (
+      {activeTab === 'inquiry' && (canViewInquiryList || (user && user.role === 'Super Admin')) && (
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn">
             <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -117,6 +137,7 @@ const AdminHome = () => {
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Email</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">State</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">City</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Branch</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Course</th>
                             <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Contact Detail</th>
                             <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Online Inquiry</th>
@@ -136,6 +157,7 @@ const AdminHome = () => {
                                 <td className="px-6 py-4 text-sm text-gray-600">{inq.email || '-'}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{inq.state || '-'}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">{inq.city || '-'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600 font-semibold">{inq.branchId?.name || '-'}</td>
                                 <td className="px-6 py-4 text-sm text-gray-600">
                                     {inq.interestedCourse?.name || 'General'}
                                 </td>
@@ -165,7 +187,7 @@ const AdminHome = () => {
       )}
 
       {/* --- CONTENT: EXAM PENDING LIST (Unchanged Logic) --- */}
-      {activeTab === 'exam' && (
+      {activeTab === 'exam' && (canViewExamList || (user && user.role === 'Super Admin')) && (
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn">
             {/* ... Exam Filters ... */}
             <div className="bg-gray-50 px-6 py-4 border-b">

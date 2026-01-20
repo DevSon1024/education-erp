@@ -2,7 +2,8 @@ export const MENU_CONFIG = [
   {
     title: 'Home',
     path: '/home',
-    type: 'single'
+    type: 'single', // For sidebar
+    subItems: [{ title: 'Admin Home', path: '/admin-dashboard' }] // Added for User Rights mapping (see getMenuSections)
   },
   {
     title: 'Master',
@@ -106,24 +107,32 @@ export const getMenuSections = () => {
     const sections = {};
     
     MENU_CONFIG.forEach(item => {
-        if (item.type === 'dropdown' && item.subItems) {
+        // Handle "Home" or other single types that might have subItems for rights purposes
+        if ((item.type === 'dropdown' || item.type === 'single') && item.subItems) {
             const pageNames = [];
             
             item.subItems.forEach(sub => {
-                if (sub.restricted) return; // Skip restricted items (like Branch)
+                if (sub.restricted) return; // Skip restricted items
 
                 if (sub.type === 'nested' && sub.subItems) {
                     // Flatten nested items: "Inquiry - Online"
                     sub.subItems.forEach(nestedSub => {
-                        if (nestedSub.restricted) return; // Also check nested
+                        if (nestedSub.restricted) return;
                         pageNames.push(`${sub.title} - ${nestedSub.title}`);
                     });
                 } else {
                     pageNames.push(sub.title);
+                    
+                    // Specific Handling for Admin Home Granular Rights
+                    if (sub.title === 'Admin Home') {
+                        pageNames.push('Admin Home - Inquiry List');
+                        pageNames.push('Admin Home - Exam Pending List');
+                    }
                 }
             });
             
             if (pageNames.length > 0) {
+                // If it's Home, we might want to group it separately or just add to sections
                 sections[item.title] = pageNames;
             }
         }

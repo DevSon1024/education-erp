@@ -96,8 +96,19 @@ const createEmployee = asyncHandler(async (req, res) => {
     }
 
     try {
-        const count = await Employee.countDocuments();
-        const regNo = `EMP-${new Date().getFullYear()}-${1001 + count}`;
+        // Fix: Use last created employee to determine next sequence number instead of count
+        const lastEmployee = await Employee.findOne({ regNo: { $regex: `^EMP-${new Date().getFullYear()}` } }).sort({ createdAt: -1 });
+        
+        let nextNum = 1001;
+        if (lastEmployee && lastEmployee.regNo) {
+            const parts = lastEmployee.regNo.split('-');
+            const lastSeq = parseInt(parts[2]); // EMP-2025-1005 -> 1005
+            if (!isNaN(lastSeq)) {
+                nextNum = lastSeq + 1;
+            }
+        }
+        
+        const regNo = `EMP-${new Date().getFullYear()}-${nextNum}`;
 
         const employee = await Employee.create({
             ...req.body,
