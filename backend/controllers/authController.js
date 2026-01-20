@@ -71,6 +71,20 @@ const loginUser = asyncHandler(async (req, res) => {
              }
         }
 
+        // --- Self-Healing: Fix swapped Email/Username for Employees ---
+        // If User.email doesn't look like an email but looks like a username, 
+        // and we have a linked Employee with a real email, swap/fix it.
+        if (user.role !== 'Student' && !user.email.includes('@')) {
+             const employee = await require('../models/Employee').findOne({ userAccount: user._id });
+             if (employee && employee.email) {
+                 // The current 'email' field in User is actually the username
+                 user.username = user.email; 
+                 user.email = employee.email;
+                 await user.save();
+             }
+        }
+        // -------------------------------------------------------------
+
         res.json({
             _id: user._id, 
             name: user.name, 
@@ -78,7 +92,12 @@ const loginUser = asyncHandler(async (req, res) => {
             role: user.role,
             branchId: user.branchId,
             branchName: currentBranchName, // Return fresh name
-            branchDetails: populatedUser.branchId // This will contain the populated branch object
+            branchDetails: populatedUser.branchId, // This will contain the populated branch object
+            mobile: user.mobile,
+            gender: user.gender,
+            education: user.education,
+            address: user.address,
+            photo: user.photo
         });
     } else {
         res.status(401); throw new Error('Invalid email or password');
@@ -120,6 +139,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         const employee = await require('../models/Employee').findOne({ userAccount: user._id });
         if (employee) {
             employee.name = user.name;
+            employee.email = user.email; // <--- Added email sync
             employee.mobile = user.mobile;
             employee.gender = user.gender;
             employee.gender = user.gender;

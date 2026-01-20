@@ -18,6 +18,7 @@ export const MENU_CONFIG = [
       { title: 'Exam Schedule', path: '/master/exam-schedule' },
       { title: 'Exam Result', path: '/master/exam-result' },
       { title: 'Manage News', path: '/master/manage-news' },
+      { title: 'User Rights', path: '/master/user-rights' },
       { title: 'Branch', path: '/master/branch', restricted: true } // Super Admin only
     ]
   },
@@ -109,9 +110,12 @@ export const getMenuSections = () => {
             const pageNames = [];
             
             item.subItems.forEach(sub => {
+                if (sub.restricted) return; // Skip restricted items (like Branch)
+
                 if (sub.type === 'nested' && sub.subItems) {
                     // Flatten nested items: "Inquiry - Online"
                     sub.subItems.forEach(nestedSub => {
+                        if (nestedSub.restricted) return; // Also check nested
                         pageNames.push(`${sub.title} - ${nestedSub.title}`);
                     });
                 } else {

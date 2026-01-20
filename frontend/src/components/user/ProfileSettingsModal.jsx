@@ -39,19 +39,22 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     const [newEdu, setNewEdu] = useState('');
 
     const [localMessage, setLocalMessage] = useState('');
+    const isSubmitting = React.useRef(false); // Ref to track form submission
 
     useEffect(() => {
         if (isOpen) {
             dispatch(fetchEducations());
             dispatch(reset()); // Reset auth state on open
+            isSubmitting.current = false;
         }
     }, [dispatch, isOpen]);
 
     useEffect(() => {
-        if (isSuccess && isOpen) {
+        if (isSuccess && isOpen && isSubmitting.current) { // Only toast if we submitted from here
             toast.success(message || 'Operation Successful');
             dispatch(reset());
             onClose();
+            isSubmitting.current = false;
         }
     }, [isSuccess, message, isOpen, dispatch, onClose]);
 
@@ -97,6 +100,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
     const submitProfile = (e) => {
         e.preventDefault();
+        isSubmitting.current = true; // Mark as submitting
         const formData = new FormData();
         Object.keys(profileData).forEach(key => {
             formData.append(key, profileData[key]);
@@ -110,6 +114,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
             setLocalMessage("New password and confirm password do not match");
             return;
         }
+        isSubmitting.current = true; // Mark as submitting
         dispatch(resetPassword({
             oldPassword: passwordData.oldPassword,
             newPassword: passwordData.newPassword

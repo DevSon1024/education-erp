@@ -76,7 +76,8 @@ const createEmployee = asyncHandler(async (req, res) => {
         try {
             const newUser = await User.create({
                 name,
-                email: loginUsername,
+                username: loginUsername, // Set Username
+                email: email, // Set Real Email
                 password: loginPassword,
                 role: type,
                 isActive: isLoginActive,
