@@ -15,7 +15,7 @@ const generateToken = (res, userId) => {
 // @desc Register (Seed Initial Admin)
 // @route POST /api/auth/register
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, branchId } = req.body;
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -23,7 +23,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ name, email, password, role, branchId });
     if (user) {
         generateToken(res, user._id);
         res.status(201).json({
@@ -56,8 +56,17 @@ const loginUser = asyncHandler(async (req, res) => {
         }
 
         generateToken(res, user._id);
+        
+        // Populate branch details if user has a branch
+        const populatedUser = await User.findById(user._id).populate('branchId', 'name shortCode');
+
         res.json({
-            _id: user._id, name: user.name, email: user.email, role: user.role
+            _id: user._id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role,
+            branchId: user.branchId,
+            branchDetails: populatedUser.branchId // This will contain the populated branch object
         });
     } else {
         res.status(401); throw new Error('Invalid email or password');
@@ -83,7 +92,10 @@ const updateProfile = asyncHandler(async (req, res) => {
         user.gender = req.body.gender || user.gender;
         user.education = req.body.education || user.education;
         user.address = req.body.address || user.address;
+        user.education = req.body.education || user.education;
+        user.address = req.body.address || user.address;
         user.branchName = req.body.branchName || user.branchName;
+        user.branchId = req.body.branchId || user.branchId;
 
         if (req.file) {
             user.photo = req.file.path.replace(/\\/g, "/");
@@ -98,7 +110,9 @@ const updateProfile = asyncHandler(async (req, res) => {
             employee.name = user.name;
             employee.mobile = user.mobile;
             employee.gender = user.gender;
+            employee.gender = user.gender;
             employee.address = user.address;
+            employee.branchId = user.branchId; // Sync branchId
             employee.qualification = user.education; // Sync education back to qualification
             // Also sync education field if it exists and is used
             employee.education = user.education; 

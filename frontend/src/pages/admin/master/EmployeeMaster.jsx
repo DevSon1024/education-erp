@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, resetEmployeeStatus } from '../../../features/employee/employeeSlice';
+import { getBranches } from '../../../features/master/branchSlice'; // Import API
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw } from 'lucide-react';
 
@@ -10,6 +11,8 @@ import { useUserRights } from '../../../hooks/useUserRights';
 const EmployeeMaster = () => {
   const dispatch = useDispatch();
   const { employees, isSuccess, isError, message } = useSelector((state) => state.employees);
+  const { branches } = useSelector((state) => state.branch);
+  const { user } = useSelector((state) => state.auth); // Get Auth User
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -36,7 +39,10 @@ const EmployeeMaster = () => {
 
   useEffect(() => {
     dispatch(fetchEmployees(filters));
-  }, [dispatch, filters]); // Auto-fetch when filters change (or remove filters from dep array to fetch only on button click)
+    if(user?.role === 'Super Admin') {
+        dispatch(getBranches());
+    }
+  }, [dispatch, filters, user]); // Auto-fetch when filters change (or remove filters from dep array to fetch only on button click)
 
   useEffect(() => {
     if (isError) {
@@ -283,6 +289,21 @@ const EmployeeMaster = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-8">
                     <div>
                         <h3 className="text-sm font-bold text-gray-500 border-b pb-2 mb-4 uppercase flex items-center gap-2"><User size={16}/> Personal Information</h3>
+                        
+                        {/* Branch Selection for Super Admin */}
+                        {user?.role === 'Super Admin' && (
+                          <div className="mb-4 bg-blue-50 p-3 rounded border border-blue-100">
+                               <label className="block text-xs font-bold text-blue-800 mb-1">Assign Branch *</label>
+                               <select {...register('branchId', {required: "Branch is Required"})} className="w-full border border-blue-300 p-2 rounded text-sm bg-white">
+                                   <option value="">-- Select Branch --</option>
+                                   {branches.map(b => (
+                                       <option key={b._id} value={b._id}>{b.name} ({b.shortCode})</option>
+                                   ))}
+                               </select>
+                               {errors.branchId && <p className="text-red-500 text-xs mt-1">{errors.branchId.message}</p>}
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-gray-700">Full Name *</label>

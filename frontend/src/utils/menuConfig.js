@@ -18,7 +18,7 @@ export const MENU_CONFIG = [
       { title: 'Exam Schedule', path: '/master/exam-schedule' },
       { title: 'Exam Result', path: '/master/exam-result' },
       { title: 'Manage News', path: '/master/manage-news' },
-      { title: 'User Rights', path: '/master/user-rights', restricted: true } // Only for Super Admin usually
+      { title: 'Branch', path: '/master/branch', restricted: true } // Super Admin only
     ]
   },
   {

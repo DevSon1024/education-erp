@@ -1,0 +1,186 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+const API_URL = '/api/branches/';
+
+// Create new branch
+export const createBranch = createAsyncThunk(
+  'branches/create',
+  async (branchData, thunkAPI) => {
+    try {
+      const token = thunkAPI.getState().auth.user.token; // Assuming token is here, or managed via cookie
+      // If using cookies (httpOnly), we might not need to send header if axios is configured with credentials: true
+      // The server.js has cors credentials: true.
+      // Let's assume axios instance or global config handles it, or send it if we have it in state.
+      // But commonly with httpOnly cookies, we just make the request.
+      
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      };
+      
+      const response = await axios.post(API_URL, branchData, config);
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Get all branches
+export const getBranches = createAsyncThunk(
+  'branches/getAll',
+  async (_, thunkAPI) => {
+    try {
+      const config = {
+          withCredentials: true,
+      };
+      const response = await axios.get(API_URL, config);
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Update branch
+export const updateBranch = createAsyncThunk(
+  'branches/update',
+  async ({ id, branchData }, thunkAPI) => {
+    try {
+        const config = {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+        };
+      const response = await axios.put(API_URL + id, branchData, config);
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Delete branch
+export const deleteBranch = createAsyncThunk(
+  'branches/delete',
+  async (id, thunkAPI) => {
+    try {
+        const config = {
+            withCredentials: true,
+        };
+      await axios.delete(API_URL + id, config);
+      return id;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+const branchSlice = createSlice({
+  name: 'branch',
+  initialState: {
+    branches: [],
+    isError: false,
+    isSuccess: false,
+    isLoading: false,
+    message: '',
+  },
+  reducers: {
+    reset: (state) => {
+      state.isLoading = false;
+      state.isSuccess = false;
+      state.isError = false;
+      state.message = '';
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(createBranch.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createBranch.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.branches.push(action.payload);
+      })
+      .addCase(createBranch.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(getBranches.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getBranches.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.branches = action.payload;
+      })
+      .addCase(getBranches.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(updateBranch.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateBranch.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.branches = state.branches.map((branch) =>
+          branch._id === action.payload._id ? action.payload : branch
+        );
+      })
+      .addCase(updateBranch.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(deleteBranch.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deleteBranch.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.branches = state.branches.filter(
+          (branch) => branch._id !== action.payload
+        );
+      })
+      .addCase(deleteBranch.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      });
+  },
+});
+
+export const { reset } = branchSlice.actions;
+export default branchSlice.reducer;

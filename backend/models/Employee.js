@@ -20,6 +20,8 @@ const employeeSchema = new mongoose.Schema({
     address: { type: String },
     photo: { type: String }, 
     isActive: { type: Boolean, default: true },
+    branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
+
 
     // --- Work Experience ---
     experience: { type: String }, 

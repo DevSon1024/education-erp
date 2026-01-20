@@ -16,6 +16,7 @@ import {
 } from "../../../features/master/masterSlice";
 import { fetchInquiries } from "../../../features/transaction/transactionSlice";
 import { fetchEmployees } from "../../../features/employee/employeeSlice";
+import { getBranches } from "../../../features/master/branchSlice"; // Import API
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -52,6 +53,8 @@ const StudentAdmission = () => {
   const { employees } = useSelector((state) => state.employees) || {
     employees: [],
   };
+  const { branches } = useSelector((state) => state.branch);
+  const { user } = useSelector((state) => state.auth); // Get Auth User
 
   const [step, setStep] = useState(1);
   const [previewImage, setPreviewImage] = useState(null);
@@ -104,7 +107,10 @@ const StudentAdmission = () => {
     dispatch(fetchEmployees());
     dispatch(fetchReferences());
     dispatch(fetchEducations());
-  }, [dispatch]);
+    if(user?.role === 'Super Admin') {
+        dispatch(getBranches());
+    }
+  }, [dispatch, user]);
 
 // educationOptions effect removed
 
@@ -449,6 +455,25 @@ const StudentAdmission = () => {
 
           {step === 1 && (
             <div className="grid grid-cols-12 gap-5 animate-fade-in-up">
+              
+              {/* Branch Selection for Super Admin */}
+              {user?.role === 'Super Admin' && (
+                  <div className="col-span-12 bg-blue-50 p-4 rounded border-2 border-blue-100 mb-2">
+                       <label className="label text-blue-800 font-bold block mb-2">
+                          Select Branch for this Student *
+                       </label>
+                       <select 
+                          {...register("branchId", { required: "Branch is required for Super Admin" })}
+                          className="input border-blue-300 w-full"
+                       >
+                           <option value="">-- Select Branch --</option>
+                           {branches.map(b => (
+                               <option key={b._id} value={b._id}>{b.name} ({b.shortCode})</option>
+                           ))}
+                       </select>
+                       {errors.branchId && <p className="text-red-500 text-xs mt-1">{errors.branchId.message}</p>}
+                  </div>
+              )}
               <div className="col-span-12 md:col-span-4">
                 <label className="label">1. Admission Date</label>
                 <input

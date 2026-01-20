@@ -53,6 +53,7 @@ const ExamRequestList = lazy(() =>
 const ExamSchedule = lazy(() => import("./pages/admin/master/ExamSchedule"));
 const ExamResult = lazy(() => import("./pages/admin/master/ExamResult"));
 const ManageNews = lazy(() => import("./pages/admin/master/ManageNews"));
+const BranchMaster = lazy(() => import("./pages/admin/master/BranchMaster"));
 
 // Transaction Pages
 const InquiryPage = lazy(() => import("./pages/admin/transaction/InquiryPage"));
@@ -227,6 +228,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <ManageNews />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/master/branch"
+                element={
+                  <PrivateRoute>
+                    <BranchMaster />
                   </PrivateRoute>
                 }
               />

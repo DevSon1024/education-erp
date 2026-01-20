@@ -8,6 +8,7 @@ const studentSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     isRegistered: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
+    branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
     branchName: { type: String, default: "Main Branch" },
     registrationDate: { type: Date },
 
