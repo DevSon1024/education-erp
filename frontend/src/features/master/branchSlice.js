@@ -43,7 +43,8 @@ export const getBranches = createAsyncThunk(
       const config = {
           withCredentials: true,
       };
-      const response = await axios.get(API_URL, config);
+      // Add timestamp to prevent caching (Service Worker/Browser 304 issue)
+      const response = await axios.get(`${API_URL}?_t=${Date.now()}`, config);
       return response.data;
     } catch (error) {
       const message =
@@ -148,7 +149,12 @@ const branchSlice = createSlice({
       .addCase(createBranch.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.branches.push(action.payload);
+        // Only add if payload is valid
+        if (action.payload && action.payload._id) {
+            state.branches.unshift(action.payload); // Add to top for immediate visibility
+        } else {
+             console.error("Invalid branch payload received:", action.payload);
+        }
       })
       .addCase(createBranch.rejected, (state, action) => {
         state.isLoading = false;

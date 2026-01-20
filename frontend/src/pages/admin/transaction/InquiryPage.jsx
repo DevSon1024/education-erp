@@ -142,7 +142,7 @@ const InquiryPage = () => {
 
   const columns = [
     { header: 'Serial No', render: (_, index) => index + 1 },
-    { header: 'Contact Date', render: (row) => new Date(row.createdAt).toLocaleDateString() },
+    { header: 'Contact Date', render: (row) => new Date(row.createdAt).toLocaleDateString('en-GB') },
     { header: 'Contact Person', render: (row) => `${row.firstName} ${row.lastName || ''}` }, 
     { header: 'Mobile', accessor: 'contactStudent' },
     { header: 'Email', accessor: 'email' },

@@ -196,8 +196,8 @@ const BatchMaster = () => {
                                 <Users size={12}/> {batch.faculty?.name || 'Unassigned'}
                             </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{new Date(batch.startDate).toLocaleDateString()}</td>
-                        <td className="px-4 py-3 text-gray-600">{new Date(batch.endDate).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-gray-600">{new Date(batch.startDate).toLocaleDateString('en-GB')}</td>
+                        <td className="px-4 py-3 text-gray-600">{new Date(batch.endDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3 text-right">
                             <button onClick={() => handleEdit(batch)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
                                 <Edit2 size={12}/> Edit

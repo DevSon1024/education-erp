@@ -6,7 +6,6 @@ import {
   deleteStudent,
 } from "../../../features/student/studentSlice";
 import { fetchEmployees } from "../../../features/employee/employeeSlice";
-// import SmartTable from '../../../components/ui/SmartTable';
 import {
   Filter,
   Search,
@@ -92,7 +91,7 @@ const PendingAdmissionFees = () => {
     {
       header: "Admission Date",
       accessor: "admissionDate",
-      render: (row) => new Date(row.admissionDate).toLocaleDateString(),
+      render: (row) => new Date(row.admissionDate).toLocaleDateString('en-GB'),
     },
     {
       header: "Student Name",

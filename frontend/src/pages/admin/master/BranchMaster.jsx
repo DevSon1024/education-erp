@@ -57,7 +57,7 @@ const BranchMaster = () => {
                 toast.success('Branch Created Successfully');
             }
             closeModal();
-            dispatch(getBranches()); // Refresh list
+            // dispatch(getBranches()); // Removed to rely on Redux state update and avoid race conditions
         } catch (error) {
             toast.error(error || 'Something went wrong');
         }
@@ -114,8 +114,10 @@ const BranchMaster = () => {
     }
 
     const filteredBranches = Array.isArray(branches) ? branches.filter(branch => 
-        branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        branch.shortCode.toLowerCase().includes(searchTerm.toLowerCase())
+        branch && (
+            (branch.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (branch.shortCode || '').toLowerCase().includes(searchTerm.toLowerCase())
+        )
     ) : [];
 
     return (
@@ -164,8 +166,8 @@ const BranchMaster = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredBranches.length > 0 ? (
-                                filteredBranches.map((branch) => (
-                                    <tr key={branch._id} className="hover:bg-gray-50 transition-colors">
+                                filteredBranches.map((branch, index) => (
+                                    <tr key={branch._id || index} className="hover:bg-gray-50 transition-colors">
                                         <td className="p-4 text-sm font-medium text-gray-900">{branch.name}</td>
                                         <td className="p-4 text-sm text-gray-600 font-mono bg-gray-50 rounded px-2 py-1 w-min whitespace-nowrap">{branch.shortCode}</td>
                                         <td className="p-4 text-sm text-gray-600">

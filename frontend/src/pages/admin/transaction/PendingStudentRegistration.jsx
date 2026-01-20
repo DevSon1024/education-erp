@@ -123,7 +123,7 @@ const PendingStudentRegistration = () => {
                   students.map((student) => (
                     <tr key={student._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm">{student.enrollmentNo}</td>
-                      <td className="px-6 py-4 text-sm">{new Date(student.admissionDate).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-sm">{new Date(student.admissionDate).toLocaleDateString('en-GB')}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
                         {student.firstName} {student.lastName}
                         <div className="text-xs text-gray-500">Father: {student.middleName}</div>

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInquiries, updateInquiry } from '../../features/transaction/transactionSlice';
 import { fetchExamRequests, fetchCourses } from '../../features/master/masterSlice';
-import EmployeeDashboard from './EmployeeDashboard'; // Import Fallback Dashboard
-import { useUserRights } from '../../hooks/useUserRights'; // Import Rights Hook (Named Import)
+import EmployeeDashboard from './EmployeeDashboard';
+import { useUserRights } from '../../hooks/useUserRights';
 import { useNavigate } from 'react-router-dom';
 import { Search, RefreshCw, ExternalLink, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -148,7 +148,7 @@ const AdminHome = () => {
                             <tr key={inq._id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 text-sm text-gray-500">{index + 1}</td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {inq.createdAt ? new Date(inq.createdAt).toLocaleDateString() : '-'}
+                                    {inq.createdAt ? new Date(inq.createdAt).toLocaleDateString('en-GB') : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-sm font-medium text-blue-900">
                                     {inq.firstName} {inq.lastName}
@@ -248,7 +248,7 @@ const AdminHome = () => {
                                 <td className="px-4 py-3 text-center"><input type="checkbox"/></td>
                                 <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">
-                                    {exam.student?.admissionDate ? new Date(exam.student.admissionDate).toLocaleDateString() : '-'}
+                                    {exam.student?.admissionDate ? new Date(exam.student.admissionDate).toLocaleDateString('en-GB') : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm font-mono text-gray-800">{exam.student?.regNo}</td>
                                 <td className="px-4 py-3 text-sm font-semibold text-gray-800">{exam.student?.firstName} {exam.student?.lastName}</td>

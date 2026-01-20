@@ -253,7 +253,7 @@ const EmployeeMaster = () => {
                         <td className="px-4 py-3 text-gray-600">{emp.email}</td>
                         <td className="px-4 py-3 text-gray-600">{emp.type}</td>
                         <td className="px-4 py-3 text-center text-gray-600">
-                            {emp.dateOfJoining ? new Date(emp.dateOfJoining).toLocaleDateString() : '-'}
+                            {emp.dateOfJoining ? new Date(emp.dateOfJoining).toLocaleDateString('en-GB') : '-'}
                         </td>
                         <td className="px-4 py-3 text-center">
                              {emp.isActive ? 
