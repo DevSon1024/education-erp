@@ -58,6 +58,13 @@ const createEmployee = asyncHandler(async (req, res) => {
         res.status(400); throw new Error('Employee with this email already exists');
     }
 
+    // Fetch Branch Name if ID is provided
+    let branchNameParam = 'Main Branch';
+    if(req.body.branchId) {
+        const branchTry = await require('../models/Branch').findById(req.body.branchId);
+        if(branchTry) branchNameParam = branchTry.name;
+    }
+
     let userId = null;
 
     if (loginUsername && loginPassword) {
@@ -78,6 +85,8 @@ const createEmployee = asyncHandler(async (req, res) => {
                 gender,
                 address: req.body.address,
                 education: req.body.qualification, // Mapping qualification to education
+                branchId: req.body.branchId, // <--- Propagate branchId to User
+                branchName: branchNameParam // Set correct branch name
             });
             userId = newUser._id;
         } catch (error) {

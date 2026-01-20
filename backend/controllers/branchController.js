@@ -1,5 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Branch = require('../models/Branch');
+const User = require('../models/User');
+const Student = require('../models/Student');
 
 // @desc    Create a new branch
 // @route   POST /api/branches
@@ -78,6 +80,20 @@ const updateBranch = asyncHandler(async (req, res) => {
         }
 
         const updatedBranch = await branch.save();
+
+        // Sync branchName updates to related collections (User, Student)
+        // Employee does not hold branchName string, only branchId, so no sync needed there.
+        if (req.body.name) {
+            await User.updateMany(
+                { branchId: updatedBranch._id },
+                { $set: { branchName: updatedBranch.name } }
+            );
+            await Student.updateMany(
+                { branchId: updatedBranch._id },
+                { $set: { branchName: updatedBranch.name } }
+            );
+        }
+
         res.json(updatedBranch);
     } else {
         res.status(404);

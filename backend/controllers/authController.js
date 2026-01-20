@@ -60,12 +60,24 @@ const loginUser = asyncHandler(async (req, res) => {
         // Populate branch details if user has a branch
         const populatedUser = await User.findById(user._id).populate('branchId', 'name shortCode');
 
+        // Check if branch name needs sync (Self-Correction on Login)
+        let currentBranchName = user.branchName;
+        if (populatedUser.branchId) {
+             currentBranchName = populatedUser.branchId.name;
+             // Optional: Persist correction if mismatch found (Slows login slightly but ensures consistency)
+             if(user.branchName !== currentBranchName){
+                 user.branchName = currentBranchName;
+                 await user.save();
+             }
+        }
+
         res.json({
             _id: user._id, 
             name: user.name, 
             email: user.email, 
             role: user.role,
             branchId: user.branchId,
+            branchName: currentBranchName, // Return fresh name
             branchDetails: populatedUser.branchId // This will contain the populated branch object
         });
     } else {
