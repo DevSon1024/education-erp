@@ -72,7 +72,12 @@ const createEmployee = asyncHandler(async (req, res) => {
                 email: loginUsername,
                 password: loginPassword,
                 role: type,
-                isActive: isLoginActive
+                isActive: isLoginActive,
+                // Populate profile fields from Employee data
+                mobile, 
+                gender,
+                address: req.body.address,
+                education: req.body.qualification, // Mapping qualification to education
             });
             userId = newUser._id;
         } catch (error) {

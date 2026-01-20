@@ -14,6 +14,13 @@ const userSchema = new mongoose.Schema({
         ], 
         default: 'Student' 
     },
+    // Added Profile Fields
+    branchName: { type: String, default: 'Main Branch' },
+    mobile: { type: String },
+    gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+    education: { type: String },
+    address: { type: String },
+    photo: { type: String }, // Cloudinary URL
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

@@ -71,4 +71,77 @@ const logoutUser = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Logged out' });
 });
 
-module.exports = { registerUser, loginUser, logoutUser };
+// @desc Update User Profile
+// @route PUT /api/auth/profile
+const updateProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+        user.mobile = req.body.mobile || user.mobile;
+        user.gender = req.body.gender || user.gender;
+        user.education = req.body.education || user.education;
+        user.address = req.body.address || user.address;
+        user.branchName = req.body.branchName || user.branchName;
+
+        if (req.file) {
+            user.photo = req.file.path.replace(/\\/g, "/");
+        }
+
+        const updatedUser = await user.save();
+
+        // --- Sync with Employee Record ---
+        // Find employee linked to this user
+        const employee = await require('../models/Employee').findOne({ userAccount: user._id });
+        if (employee) {
+            employee.name = user.name;
+            employee.mobile = user.mobile;
+            employee.gender = user.gender;
+            employee.address = user.address;
+            employee.qualification = user.education; // Sync education back to qualification
+            // Also sync education field if it exists and is used
+            employee.education = user.education; 
+            
+            if (req.file) {
+                employee.photo = user.photo;
+            }
+            await employee.save();
+        }
+        // ---------------------------------
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            mobile: updatedUser.mobile,
+            gender: updatedUser.gender,
+            education: updatedUser.education,
+            address: updatedUser.address,
+            branchName: updatedUser.branchName,
+            photo: updatedUser.photo,
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
+// @desc Reset Password
+// @route PUT /api/auth/reset-password
+const resetPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (user && (await user.matchPassword(oldPassword))) {
+        user.password = newPassword;
+        await user.save();
+        res.json({ message: 'Password updated successfully' });
+    } else {
+        res.status(401);
+        throw new Error('Invalid old password');
+    }
+});
+
+module.exports = { registerUser, loginUser, logoutUser, updateProfile, resetPassword };
