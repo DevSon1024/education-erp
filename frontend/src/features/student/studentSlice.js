@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 // const API_URL = import.meta.env.VITE_API_URL + '/students/';
-const API_URL = `${import.meta.env.VITE_API_BASE_URL}/students/`;
+const API_URL = `${import.meta.env.VITE_API_URL}/students/`;
 
 axios.defaults.withCredentials = true;
 

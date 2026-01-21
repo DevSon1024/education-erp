@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // const API_URL = import.meta.env.VITE_API_URL + '/user-rights/';
-const API_URL = `${import.meta.env.VITE_API_BASE_URL}/user-rights/`;
+const API_URL = `${import.meta.env.VITE_API_URL}/user-rights/`;
 axios.defaults.withCredentials = true;
 
 // Fetch Rights for a specific user (Admin usage)
