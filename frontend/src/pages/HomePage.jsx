@@ -11,10 +11,10 @@ import { formatDate } from '../utils/dateUtils';
 import HeroCarousel from '../components/ui/HeroCarousel';
 import HeroImage1 from '../assets/6.jpg'
 import HeroImage2 from '../assets/5.jpg';
-import HeroImage3 from '../assets/Accounting.png';
-import HeroImage4 from '../assets/textileDesign.png';
-import HeroImage5 from '../assets/GraphicDesigning.png';
-import HeroImage6 from '../assets/textileDesign_2.png';
+import HeroImage3 from '../assets/Accounting_optimized.webp';
+import HeroImage4 from '../assets/textileDesign_optimized.webp';
+import HeroImage5 from '../assets/GraphicDesigning_optimized.webp';
+import HeroImage6 from '../assets/textileDesign_2_optimized.webp';
 
 // Keep existing generic Carousel for Toppers/Reviews
 const Carousel = ({ items, type = "hero" }) => {
