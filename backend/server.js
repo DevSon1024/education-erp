@@ -21,7 +21,7 @@ app.use(helmet());
 // CORS Middleware (Must be before Rate Limiter for 429s to work in browser)
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: [process.env.FRONTEND_URL, "http://localhost:5173", "https://smartinstituteonline.com"].filter(Boolean),
     credentials: true,
   })
 );
@@ -50,6 +50,8 @@ app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 
 // Routes
+app.get("/", (req, res) => res.send("API is running..."));
+app.get("/api", (req, res) => res.send("API is running..."));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/students", require("./routes/studentRoutes"));
 app.use("/api/master", require("./routes/masterRoutes"));
