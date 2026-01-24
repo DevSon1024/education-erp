@@ -246,15 +246,15 @@ const HomePage = () => {
                         </div>
                         <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
                             Building Leaders <br/>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Since 2010</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Since 10+ Years</span>
                         </h2>
                         <p className="text-gray-600 text-lg leading-relaxed">
                             With over a decade of excellence in education, we have shaped the careers of thousands of students. Our alumni are working in top companies across the globe, a testament to our quality education and industry-focused curriculum. Be a part of our legacy.
                         </p>
                          <div className="pt-4">
-                            <button className="px-8 py-3 bg-white border-2 border-gray-900 text-gray-900 font-bold rounded-xl hover:bg-gray-900 hover:text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            {/* <button className="px-8 py-3 bg-white border-2 border-gray-900 text-gray-900 font-bold rounded-xl hover:bg-gray-900 hover:text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                                 Our History
-                            </button>
+                            </button> */}
                         </div>
                      </div>
                      <div className="w-full lg:w-1/2">

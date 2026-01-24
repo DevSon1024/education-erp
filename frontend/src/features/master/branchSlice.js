@@ -1,8 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = `${import.meta.env.VITE_API_URL}/branches/`;
+const API_URL = `${import.meta.env.VITE_API_URL}/branches`;
 
+// Enable credentials for cookies
+axios.defaults.withCredentials = true;
 // Create new branch
 export const createBranch = createAsyncThunk(
   'branches/create',
@@ -63,7 +65,7 @@ export const getPublicBranches = createAsyncThunk(
   'branches/getPublic',
   async (_, thunkAPI) => {
     try {
-      const response = await axios.get(API_URL + 'public');
+      const response = await axios.get(API_URL + '/public');
       return response.data;
     } catch (error) {
       const message =
@@ -88,7 +90,7 @@ export const updateBranch = createAsyncThunk(
             },
             withCredentials: true,
         };
-      const response = await axios.put(API_URL + id, branchData, config);
+      const response = await axios.put(API_URL + '/' + id, branchData, config);
       return response.data;
     } catch (error) {
       const message =
@@ -110,7 +112,7 @@ export const deleteBranch = createAsyncThunk(
         const config = {
             withCredentials: true,
         };
-      await axios.delete(API_URL + id, config);
+      await axios.delete(API_URL + '/' + id, config);
       return id;
     } catch (error) {
       const message =
