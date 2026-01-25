@@ -71,11 +71,11 @@ const Visitors = () => {
     const fetchDropdowns = async () => {
         // Replace with actual API endpoints
         try {
-            const coursesRes = await axios.get('http://localhost:5000/api/master/course'); 
+            const coursesRes = await axios.get(`${import.meta.env.VITE_API_URL}/master/course`); 
             // Assuming this route exists based on masterRoutes, if not we might need to adjust
             setCourses(coursesRes.data);
 
-            const empRes = await axios.get('http://localhost:5000/api/employees');
+            const empRes = await axios.get(`${import.meta.env.VITE_API_URL}/employees`);
             // Assuming this route exists based on employeeRoutes
             setEmployees(empRes.data);
         } catch (error) {

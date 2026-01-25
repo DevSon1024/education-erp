@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/news';
+// const API_URL = 'http://localhost:5000/api/news';
+const API_URL = `${import.meta.env.VITE_API_URL}/news`;
 
 // for production use uncomment below one line
 // const API_URL = '/api/news';

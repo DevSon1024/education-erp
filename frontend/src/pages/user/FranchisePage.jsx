@@ -23,7 +23,7 @@ const FranchisePage = () => {
   useEffect(() => {
       const fetchBranches = async () => {
           try {
-              const { data } = await axios.get('/api/branches/public'); // Use relative path via proxy
+              const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/branches/public`);
               // Actually, use relative path if proxy is set. The user mentioned proxy in vite config.
               // Let's us '/api/branches/public' assuming proxy works.
               // But wait, the user's vite config had proxy.

@@ -61,9 +61,9 @@ const TodaysVisitorsList = () => {
 
     const fetchDropdowns = async () => {
         try {
-            const coursesRes = await axios.get('http://localhost:5000/api/master/course'); 
+            const coursesRes = await axios.get(`${import.meta.env.VITE_API_URL}/master/course`); 
             setCourses(coursesRes.data);
-            const empRes = await axios.get('http://localhost:5000/api/employees');
+            const empRes = await axios.get(`${import.meta.env.VITE_API_URL}/employees`);
             setEmployees(empRes.data);
         } catch (error) {
             console.error("Error fetching dropdowns:", error);

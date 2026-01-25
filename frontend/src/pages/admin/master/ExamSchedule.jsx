@@ -42,9 +42,9 @@ const ExamSchedule = () => {
 
   // Fetch Details when detailView changes
   useEffect(() => {
-    if (detailView) {
+    if (detailView) {   
         setIsDetailLoading(true);
-        axios.get(`http://localhost:5000/api/master/exam-schedule/${detailView}/details`, { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_URL}/master/exam-schedule/${detailView}/details`, { withCredentials: true })
             .then(res => setDetailData(res.data))
             .catch(err => toast.error("Failed to load details"))
             .finally(() => setIsDetailLoading(false));

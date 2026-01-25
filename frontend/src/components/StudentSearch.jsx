@@ -23,7 +23,7 @@ const StudentSearch = ({
     const inputRef = useRef(null);
 
     // API URL - aligning with studentSlice.js
-    const API_URL = "http://localhost:5000/api/students/";
+    const API_URL = `${import.meta.env.VITE_API_URL}/students/`;
 
     // Debounce Logic
     useEffect(() => {

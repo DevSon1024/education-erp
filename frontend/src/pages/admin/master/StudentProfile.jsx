@@ -46,7 +46,7 @@ const StudentProfile = () => {
                 <div className="flex flex-col md:flex-row gap-6 border-b border-gray-100 pb-8 mb-8">
                     <div className="w-32 h-32 md:w-40 md:h-40 bg-gray-100 rounded-lg overflow-hidden border-4 border-white shadow flex-shrink-0 mx-auto md:mx-0">
                         {student.studentPhoto ? (
-                            <img src={`http://localhost:5000/${student.studentPhoto}`} alt="Student" className="w-full h-full object-cover" />
+                            <img src={`${import.meta.env.VITE_API_URL}/${student.studentPhoto}`} alt="Student" className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">
                                 <User size={48} />

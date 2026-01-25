@@ -20,7 +20,7 @@ const AdmissionFormPrint = () => {
     // ... rest of code
     const canEdit = user && (user.role === 'Super Admin' || user.role === 'Admin');
 
-    const API_URL = "http://localhost:5000/api/students/";
+    const API_URL = `${import.meta.env.VITE_API_URL}/students/`;
 
     useEffect(() => {
         dispatch(fetchBatches()); // Fetch batches

@@ -169,7 +169,7 @@ const StudentUpdate = () => {
                         previewImage ||
                         (currentStudent.studentPhoto?.startsWith("http")
                           ? currentStudent.studentPhoto
-                          : `http://localhost:5000/${currentStudent.studentPhoto}`)
+                          : `${import.meta.env.VITE_API_URL}/${currentStudent.studentPhoto}`)
                       }
                       className="w-full h-full object-cover"
                       onError={(e) => {
