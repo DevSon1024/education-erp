@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm, Controller } from 'react-hook-form';
 import { collectFees, fetchFeeReceipts, updateFeeReceipt, deleteFeeReceipt, resetTransaction } from '../../../features/transaction/transactionSlice';
+import axios from 'axios'; // Import axios for direct call
 import { toast } from 'react-toastify';
 import { Search, RotateCcw, FileText, Printer, Edit2, Trash2, Plus, X } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
@@ -72,12 +73,25 @@ const FeeCollection = () => {
     };
 
     // --- Form Handlers ---
-    const openAddModal = () => {
+    const openAddModal = async () => {
         setEditMode(false);
         setInitialEditStudentId(null);
         setFormStudentObj(null);
+        
+        let nextReceiptNo = 'Loading...';
+        try {
+            // Fetch Next Receipt No
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                withCredentials: true
+            });
+            nextReceiptNo = data;
+        } catch (error) {
+            console.error("Failed to fetch next receipt no", error);
+            nextReceiptNo = 'Error';
+        }
+
         reset({
-            receiptNo: 'Auto Generated', 
+            receiptNo: nextReceiptNo, 
             date: new Date().toISOString().split('T')[0],
             paymentMode: 'Cash'
         });

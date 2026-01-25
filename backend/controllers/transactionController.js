@@ -3,6 +3,7 @@ const FeeReceipt = require("../models/FeeReceipt");
 const Student = require("../models/Student");
 const Batch = require("../models/Batch");
 const asyncHandler = require("express-async-handler");
+const generateEnrollmentNumber = require("../utils/enrollmentGenerator");
 
 // --- INQUIRY ---
 
@@ -222,6 +223,11 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
   if (!student.isAdmissionFeesPaid) {
     student.isAdmissionFeesPaid = true;
     admissionCompletedNow = true;
+    
+    // NEW: Generate Enrollment No if not present
+    if (!student.enrollmentNo && student.branchId) {
+        student.enrollmentNo = await generateEnrollmentNumber(student.branchId);
+    }
   }
 
   await student.save();
@@ -349,6 +355,16 @@ const getStudentLedger = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get Next Receipt Number
+const getNextReceiptNo = asyncHandler(async (req, res) => {
+    const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
+    let nextNum = 1;
+    if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
+        nextNum = Number(lastReceipt.receiptNo) + 1;
+    }
+    res.json(String(nextNum));
+});
+
 module.exports = {
   getInquiries,
   createInquiry,
@@ -359,4 +375,5 @@ module.exports = {
   updateFeeReceipt,
   deleteFeeReceipt,
   getStudentLedger,
+  getNextReceiptNo
 };

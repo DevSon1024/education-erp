@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const studentSchema = new mongoose.Schema(
   {
     // --- System Fields ---
-    enrollmentNo: { type: String, unique: true },
+    enrollmentNo: { type: String }, // CHANGED: Removed unique: true for branch-wise sequence
     regNo: { type: String, unique: true, sparse: true },
     isActive: { type: Boolean, default: true },
     isRegistered: { type: Boolean, default: false },
@@ -87,28 +87,7 @@ studentSchema.index({ email: 1 });
 studentSchema.index({ mobileParent: 1 });
 studentSchema.index({ name: "text" }); // Enable text search on name if needed, or simple index on firstName/lastName
 
-// Middleware for Enrollment No
-studentSchema.pre("save", async function () {
-  if (this.isNew && !this.enrollmentNo) {
-    const currentYear = new Date().getFullYear();
-    const prefix = `ENR${currentYear}`;
-    
-    // Find the latest enrollment number for the current year
-    const lastStudent = await mongoose.model("Student").findOne({
-      enrollmentNo: { $regex: `^${prefix}` }
-    }).sort({ enrollmentNo: -1 });
-
-    let nextNum = 1;
-    if (lastStudent && lastStudent.enrollmentNo) {
-      const lastNumStr = lastStudent.enrollmentNo.replace(prefix, '');
-      const lastNum = parseInt(lastNumStr, 10);
-      if (!isNaN(lastNum)) {
-        nextNum = lastNum + 1;
-      }
-    }
-
-    this.enrollmentNo = `${prefix}${String(nextNum).padStart(4, "0")}`;
-  }
-});
+// Middleware for Enrollment No (REMOVED: Now handled imperatively on payment)
+// studentSchema.pre("save", async function () { ... });
 
 module.exports = mongoose.model("Student", studentSchema);

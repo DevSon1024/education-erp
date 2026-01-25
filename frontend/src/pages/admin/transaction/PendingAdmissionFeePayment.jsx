@@ -11,6 +11,7 @@ import {
 } from "../../../features/transaction/transactionSlice";
 import { toast } from "react-toastify";
 import { Save, ArrowLeft } from "lucide-react";
+import axios from "axios";
 
 const PendingAdmissionFeePayment = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const PendingAdmissionFeePayment = () => {
     amountPaid: "",
     paymentMode: "Cash",
     remarks: "",
+    receiptNo: "Loading...",
     date: new Date().toISOString().split("T")[0],
   });
 
@@ -42,6 +44,22 @@ const PendingAdmissionFeePayment = () => {
       dispatch(resetTransaction());
     };
   }, [id, dispatch]);
+
+  useEffect(() => {
+    // Fetch Next Receipt No
+    const fetchReceiptNo = async () => {
+        try {
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                withCredentials: true
+            });
+            setFormData(prev => ({ ...prev, receiptNo: data }));
+        } catch (error) {
+            console.error("Failed to fetch next receipt no", error);
+            setFormData(prev => ({ ...prev, receiptNo: "Error" }));
+        }
+    };
+    fetchReceiptNo();
+  }, []);
 
   useEffect(() => {
     if (student && student.course) {
@@ -155,7 +173,7 @@ const PendingAdmissionFeePayment = () => {
                 <input
                   type="text"
                   disabled
-                  value="Auto-Generated"
+                  value={formData.receiptNo}
                   className="w-full bg-gray-100 border rounded px-3 py-2 text-sm text-gray-500"
                 />
               </div>

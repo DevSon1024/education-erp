@@ -6,6 +6,8 @@ const Batch = require('../models/Batch');
 const Branch = require('../models/Branch'); 
 const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
+const Counter = require('../models/Counter');
+const generateEnrollmentNumber = require('../utils/enrollmentGenerator');
 
 // @desc    Get Students
 const getStudents = asyncHandler(async (req, res) => {
@@ -77,23 +79,44 @@ const createStudent = asyncHandler(async (req, res) => {
         admissionFeeAmount = Number(feeDetails.amount);
         isAdmissionFeesPaid = true;
         
-        if (paymentPlan === 'One Time') {
-            pendingFees = 0; 
-        } else {
-            pendingFees = totalFees - admissionFeeAmount;
-        }
+        // CHANGED: Always calculate pending fees based on amount paid, even for "One Time"
+        pendingFees = totalFees - admissionFeeAmount;
     }
 
     try {
         // 1. Create Student
-        const student = await Student.create({
+        // Resolve Branch ID and Name
+        let finalBranchId = req.body.branchId;
+        let finalBranchName = 'Main Branch'; // Default
+
+        if (!finalBranchId && req.user && req.user.branchId) {
+            finalBranchId = req.user.branchId;
+        }
+
+        if (finalBranchId) {
+            const branchDoc = await Branch.findById(finalBranchId);
+            if (branchDoc) {
+                finalBranchName = branchDoc.name;
+            }
+        }
+
+        const studentData = {
             ...req.body,
+            branchId: finalBranchId, // Ensure resolved ID is used
+            branchName: finalBranchName, // Ensure correct name is saved
             studentPhoto: req.file ? req.file.path.replace(/\\/g, "/") : (req.body.studentPhoto || null), 
             pendingFees,
             isAdmissionFeesPaid,
             admissionFeeAmount,
             isRegistered: false 
-        });
+        };
+
+        // NEW: Generate Enrollment Number if paying admission fee immediately
+        if (isAdmissionFeesPaid && finalBranchId) {
+            studentData.enrollmentNo = await generateEnrollmentNumber(finalBranchId);
+        }
+
+        const student = await Student.create(studentData);
 
         // 2. Create Receipt if paying now
         if (feeDetails && feeDetails.amount > 0) {
@@ -119,20 +142,22 @@ const createStudent = asyncHandler(async (req, res) => {
             });
         }
 
-        // 3. Send SMS
-        const courseDoc = await Course.findById(student.course);
-        const batchDoc = await Batch.findOne({ name: student.batch }); 
-        
-        const courseName = courseDoc ? courseDoc.name : 'N/A';
-        const batchTime = batchDoc ? `${batchDoc.startTime} to ${batchDoc.endTime}` : 'N/A';
-        const fullName = `${student.firstName} ${student.lastName}`;
-
-        const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
-
-        const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))]; 
-        Promise.all(contacts.map(num => sendSMS(num, smsMessage)))
-            .then(() => console.log('Admission SMS sent successfully'))
-            .catch(err => console.error('Admission SMS failed', err));
+        // 3. Send SMS (Only if admission fees are paid)
+        if (isAdmissionFeesPaid) {
+            const courseDoc = await Course.findById(student.course);
+            const batchDoc = await Batch.findOne({ name: student.batch }); 
+            
+            const courseName = courseDoc ? courseDoc.name : 'N/A';
+            const batchTime = batchDoc ? `${batchDoc.startTime} to ${batchDoc.endTime}` : 'N/A';
+            const fullName = `${student.firstName} ${student.lastName}`;
+    
+            const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
+    
+            const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))]; 
+            Promise.all(contacts.map(num => sendSMS(num, smsMessage)))
+                .then(() => console.log('Admission SMS sent successfully'))
+                .catch(err => console.error('Admission SMS failed', err));
+        }
 
         res.status(201).json(student);
     } catch (error) {
@@ -143,10 +168,14 @@ const createStudent = asyncHandler(async (req, res) => {
 
 // @desc    Confirm Student Registration (Final Phase)
 const confirmStudentRegistration = asyncHandler(async (req, res) => {
+    console.log("Confirm Registration Request Recieved for ID:", req.params.id);
     const student = await Student.findById(req.params.id);
     if (!student) {
+        console.error("Student Not Found");
         res.status(404); throw new Error('Student not found');
     }
+    console.log("Student Found:", student.firstName);
+
 
     const { 
         regNo, 
@@ -156,34 +185,36 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
 
     let finalRegNo = regNo;
     if (!finalRegNo) {
-        // --- New Logic: <Sequence>-<BranchCode> ---
+        // --- New Logic: <GlobalSequence>-<BranchCode> ---
+        // Dynamically find the maximum existing Registration Number across ALL branches
         
-        // 1. Find Max numeric sequence from existing "New Format" reg numbers (e.g. "105-GOD")
-        // We look for patterns starting with digits, followed by hyphen
-        const maxSeqResult = await Student.aggregate([
+        const lastStudent = await Student.aggregate([
             { 
                $match: { 
-                    isRegistered: true,
-                    regNo: { $regex: /^\d+-[A-Z0-9]+$/ } 
+                   regNo: { $exists: true, $ne: null, $ne: "" },
+                   isRegistered: true 
                } 
             },
             {
-                $project: {
-                     // Split by '-' and take the first part, convert to Int
-                     sequence: { $toInt: { $arrayElemAt: [ { $split: ["$regNo", "-"] }, 0 ] } }
-                }
+               $project: {
+                   regNo: 1,
+                   seq: {
+                       $convert: {
+                           input: { $arrayElemAt: [{ $split: ["$regNo", "-"] }, 0] },
+                           to: "int",
+                           onError: 0,
+                           onNull: 0
+                       }
+                   }
+               }
             },
-            { $sort: { sequence: -1 } },
+            { $sort: { seq: -1 } },
             { $limit: 1 }
         ]);
 
         let nextSequence = 1;
-        if (maxSeqResult.length > 0) {
-             nextSequence = maxSeqResult[0].sequence + 1;
-        } else {
-             // Fallback/Seed: If no new format exists, count all registered students + 1
-             const count = await Student.countDocuments({ isRegistered: true });
-             nextSequence = count + 1;
+        if (lastStudent.length > 0 && lastStudent[0].seq > 0) {
+            nextSequence = lastStudent[0].seq + 1;
         }
 
         // 2. Get Branch Short Code
@@ -206,6 +237,8 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         role: 'Student',
         branchId: student.branchId // Link user to the same branch
     });
+    console.log("User Created for Student:", newUser._id);
+
 
     if (student.paymentPlan !== 'One Time' && feeDetails && feeDetails.amount > 0) {
         const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
@@ -234,6 +267,8 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     student.registrationDate = new Date();
     student.userId = newUser._id;
     await student.save();
+    console.log("Student Registration Updated Successfully. RegNo:", finalRegNo);
+
 
     if (student.mobileStudent) {
         const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, smart institute.`;

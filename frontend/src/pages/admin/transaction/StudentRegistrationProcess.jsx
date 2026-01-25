@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentById, confirmRegistration, resetStatus } from '../../../features/student/studentSlice';
 import { toast } from 'react-toastify';
 import { ArrowLeft, Save, X } from 'lucide-react';
+import axios from 'axios';
+import { generateCredentials } from '../../../utils/credentialGenerator';
 
 const StudentRegistrationProcess = () => {
   const { id } = useParams();
@@ -25,7 +27,7 @@ const StudentRegistrationProcess = () => {
 
   // Fee Form Data
   const [feeData, setFeeData] = useState({
-    receiptNo: 'Auto',
+    receiptNo: 'Loading...',
     date: new Date().toISOString().split('T')[0],
     amount: '',
     paymentMode: 'Cash',
@@ -59,8 +61,33 @@ const StudentRegistrationProcess = () => {
                  setFeeData(prev => ({ ...prev, amount: student.course.registrationFees }));
               }
           }
+
+           
+          // Auto-Generate Credentials if empty
+          if (!regData.username && !regData.password) {
+              const { username, password } = generateCredentials(student.firstName, student.lastName);
+              setRegData(prev => ({ ...prev, username, password }));
+          }
       }
   }, [student]);
+
+   useEffect(() => {
+        // Fetch Receipt No when entering Fee Step
+        if (step === 2 && student?.paymentPlan !== 'One Time') {
+            const fetchReceiptNo = async () => {
+                try {
+                    const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                        withCredentials: true
+                    });
+                    setFeeData(prev => ({ ...prev, receiptNo: data }));
+                } catch (error) {
+                    console.error("Failed to fetch next receipt no", error);
+                    setFeeData(prev => ({ ...prev, receiptNo: "Error" }));
+                }
+            };
+            fetchReceiptNo();
+        }
+   }, [step, student]);
 
   const handleContinueFromFees = () => {
       // Validate Fee Data if needed? (Basic required check can be here or HTML required)
@@ -79,6 +106,12 @@ const StudentRegistrationProcess = () => {
     if(e) e.preventDefault();
     if(!regData.username || !regData.password) {
         toast.error("Username and Password are required");
+        return;
+    }
+
+    // Validate Fees for Monthly plan
+    if (student.paymentPlan !== 'One Time' && (!feeData.amount || Number(feeData.amount) <= 0)) {
+        toast.error("Please enter a valid amount for registration fees");
         return;
     }
 

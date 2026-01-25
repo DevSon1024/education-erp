@@ -19,6 +19,7 @@ import { fetchEmployees } from "../../../features/employee/employeeSlice";
 import { getBranches } from "../../../features/master/branchSlice"; // Import API
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios"; // Added axios
 import {
   Upload,
   ChevronRight,
@@ -155,6 +156,26 @@ const StudentAdmission = () => {
       setDuplicateStudent(student || null);
     }
   }, [watchFirstName, watchLastName, inquiries, students]);
+
+  // Fetch Next Receipt Number when entering Step 3 (Payment)
+  const [nextReceiptNo, setNextReceiptNo] = useState("Loading...");
+
+  useEffect(() => {
+      if (step === 3 && payAdmissionFee === true) {
+          const fetchReceiptNo = async () => {
+              try {
+                  const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                      withCredentials: true
+                  });
+                  setNextReceiptNo(data);
+              } catch (error) {
+                  console.error("Failed to fetch next receipt no", error);
+                  setNextReceiptNo("Error");
+              }
+          };
+          fetchReceiptNo();
+      }
+  }, [step, payAdmissionFee]);
 
 // isNewReference effect removed
 
@@ -1188,7 +1209,7 @@ const StudentAdmission = () => {
                     <label className="label">Receipt No</label>
                     <input
                       className="input bg-gray-100 text-gray-500 cursor-not-allowed"
-                      value="AUTO-GENERATED"
+                      value={nextReceiptNo}
                       disabled
                     />
                   </div>

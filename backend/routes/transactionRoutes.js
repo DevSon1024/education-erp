@@ -6,7 +6,8 @@ const {
     getInquiries, createInquiry, updateInquiryStatus,
     createFeeReceipt, getStudentFees,
     getFeeReceipts, updateFeeReceipt, deleteFeeReceipt,
-    getStudentLedger
+    getStudentLedger,
+    getNextReceiptNo
 } = require('../controllers/transactionController');
 const upload = require('../middlewares/uploadMiddleware'); // Import Upload Middleware
 
@@ -31,6 +32,9 @@ router.route('/inquiry/:id')
 router.route('/fees')
     .get(protect, checkPermission('Fees Receipt', 'view'), getFeeReceipts)
     .post(protect, checkPermission('Fees Receipt', 'add'), createFeeReceipt);
+
+router.route('/fees/next-no')
+    .get(protect, checkPermission('Fees Receipt', 'add'), getNextReceiptNo);
 
 router.route('/fees/:id')
     .put(protect, checkPermission('Fees Receipt', 'edit'), updateFeeReceipt)
