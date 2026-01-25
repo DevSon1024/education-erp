@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { Search, RotateCcw, FileText, Printer, Edit2, Trash2, Plus, X } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import StudentSearch from '../../../components/StudentSearch';
+import moment from 'moment';
 
 const FeeCollection = () => {
     const dispatch = useDispatch();
@@ -271,7 +272,7 @@ const FeeCollection = () => {
                             {receipts && receipts.length > 0 ? (
                                 receipts.map((receipt) => (
                                     <tr key={receipt._id} className="border-b hover:bg-blue-50/40 transition">
-                                        <td className="p-4">{new Date(receipt.date).toLocaleDateString()}</td>
+                                        <td className="p-4">{moment(receipt.date).format('DD/MM/YYYY')}</td>
                                         <td className="p-4 font-mono text-gray-500">{receipt.receiptNo}</td>
                                         <td className="p-4 font-medium text-gray-900">
                                             {receipt.student?.firstName} {receipt.student?.lastName}
@@ -451,7 +452,7 @@ const FeeCollection = () => {
                             <div className="flex justify-between mb-4 text-sm">
                                 <div>
                                     <p><strong>Receipt No:</strong> {printingReceipt.receiptNo}</p>
-                                    <p><strong>Date:</strong> {new Date(printingReceipt.date).toLocaleDateString()}</p>
+                                    <p><strong>Date:</strong> {moment(printingReceipt.date).format('DD/MM/YYYY')}</p>
                                 </div>
                                 <div className="text-right">
                                     <p><strong>Student ID:</strong> {printingReceipt.student?.regNo}</p>

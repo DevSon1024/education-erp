@@ -151,9 +151,13 @@ const StudentProfile = () => {
                                 <span className="block text-gray-500 text-xs">Parent Mobile</span>
                                 <span className="font-medium text-gray-800">{student.mobileParent}</span>
                             </div>
-                             <div>
+                            <div>
                                 <span className="block text-gray-500 text-xs">Address</span>
                                 <span className="font-medium text-gray-800">{student.address}</span>
+                            </div>
+                            <div>
+                                <span className="block text-gray-500 text-xs">Reference By</span>
+                                <span className="font-medium text-gray-800">{student.reference || 'N/A'}</span>
                             </div>
                         </div>
                     </div>

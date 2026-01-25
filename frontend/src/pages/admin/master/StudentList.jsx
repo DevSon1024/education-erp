@@ -140,55 +140,53 @@ const StudentList = () => {
       {/* --- Table Section --- */}
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
         <table className="min-w-full divide-y divide-gray-200 text-xs">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 text-xs">
             <tr>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Enroll No</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Reg No</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Dates</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Name (Father/Husband)</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Mobile</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Course Details</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase">Branch</th>
-              <th className="px-3 py-3 text-center font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-500 uppercase w-48">Actions</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Enroll No</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Reg No</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Admission Date</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Reg. Date</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Student Name</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Father/Husband</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Last Name</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Mobile</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Course</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Duration</th>
+              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Branch</th>
+              <th className="px-3 py-3 text-center font-medium text-gray-500 uppercase whitespace-nowrap">Status</th>
+              <th className="px-3 py-3 text-right font-medium text-gray-500 uppercase whitespace-nowrap sticky right-0 bg-gray-50">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="divide-y divide-gray-200 bg-white text-xs">
             {students.length > 0 ? students.map((s) => (
               <tr key={s._id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 font-bold text-gray-700">{s.enrollmentNo}</td>
+                <td className="px-3 py-2 font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
                 <td className="px-3 py-2 text-blue-600 font-mono">{s.regNo || '-'}</td>
                 
-                <td className="px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] text-gray-400">Adm: {moment(s.admissionDate).format('DD/MM/YY')}</span>
-                        {s.registrationDate && <span className="text-[10px] text-green-600">Reg: {moment(s.registrationDate).format('DD/MM/YY')}</span>}
-                    </div>
-                </td>
+                <td className="px-3 py-2 whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{s.registrationDate ? moment(s.registrationDate).format('DD/MM/YYYY') : '-'}</td>
 
-                <td className="px-3 py-2">
-                    <div className="font-medium text-gray-900">{s.firstName} {s.lastName}</div>
-                    <div className="text-gray-500 text-[10px]">{s.middleName} ({s.relationType})</div>
-                </td>
+                <td className="px-3 py-2 font-medium text-gray-900">{s.firstName}</td>
+                <td className="px-3 py-2">{s.middleName || '-'}</td>
+                <td className="px-3 py-2">{s.lastName}</td>
 
                 <td className="px-3 py-2 text-gray-600">{s.mobileStudent}</td>
 
-                <td className="px-3 py-2">
-                    <div className="font-semibold text-blue-800">{s.course?.shortName || s.course?.name}</div>
-                    <div className="text-[10px] text-gray-500">{s.course?.duration} {s.course?.durationType}</div>
-                </td>
+                <td className="px-3 py-2 font-semibold text-blue-800">{s.course?.name || '-'}</td>
+                <td className="px-3 py-2">{s.course ? `${s.course.duration} ${s.course.durationType}` : '-'}</td>
 
-                <td className="px-3 py-2 text-gray-600">{s.branchName}</td>
+                <td className="px-3 py-2 text-gray-600">{s.branchName || 'Main Branch'}</td>
 
                 <td className="px-3 py-2 text-center">
                     <button onClick={() => dispatch(toggleActiveStatus(s._id))} className="text-primary hover:scale-110 transition" title="Toggle Status">
-                        {s.isActive ? <CheckSquare className="text-green-600" size={18}/> : <Square className="text-gray-400" size={18}/>}
+                        {s.isActive ? <CheckSquare className="text-green-600" size={16}/> : <Square className="text-gray-400" size={16}/>}
                     </button>
+                    <span className="sr-only">{s.isActive ? 'Active' : 'Inactive'}</span>
                 </td>
 
-                <td className="px-3 py-2 text-right">
+                <td className="px-3 py-2 text-right sticky right-0 bg-white">
                    <div className="flex justify-end gap-1">
-                        <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1.5 rounded hover:bg-blue-100 transition" title="View Profile">
+                        <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1.5 rounded hover:bg-blue-100 transition" title="View">
                             <Eye size={16}/>
                         </Link>
                         <button onClick={() => handleOpenResetModal(s)} className="bg-yellow-50 text-yellow-600 p-1.5 rounded hover:bg-yellow-100 transition" title="Reset Login">
@@ -197,14 +195,14 @@ const StudentList = () => {
                         <Link to={`/master/student/edit/${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Edit">
                             <Edit size={16}/>
                         </Link>
-                        <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print Admission Form">
+                        <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print">
                             <Printer size={16}/>
                         </Link>
                    </div>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="9" className="text-center py-8 text-gray-400">No students found</td></tr>
+              <tr><td colSpan="13" className="text-center py-8 text-gray-400">No students found</td></tr>
             )}
           </tbody>
         </table>
