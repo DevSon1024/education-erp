@@ -83,9 +83,15 @@ const studentSchema = new mongoose.Schema(
 );
 
 // Indexes for frequent searches
+studentSchema.index({ firstName: 1 });
+studentSchema.index({ lastName: 1 });
+studentSchema.index({ enrollmentNo: 1 });
+studentSchema.index({ course: 1 });
+studentSchema.index({ branchId: 1 });
+studentSchema.index({ batch: 1 });
+studentSchema.index({ admissionDate: -1 });
 studentSchema.index({ email: 1 });
 studentSchema.index({ mobileParent: 1 });
-studentSchema.index({ name: "text" }); // Enable text search on name if needed, or simple index on firstName/lastName
 
 // Middleware for Enrollment No (REMOVED: Now handled imperatively on payment)
 // studentSchema.pre("save", async function () { ... });

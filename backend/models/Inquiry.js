@@ -99,5 +99,11 @@ const inquirySchema = new mongoose.Schema(
 inquirySchema.index({ status: 1 });
 inquirySchema.index({ inquiryDate: -1 });
 inquirySchema.index({ followUpDate: 1 });
+inquirySchema.index({ branchId: 1 });
+inquirySchema.index({ firstName: 1 });
+inquirySchema.index({ lastName: 1 });
+inquirySchema.index({ contactStudent: 1 });
+inquirySchema.index({ allocatedTo: 1 });
+inquirySchema.index({ source: 1 });
 
 module.exports = mongoose.model("Inquiry", inquirySchema);

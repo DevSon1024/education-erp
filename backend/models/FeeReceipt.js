@@ -28,4 +28,9 @@ const feeReceiptSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes
+feeReceiptSchema.index({ student: 1 });
+feeReceiptSchema.index({ receiptNo: 1 });
+feeReceiptSchema.index({ date: -1 });
+
 module.exports = mongoose.model("FeeReceipt", feeReceiptSchema);
