@@ -21,6 +21,19 @@ export const fetchInquiries = createAsyncThunk(
   }
 );
 
+// Create Public Inquiry (No Auth)
+export const createPublicInquiry = createAsyncThunk(
+  "transaction/createPublicInquiry",
+  async (data, thunkAPI) => {
+    try {
+      const response = await axios.post(API_URL + "public/inquiry", data);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
 // Create Inquiry
 export const createInquiry = createAsyncThunk(
   "transaction/createInquiry",
@@ -141,6 +154,10 @@ const transactionSlice = createSlice({
         state.inquiries.unshift(action.payload);
         state.isSuccess = true;
         state.message = "Inquiry Added Successfully";
+      })
+      .addCase(createPublicInquiry.fulfilled, (state, action) => {
+        state.isSuccess = true;
+        state.message = "Inquiry Submitted Successfully";
       })
       .addCase(updateInquiry.fulfilled, (state, action) => {
         const index = state.inquiries.findIndex(

@@ -47,10 +47,9 @@ const HeroCarousel = ({ items }) => {
              <div className="w-full h-full bg-gray-900">
                <img 
                  src={item.image} 
-                 alt={`Slide ${index + 1}`} 
+                 alt={item.alt || item.title || ''} 
                  className="w-full h-full object-cover opacity-90" 
-               />
-               {/* Optional overlay for better text contrast if needed later */}
+               />               {/* Optional overlay for better text contrast if needed later */}
                <div className="absolute inset-0 bg-black/10"></div>
              </div>
           </SwiperSlide>
@@ -58,20 +57,21 @@ const HeroCarousel = ({ items }) => {
       </Swiper>
 
       {/* Navigation Controls (Arrows) */}
-      <div 
+      <button 
+        type="button"
         className="swiper-button-prev-hero left-4 bg-white/20 hover:bg-white/80 text-white hover:text-gray-900 p-3 rounded-full backdrop-blur-sm transition-all duration-300 opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 shadow-lg"
         aria-label="Previous Slide"
       >
         <ChevronLeft size={28} />
-      </div>
+      </button>
       
-      <div 
+      <button 
+        type="button"
         className="swiper-button-next-hero right-4 bg-white/20 hover:bg-white/80 text-white hover:text-gray-900 p-3 rounded-full backdrop-blur-sm transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 shadow-lg"
         aria-label="Next Slide"
       >
         <ChevronRight size={28} />
-      </div>
-      
+      </button>      
 
     </div>
   );

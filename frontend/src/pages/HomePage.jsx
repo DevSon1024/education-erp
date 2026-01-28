@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCourses } from '../features/master/masterSlice';
 import { getPublicBranches } from '../features/master/branchSlice';
-import { createInquiry } from '../features/transaction/transactionSlice';
+import { createInquiry, createPublicInquiry } from '../features/transaction/transactionSlice';
 import { toast } from 'react-toastify';
 import { Link, useNavigate } from 'react-router-dom';
 import newsService from '../services/newsService';
@@ -178,7 +178,7 @@ const HomePage = () => {
           status: 'Pending'
         };
         
-        await dispatch(createInquiry(payload)).unwrap();
+        await dispatch(createPublicInquiry(payload)).unwrap();
         
         toast.success("Inquiry Submitted Successfully! We'll contact you soon.");
         setFormData({

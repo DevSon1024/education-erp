@@ -141,13 +141,15 @@ const RegisterPage = () => {
                     },
                     minLength: { value: 3, message: 'Minimum 3 characters required' },
                     validate: () => {
+                        if (checkingUsername) {
+                        return 'Please wait while we check username availability';
+                        }
                         if (usernameAvailable === false) {
                         return 'Username already taken';
                         }
                         return true;
                     }
-                    })}
-                />
+                    })}                />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     {checkingUsername && <Loader size={18} className="text-gray-400 animate-spin" />}
                     {!checkingUsername && usernameAvailable === true && <CheckCircle size={18} className="text-green-500" />}

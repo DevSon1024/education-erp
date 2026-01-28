@@ -24,6 +24,9 @@ const allowInquiryView = (req, res, next) => {
     checkPermission('Inquiry', 'view')(req, res, next);
 };
 
+// Public Route for Quick Inquiry (No Auth)
+router.post('/public/inquiry', upload.single('studentPhoto'), createInquiry);
+
 router.route('/inquiry')
     .get(protect, allowInquiryView, getInquiries)
     .post(protect, checkPermission('Inquiry', 'add'), upload.single('studentPhoto'), createInquiry); // Added Middleware

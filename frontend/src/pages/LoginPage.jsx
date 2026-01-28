@@ -120,14 +120,10 @@ const LoginPage = () => {
 
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                        <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" />
+                        <input id="remember-me" type="checkbox" className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" {...register('rememberMe')} />
                         <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-500">Remember me</label>
                     </div>
-                    {/* <div className="text-sm">
-                        <a href="#" className="font-medium text-primary hover:text-blue-900 transition-colors">Forgot password?</a>
-                    </div> */}
                 </div>
-
                 <button
                     type="submit"
                     disabled={isLoading}
