@@ -228,7 +228,7 @@ const FeedbackPage = () => {
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                        placeholder="Devendra Sonawane"
+                        placeholder="Enter Your Name Here..."
                       />
                     </div>
                     <div>
@@ -240,7 +240,7 @@ const FeedbackPage = () => {
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                        placeholder="devson123@example.com"
+                        placeholder="Enter Your Email Here..."
                       />
                     </div>
                   </div>
@@ -254,7 +254,7 @@ const FeedbackPage = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                      placeholder="+91 98765 43210"
+                      placeholder="Enter Your Phone Number Here..."
                     />
                   </div>
                   

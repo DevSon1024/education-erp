@@ -246,7 +246,7 @@ const HomePage = () => {
                         </div>
                         <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
                             Building Leaders <br/>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Since 10+ Years</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Since 18 Years</span>
                         </h2>
                         <p className="text-gray-600 text-lg leading-relaxed">
                             With over a decade of excellence in education, we have shaped the careers of thousands of students. Our alumni are working in top companies across the globe, a testament to our quality education and industry-focused curriculum. Be a part of our legacy.
@@ -302,7 +302,7 @@ const HomePage = () => {
                             <Star size={24} />
                         </div>
                         <div>
-                            <div className="font-bold text-gray-900">10+ Years</div>
+                            <div className="font-bold text-gray-900">18+ Years</div>
                             <div className="text-xs text-gray-500">Of Excellence</div>
                         </div>
                     </div>
@@ -398,18 +398,18 @@ const HomePage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Full Name <span className="text-red-500">*</span></label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Devendra Sonawane" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
+                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Enter Your Full Name Here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Mobile Number <span className="text-red-500">*</span></label>
-                        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="9876543210" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
+                        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter Your Mobile Number Here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" required />
                     </div>
                   </div>
 
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Email Address</label>
-                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="devson123@example.com" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" />
+                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter Your Email Here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium" />
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">City <span className="text-red-500">*</span></label>

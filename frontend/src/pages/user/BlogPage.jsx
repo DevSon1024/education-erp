@@ -161,7 +161,7 @@ const BlogPage = () => {
             <div className="w-20 h-20 mx-auto mb-6 bg-accent rounded-full flex items-center justify-center">
               <BookOpen size={40} />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Our <span className="text-accent">Blog</span></h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Our <span className="text-accent">Blog</span></h1>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Insights, stories, and updates from the world of education and technology
             </p>
@@ -173,7 +173,7 @@ const BlogPage = () => {
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured <span className="text-primary">Articles</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Featured <span className="text-primary">Articles</span></h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Hand-picked stories that matter to our community</p>
           </div>
           
@@ -194,7 +194,7 @@ const BlogPage = () => {
                     </span>
                   </div>
                 </div>
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                   <div className="flex items-center gap-4 mb-4">
                     <span className="text-accent font-semibold text-sm">{post.category}</span>
                     <div className="flex items-center gap-2 text-gray-500 text-sm">
@@ -202,7 +202,7 @@ const BlogPage = () => {
                       <span>{post.readTime}</span>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-primary transition-colors">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 group-hover:text-primary transition-colors">
                     {post.title}
                   </h3>
                   <p className="text-gray-600 mb-6 leading-relaxed">{post.excerpt}</p>
@@ -231,7 +231,7 @@ const BlogPage = () => {
       <div className="py-12 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-md w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
@@ -242,7 +242,7 @@ const BlogPage = () => {
               />
             </div>
             
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
               {categories.map((category) => (
                 <button
                   key={category}
@@ -265,7 +265,7 @@ const BlogPage = () => {
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Latest <span className="text-primary">Articles</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest <span className="text-primary">Articles</span></h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Stay updated with our latest insights and stories</p>
           </div>
           
@@ -340,17 +340,17 @@ const BlogPage = () => {
       <div className="py-20 bg-gradient-to-br from-primary to-blue-800 text-white">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Subscribe to Our <span className="text-accent">Newsletter</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Subscribe to Our <span className="text-accent">Newsletter</span></h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
               Get the latest articles and updates delivered straight to your inbox
             </p>
-            <div className="max-w-md mx-auto flex gap-4">
+            <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg text-gray-900 outline-none"
+                className="flex-1 px-4 py-3 rounded-lg text-gray-900 outline-none w-full"
               />
-              <button className="bg-accent hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg transition-colors">
+              <button className="bg-accent hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-lg transition-colors w-full sm:w-auto">
                 Subscribe
               </button>
             </div>

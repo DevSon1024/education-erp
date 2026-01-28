@@ -101,7 +101,7 @@ const ContactPage = () => {
       icon: <Youtube className="text-accent" size={24} />,
       title: 'Website',
       details: [
-        'www.smartinstitute.co.in',
+        'www.smartinstituteonline.com',
         'www.smartcampus.in'
       ]
     }
@@ -176,7 +176,7 @@ const ContactPage = () => {
             <div className="w-20 h-20 mx-auto mb-6 bg-accent rounded-full flex items-center justify-center">
               <MessageSquare size={40} />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Contact <span className="text-accent">Us</span></h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Contact <span className="text-accent">Us</span></h1>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Get In Touch With Us
             </p>
@@ -187,19 +187,19 @@ const ContactPage = () => {
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
            {/* Social Media Navigation */}
-           <div className="flex justify-center gap-6 mb-16">
+           <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-16">
               <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-blue-600 transition-all text-gray-600">
-                <Facebook size={32} />
+                <Facebook size={24} className="md:w-8 md:h-8" />
               </a>
-               <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-sky-500 transition-all text-gray-600 font-bold text-xl w-16 h-16 flex items-center justify-center">
+               <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-sky-500 transition-all text-gray-600 font-bold text-xl w-14 h-14 md:w-16 md:h-16 flex items-center justify-center">
                 X
               </a>
               <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-pink-600 transition-all text-gray-600">
-                <Instagram size={32} />
+                <Instagram size={24} className="md:w-8 md:h-8" />
               </a>
               <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-red-600 transition-all text-gray-600">
                  {/* Lucide doesn't index Youtube easily in all versions, using Text fallback if icon unavailable or generic Globe */}
-                 <Youtube size={32} /> 
+                 <Youtube size={24} className="md:w-8 md:h-8" /> 
               </a>
            </div>
 
@@ -211,12 +211,12 @@ const ContactPage = () => {
                <motion.div 
                  initial={{ opacity: 0, x: -20 }}
                  animate={{ opacity: 1, x: 0 }}
-                 className="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-primary"
+                 className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-l-4 border-primary"
                >
-                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                    <Building className="text-primary" /> Head Office
                  </h2>
-                 <div className="space-y-4 text-gray-600">
+                 <div className="space-y-4 text-gray-600 text-sm md:text-base">
                    <div className="flex items-start gap-3">
                      <MapPin className="text-accent mt-1 shrink-0" />
                      <p>
@@ -235,7 +235,7 @@ const ContactPage = () => {
                    </div>
                    <div className="flex items-center gap-3">
                      <Mail className="text-accent shrink-0" />
-                     <a href="mailto:headoffice@smartinstitute.co.in" className="hover:text-primary transition-colors">headoffice@smartinstitute.co.in</a>
+                     <a href="mailto:headoffice@smartinstitute.co.in" className="hover:text-primary transition-colors break-all">headoffice@smartinstitute.co.in</a>
                    </div>
                  </div>
                </motion.div>
@@ -245,12 +245,12 @@ const ContactPage = () => {
                  initial={{ opacity: 0, x: -20 }}
                  animate={{ opacity: 1, x: 0 }}
                  transition={{ delay: 0.2 }}
-                 className="bg-white p-8 rounded-2xl shadow-lg border-l-4 border-accent"
+                 className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-l-4 border-accent"
                >
-                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                    <Building className="text-accent" /> Branch Office
                  </h2>
-                 <div className="space-y-4 text-gray-600">
+                 <div className="space-y-4 text-gray-600 text-sm md:text-base">
                    <div className="flex items-start gap-3">
                      <MapPin className="text-accent mt-1 shrink-0" />
                      <p>
@@ -268,15 +268,15 @@ const ContactPage = () => {
                    </div>
                    <div className="flex items-center gap-3">
                      <Mail className="text-accent shrink-0" />
-                     <a href="mailto:bhestanbranch@smartinstitute.co.in" className="hover:text-primary transition-colors">bhestanbranch@smartinstitute.co.in</a>
+                     <a href="mailto:bhestanbranch@smartinstitute.co.in" className="hover:text-primary transition-colors break-all">bhestanbranch@smartinstitute.co.in</a>
                    </div>
                  </div>
                </motion.div>
             </div>
 
             {/* Contact Form */}
-            <div className="bg-white p-8 rounded-2xl shadow-xl">
-               <h2 className="text-3xl font-bold text-gray-900 mb-6">Send us a <span className="text-primary">Message</span></h2>
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl">
+               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Send us a <span className="text-primary">Message</span></h2>
                <form onSubmit={handleSubmit} className="space-y-4">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter Your Name..." className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
@@ -309,8 +309,8 @@ const ContactPage = () => {
 
                  <textarea name="message" value={formData.message} onChange={handleChange} required rows="4" placeholder="Message" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"></textarea>
 
-                 <div className="flex items-center gap-4">
-                    <div className="bg-gray-200 px-4 py-3 rounded-lg font-mono text-xl font-bold tracking-widest select-none text-gray-700">
+                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                    <div className="bg-gray-200 px-4 py-3 rounded-lg font-mono text-xl font-bold tracking-widest select-none text-gray-700 text-center">
                         {generatedCode}
                     </div>
                     <input type="text" name="securityCode" value={formData.securityCode} onChange={handleChange} required placeholder="Enter Security Code" className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />

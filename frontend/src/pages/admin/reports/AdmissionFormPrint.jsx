@@ -112,7 +112,7 @@ const AdmissionFormPrint = () => {
                             Mo.: +91 <Editable value={student.branchMobile || "6354116595"} />
                         </p>
                         <p className="text-xs font-bold text-blue-800">
-                            <Editable value={student.website || "www.smartinstitute.co.in"} />
+                            <Editable value={student.website || "www.smartinstituteonline.com"} />
                         </p>
                     </div>
                 </div>

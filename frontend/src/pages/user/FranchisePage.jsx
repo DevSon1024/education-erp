@@ -126,7 +126,7 @@ const FranchisePage = () => {
             <div className="w-20 h-20 mx-auto mb-6 bg-accent rounded-full flex items-center justify-center">
               <Building size={40} />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Franchise <span className="text-accent">Opportunities</span></h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Franchise <span className="text-accent">Opportunities</span></h1>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               Join hands with Smart Institute and be part of our success story
             </p>
@@ -138,11 +138,11 @@ const FranchisePage = () => {
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Find Our <span className="text-primary">Franchise Centers</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Find Our <span className="text-primary">Franchise Centers</span></h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Select your state and city to locate nearby Smart Institute centers</p>
           </div>
           
-          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Select State</label>
@@ -197,7 +197,7 @@ const FranchisePage = () => {
                             <MapPinIcon size={18} className="text-accent shrink-0 mt-1" />
                             <span className="text-sm">{franchise.address}</span>
                           </div>
-                          <div className="flex items-center gap-6">
+                          <div className="flex flex-wrap items-center gap-4 md:gap-6">
                             <div className="flex items-center gap-2">
                               <Phone size={16} className="text-accent" />
                               <span className="text-sm">Ph: {franchise.phone}</span>
@@ -274,7 +274,7 @@ const FranchisePage = () => {
             </div>
             <div className="relative">
               <img src="https://placehold.co/600x400/png?text=Franchise+Opportunity" alt="Franchise Opportunity" className="rounded-2xl shadow-xl" />
-              <div className="absolute -bottom-6 -right-6 bg-accent text-white p-6 rounded-xl shadow-lg">
+              <div className="absolute -bottom-6 -right-4 bg-accent text-white p-6 rounded-xl shadow-lg">
                 <div className="text-3xl font-bold">50+</div>
                 <div className="text-sm">Franchise Centers</div>
               </div>

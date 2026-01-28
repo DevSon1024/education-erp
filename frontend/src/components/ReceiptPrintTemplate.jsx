@@ -227,7 +227,7 @@ const ReceiptPrintTemplate = React.forwardRef(({ receipt }, ref) => {
               fontSize: '8px',
               color: '#999'
             }}>
-              Website :: www.smartinstitute.co.in
+              Website :: www.smartinstituteonline.com
             </p>
             <p style={{ 
               margin: '0',
