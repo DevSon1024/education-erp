@@ -294,7 +294,7 @@ const FeeCollection = () => {
                         />
                     </div>
 
-                    {/* Receipt Type */}
+                    {/* Payment Mode */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">Payment Mode</label>
                         <select 
