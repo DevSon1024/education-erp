@@ -228,7 +228,7 @@ const PendingAdmissionFeePayment = () => {
 
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Receipt Type
+                  Payment Mode
                 </label>
                 <select
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"

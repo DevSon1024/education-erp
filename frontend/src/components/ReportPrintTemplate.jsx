@@ -65,7 +65,7 @@ const ReportPrintTemplate = React.forwardRef(({ receipts, totalAmount, filters }
               )}
               {filters.receiptType && (
                 <p style={{ margin: '3px 0' }}>
-                  <strong>Receipt Type:</strong> {filters.receiptType}
+                  <strong>Payment Mode:</strong> {filters.receiptType}
                 </p>
               )}
               <p style={{ margin: '3px 0' }}>
@@ -94,7 +94,7 @@ const ReportPrintTemplate = React.forwardRef(({ receipts, totalAmount, filters }
                 Receipt No
               </th>
               <th style={{ padding: '10px', textAlign: 'left', borderRight: '1px solid #ddd' }}>
-                Receipt Type
+                Payment Mode
               </th>
               <th style={{ padding: '10px', textAlign: 'left', borderRight: '1px solid #ddd' }}>
                 Student

@@ -280,7 +280,7 @@ const StudentRegistrationProcess = () => {
                      />
                  </div>
                  <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">Receipt Type</label>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
                      <select 
                          value={feeData.paymentMode} 
                          onChange={(e) => setFeeData({...feeData, paymentMode: e.target.value})}

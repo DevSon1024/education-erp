@@ -296,7 +296,7 @@ const FeeCollection = () => {
 
                     {/* Receipt Type */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Receipt Type</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Payment Mode</label>
                         <select 
                             {...register('paymentMode', { required: true })} 
                             className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base"
@@ -419,7 +419,7 @@ const FeeCollection = () => {
                                         <th className="p-3 font-semibold border-b">Receipt Number</th>
                                         <th className="p-3 font-semibold border-b">Installment No.</th>
                                         <th className="p-3 font-semibold border-b text-right">Amount (₹)</th>
-                                        <th className="p-3 font-semibold border-b">Receipt Type</th>
+                                        <th className="p-3 font-semibold border-b">Payment Mode</th>
                                         <th className="p-3 font-semibold border-b text-center">Actions</th>
                                     </tr>
                                 </thead>
@@ -533,7 +533,7 @@ const FeeCollection = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-600 mb-1">Receipt Type</label>
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">Payment Mode</label>
                                         <select 
                                             name="paymentMode" 
                                             value={filters.paymentMode} 
