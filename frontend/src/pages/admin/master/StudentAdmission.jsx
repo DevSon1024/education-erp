@@ -17,7 +17,7 @@ import {
 import { fetchInquiries } from "../../../features/transaction/transactionSlice";
 import { fetchEmployees } from "../../../features/employee/employeeSlice";
 import { getBranches } from "../../../features/master/branchSlice"; // Import API
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios"; // Added axios
 import {
@@ -112,6 +112,41 @@ const StudentAdmission = () => {
         dispatch(getBranches());
     }
   }, [dispatch, user]);
+
+  // Handle inquiry data from location state (when navigating from Complete status)
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.inquiryData) {
+      const inquiry = location.state.inquiryData;
+      
+      // Pre-fill all form fields from inquiry data
+      setValue("firstName", inquiry.firstName || "");
+      setValue("lastName", inquiry.lastName || "");
+      setValue("middleName", inquiry.middleName || "");
+      setValue("relationType", inquiry.relationType || "Father");
+      setValue("email", inquiry.email || "");
+      setValue("gender", inquiry.gender || "Male");
+      setValue("mobileParent", inquiry.contactParent || "");
+      setValue("mobileStudent", inquiry.contactStudent || "");
+      setValue("contactHome", inquiry.contactHome || "");
+      setValue("address", inquiry.address || "");
+      setValue("state", inquiry.state || "Gujarat");
+      setValue("city", inquiry.city || "Surat");
+      setValue("education", inquiry.education || "");
+      setValue("dob", inquiry.dob ? new Date(inquiry.dob).toISOString().split('T')[0] : "");
+      setValue("reference", inquiry.referenceBy || "Direct");
+      
+      if (inquiry.studentPhoto) {
+        setPreviewImage(inquiry.studentPhoto);
+        setValue("studentPhoto", inquiry.studentPhoto);
+      }
+
+      toast.success("Student data pre-filled from inquiry!");
+      
+      // Clear the location state to prevent re-filling on re-render
+      window.history.replaceState({}, document.title);
+    }
+  }, [location, setValue]);
 
 // educationOptions effect removed
 

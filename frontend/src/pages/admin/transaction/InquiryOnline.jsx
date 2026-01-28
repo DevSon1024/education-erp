@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInquiries, updateInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
 import { fetchCourses } from '../../../features/master/masterSlice';
@@ -15,15 +16,32 @@ import { formatDate } from '../../../utils/dateUtils';
 
 // --- SUB-COMPONENT: Follow Up Form ---
 const FollowUpForm = ({ inquiry, onClose, onSave }) => {
-    const { register, handleSubmit } = useForm({ 
+    const navigate = useNavigate();
+    
+    // Get current time in HH:MM format for default
+    const getCurrentTime = () => {
+        const now = new Date();
+        return now.toTimeString().slice(0, 5); // Returns HH:MM
+    };
+
+    const [selectedStatus, setSelectedStatus] = useState(inquiry.status || 'Open');
+    
+    const { register, handleSubmit, watch } = useForm({ 
         defaultValues: { 
-            status: inquiry.status, 
+            status: inquiry.status || 'Open', 
             followUpDetails: inquiry.followUpDetails,
             fDate: inquiry.followUpDate ? new Date(inquiry.followUpDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            fTime: inquiry.followUpDate ? new Date(inquiry.followUpDate).toTimeString().slice(0, 5) : getCurrentTime(),
         } 
     });
 
-    const onSubmit = (data) => {
+    // Watch status field for conditional rendering
+    const statusValue = watch('status');
+    useEffect(() => {
+        setSelectedStatus(statusValue);
+    }, [statusValue]);
+
+    const onSubmit = async (data) => {
         let fDate = null;
         if(data.fDate) {
              const time = data.fTime || '00:00';
@@ -31,20 +49,37 @@ const FollowUpForm = ({ inquiry, onClose, onSave }) => {
         }
 
         let vDate = null;
-        if(data.vDate) {
+        if(data.vDate && selectedStatus !== 'Close' && selectedStatus !== 'Complete') {
             const time = data.vTime || '00:00';
             vDate = new Date(`${data.vDate}T${time}`);
         }
 
-        onSave({ 
-            id: inquiry._id, 
-            data: { 
-                ...data, 
-                followUpDate: fDate, 
-                nextVisitingDate: vDate 
-            } 
-        });
+        const updateData = { 
+            status: data.status,
+            followUpDetails: data.followUpDetails,
+            followUpDate: fDate, 
+            nextVisitingDate: vDate,
+            visitReason: (selectedStatus !== 'Close' && selectedStatus !== 'Complete') ? data.visitReason : undefined,
+        };
+
+        // Save the inquiry update first
+        await onSave({ id: inquiry._id, data: updateData });
+        
+        // If status is Complete, navigate to Student Admission with inquiry data
+        if(data.status === 'Complete') {
+            setTimeout(() => {
+                navigate('/master/student/new', { 
+                    state: { 
+                        inquiryData: inquiry 
+                    } 
+                });
+            }, 500); // Small delay to ensure the save completes
+        } else {
+            onClose();
+        }
     };
+
+    const showNextVisit = selectedStatus !== 'Close' && selectedStatus !== 'Complete';
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -54,29 +89,32 @@ const FollowUpForm = ({ inquiry, onClose, onSave }) => {
                      <div>
                         <label className="text-xs font-bold block mb-1">Inquiry Status</label>
                         <select {...register('status')} className="border p-2 rounded w-full text-sm">
-                            <option>Open</option>
-                            <option>InProgress</option>
-                            <option>Recall</option>
-                            <option>converted</option>
-                            <option>Close</option>
+                            <option value="Open">Open</option>
+                            <option value="InProgress">InProgress</option>
+                            <option value="Recall">Recall</option>
+                            <option value="Close">Close</option>
+                            <option value="Complete">Complete</option>
                         </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                        <div><label className="text-xs font-bold block mb-1">Follow-Up Date</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
-                        <div><label className="text-xs font-bold block mb-1">Time (12h)</label><input type="time" {...register('fTime')} className="border p-2 rounded w-full text-sm"/></div>
+                        <div><label className="text-xs font-bold block mb-1">Follow-Up Date (dd-mm-yyyy)</label><input type="date" {...register('fDate')} required className="border p-2 rounded w-full text-sm"/></div>
+                        <div><label className="text-xs font-bold block mb-1">Time (12h)</label><input type="time" {...register('fTime')} required className="border p-2 rounded w-full text-sm"/></div>
                     </div>
                     <div><label className="text-xs font-bold block mb-1">Discussion / Remarks</label><textarea {...register('followUpDetails')} className="border p-2 rounded w-full text-sm" rows="3"></textarea></div>
                     
-                    <div className="bg-gray-50 p-3 rounded mt-2 border border-gray-100">
-                        <p className="font-bold text-xs mb-2 text-purple-700 flex items-center gap-1"><Calendar size={12}/> Next Visit Schedule</p>
-                        <div className="grid grid-cols-2 gap-3 mb-2">
-                             <input type="date" {...register('vDate')} className="border p-2 rounded w-full text-sm"/>
-                             <input type="time" {...register('vTime')} className="border p-2 rounded w-full text-sm"/>
+                    {/* Conditional Next Visit Schedule */}
+                    {showNextVisit && (
+                        <div className="bg-gray-50 p-3 rounded mt-2 border border-gray-100">
+                            <p className="font-bold text-xs mb-2 text-purple-700 flex items-center gap-1"><Calendar size={12}/> Next Visit Schedule</p>
+                            <div className="grid grid-cols-2 gap-3 mb-2">
+                                 <input type="date" {...register('vDate')} className="border p-2 rounded w-full text-sm" defaultValue={new Date().toISOString().split('T')[0]}/>
+                                 <input type="time" {...register('vTime')} className="border p-2 rounded w-full text-sm" defaultValue={getCurrentTime()}/>
+                            </div>
+                            <input {...register('visitReason')} placeholder="Reason for visit..." className="border p-2 rounded w-full text-sm"/>
                         </div>
-                        <input {...register('visitReason')} placeholder="Reason for visit..." className="border p-2 rounded w-full text-sm"/>
-                    </div>
-                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm">Update Status & Follow Up</button>
+                    )}
+                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm">Update Status</button>
                 </form>
             </div>
         </div>
@@ -214,9 +252,10 @@ const InquiryOnline = () => {
                 <select name="status" onChange={handleFilterChange} value={filters.status} className="w-full border p-2 rounded text-sm focus:ring-2 ring-blue-100 outline-none">
                     <option value="">All Status</option>
                     <option value="Open">Open</option>
-                    <option value="InProgress">In Progress</option>
-                    <option value="Converted">Converted</option>
-                    <option value="Closed">Closed</option>
+                    <option value="InProgress">InProgress</option>
+                    <option value="Recall">Recall</option>
+                    <option value="Close">Close</option>
+                    <option value="Complete">Complete</option>
                 </select>
             </div>
             <div>
