@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 
 // Import logo from assets
 import logoImage from '../../assets/logo2.png';
+import Reveal from '../../components/Reveal';
 
 const ContactPage = () => {
   const [activeMap, setActiveMap] = useState('head'); // 'head' or 'branch'
@@ -187,26 +188,29 @@ const ContactPage = () => {
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
            {/* Social Media Navigation */}
-           <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-16">
-              <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-blue-600 transition-all text-gray-600">
-                <Facebook size={24} className="md:w-8 md:h-8" />
-              </a>
-               <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-sky-500 transition-all text-gray-600 font-bold text-xl w-14 h-14 md:w-16 md:h-16 flex items-center justify-center">
-                X
-              </a>
-              <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-pink-600 transition-all text-gray-600">
-                <Instagram size={24} className="md:w-8 md:h-8" />
-              </a>
-              <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-red-600 transition-all text-gray-600">
-                 {/* Lucide doesn't index Youtube easily in all versions, using Text fallback if icon unavailable or generic Globe */}
-                 <Youtube size={24} className="md:w-8 md:h-8" /> 
-              </a>
-           </div>
+           <Reveal>
+             <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-16">
+                <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-blue-600 transition-all text-gray-600">
+                  <Facebook size={24} className="md:w-8 md:h-8" />
+                </a>
+                 <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-sky-500 transition-all text-gray-600 font-bold text-xl w-14 h-14 md:w-16 md:h-16 flex items-center justify-center">
+                  X
+                </a>
+                <a href="#" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-pink-600 transition-all text-gray-600">
+                  <Instagram size={24} className="md:w-8 md:h-8" />
+                </a>
+                <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noreferrer" className="p-4 bg-white rounded-full shadow-md hover:shadow-lg hover:text-red-600 transition-all text-gray-600">
+                   {/* Lucide doesn't index Youtube easily in all versions, using Text fallback if icon unavailable or generic Globe */}
+                   <Youtube size={24} className="md:w-8 md:h-8" /> 
+                </a>
+             </div>
+           </Reveal>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             
             {/* Contact Details Section */}
             <div className="space-y-8">
+               <Reveal>
                {/* Head Office */}
                <motion.div 
                  initial={{ opacity: 0, x: -20 }}
@@ -239,7 +243,9 @@ const ContactPage = () => {
                    </div>
                  </div>
                </motion.div>
+               </Reveal>
 
+               <Reveal delay={0.2}>
                {/* Branch Office */}
                <motion.div 
                  initial={{ opacity: 0, x: -20 }}
@@ -272,9 +278,11 @@ const ContactPage = () => {
                    </div>
                  </div>
                </motion.div>
+               </Reveal>
             </div>
 
             {/* Contact Form */}
+            <Reveal delay={0.3}>
             <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl">
                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Send us a <span className="text-primary">Message</span></h2>
                <form onSubmit={handleSubmit} className="space-y-4">
@@ -321,6 +329,7 @@ const ContactPage = () => {
                  </button>
                </form>
             </div>
+            </Reveal>
 
           </div>
         </div>
@@ -331,6 +340,7 @@ const ContactPage = () => {
         <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Find <span className="text-primary">Our Locations</span></h2>
             
+            <Reveal>
             <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 max-w-5xl mx-auto">
               {/* Map Tabs */}
               <div className="flex border-b border-gray-100">
@@ -376,6 +386,7 @@ const ContactPage = () => {
                   </p>
               </div>
             </div>
+            </Reveal>
         </div>
       </div>
     </div>

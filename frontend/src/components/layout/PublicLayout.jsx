@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchCourses } from '../../features/master/masterSlice';
 import { 
   Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Youtube,
   LogIn, UserPlus, ArrowRight, Menu, X, MapPin, ChevronDown
@@ -13,9 +14,16 @@ const PublicNavbar = () => {
   const [activeDropdown, setActiveDropdown] = useState(null); // For Mobile
   const [hoverDropdown, setHoverDropdown] = useState(null); // For Desktop
   const location = useLocation(); // Hook to get current location
+  const dispatch = useDispatch();
 
   // Fetch courses for dynamic dropdown
-  const { courses } = useSelector((state) => state.master);
+  const { courses, isLoading } = useSelector((state) => state.master);
+
+  useEffect(() => {
+    if (courses.length === 0 && !isLoading) {
+      dispatch(fetchCourses());
+    }
+  }, [dispatch, courses.length, isLoading]);
   
   // Extract unique Course Types
   const courseTypes = [...new Set(courses.map(course => course.courseType))].filter(Boolean);

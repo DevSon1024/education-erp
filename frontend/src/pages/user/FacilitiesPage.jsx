@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import Reveal from '../../components/Reveal';
 
 const FacilitiesPage = () => {
   return (
@@ -25,6 +26,7 @@ const FacilitiesPage = () => {
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 space-y-12">
           
           {/* Section 1 */}
+          <Reveal>
           <motion.div 
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -38,8 +40,10 @@ const FacilitiesPage = () => {
               Apart from technical training in various software & hands-on project work, Smart Institute Education helps you get a foothold in the booming IT & ITeS industry.
             </p>
           </motion.div>
+          </Reveal>
 
           {/* Section 2 */}
+          <Reveal delay={0.2}>
           <motion.div 
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -53,8 +57,10 @@ const FacilitiesPage = () => {
               Smart Institute's Placements Team helps companies find talented candidates for their IT & software requirements. The team is in touch with graduating students in all centres.
             </p>
           </motion.div>
+          </Reveal>
 
           {/* Section 3 */}
+          <Reveal delay={0.4}>
           <motion.div 
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -68,6 +74,7 @@ const FacilitiesPage = () => {
               The Institute conducts periodic job fairs/campus placements where companies gather to hire skilled students for their job requirements. Last year (2011), Smart Institute conducted 5 job fairs in which around 115 students participated.
             </p>
           </motion.div>
+          </Reveal>
 
         </div>
       </div>

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 
 // Import logo from assets
 import logoImage from '../../assets/logo2.png';
+import Reveal from '../../components/Reveal';
 
 const GalleryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -98,160 +99,168 @@ const GalleryPage = () => {
       {/* 5. Featured Gallery */}
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured <span className="text-primary">Moments</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Highlighting our best memories and achievements</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredImages.map((image, index) => (
-              <motion.div 
-                key={image.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="relative group overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                onClick={() => openImageModal(image)}
-              >
-                <div className="aspect-w-16 aspect-h-12">
-                  <img src={image.src} alt={image.title} className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                    <h3 className="text-lg font-bold mb-1">{image.title}</h3>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-3">
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured <span className="text-primary">Moments</span></h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Highlighting our best memories and achievements</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredImages.map((image, index) => (
+                <motion.div 
+                  key={image.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="relative group overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                  onClick={() => openImageModal(image)}
+                >
+                  <div className="aspect-w-16 aspect-h-12">
+                    <img src={image.src} alt={image.title} className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                      <h3 className="text-lg font-bold mb-1">{image.title}</h3>
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1">
+                            <Eye size={14} /> {image.views}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Heart size={14} /> {image.likes}
+                          </span>
+                        </div>
                         <span className="flex items-center gap-1">
-                          <Eye size={14} /> {image.views}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Heart size={14} /> {image.likes}
+                          <Calendar size={14} /> {new Date(image.date).toLocaleDateString()}
                         </span>
                       </div>
-                      <span className="flex items-center gap-1">
-                        <Calendar size={14} /> {new Date(image.date).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
-                </div>
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Maximize2 size={20} className="text-white" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Maximize2 size={20} className="text-white" />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </div>
 
       {/* 6. Category Filter */}
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Browse by <span className="text-primary">Category</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Explore our collection by different categories</p>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-3 rounded-full font-semibold transition-all ${
-                  selectedCategory === category
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </button>
-            ))}
-          </div>
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Browse by <span className="text-primary">Category</span></h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Explore our collection by different categories</p>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-6 py-3 rounded-full font-semibold transition-all ${
+                    selectedCategory === category
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </button>
+              ))}
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredImages.map((image, index) => (
-              <motion.div 
-                key={image.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.05 }}
-                className="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer"
-                onClick={() => openImageModal(image)}
-              >
-                <div className="aspect-w-16 aspect-h-12">
-                  <img src={image.src} alt={image.title} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                    <h3 className="text-sm font-semibold mb-1 truncate">{image.title}</h3>
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Eye size={12} /> {image.views}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Heart size={12} /> {image.likes}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredImages.map((image, index) => (
+                <motion.div 
+                  key={image.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.05 }}
+                  className="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer"
+                  onClick={() => openImageModal(image)}
+                >
+                  <div className="aspect-w-16 aspect-h-12">
+                    <img src={image.src} alt={image.title} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                      <h3 className="text-sm font-semibold mb-1 truncate">{image.title}</h3>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <Eye size={12} /> {image.views}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Heart size={12} /> {image.likes}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {filteredImages.length === 0 && (
-            <div className="text-center py-12">
-              <Camera size={48} className="text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">No images found in this category</p>
+                </motion.div>
+              ))}
             </div>
-          )}
+
+            {filteredImages.length === 0 && (
+              <div className="text-center py-12">
+                <Camera size={48} className="text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No images found in this category</p>
+              </div>
+            )}
+          </Reveal>
         </div>
       </div>
 
       {/* 7. Gallery Stats */}
       <div className="py-20 bg-gradient-to-br from-primary to-blue-800 text-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Gallery <span className="text-accent">Statistics</span></h2>
-            <p className="text-blue-100 max-w-2xl mx-auto">Numbers that tell our story</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2">500+</div>
-              <div className="text-blue-100">Total Photos</div>
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold mb-4">Gallery <span className="text-accent">Statistics</span></h2>
+              <p className="text-blue-100 max-w-2xl mx-auto">Numbers that tell our story</p>
             </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2">50+</div>
-              <div className="text-blue-100">Events Covered</div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-accent mb-2">500+</div>
+                <div className="text-blue-100">Total Photos</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-accent mb-2">50+</div>
+                <div className="text-blue-100">Events Covered</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-accent mb-2">10K+</div>
+                <div className="text-blue-100">Total Views</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-accent mb-2">5</div>
+                <div className="text-blue-100">Categories</div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2">10K+</div>
-              <div className="text-blue-100">Total Views</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-accent mb-2">5</div>
-              <div className="text-blue-100">Categories</div>
-            </div>
-          </div>
+          </Reveal>
         </div>
       </div>
 
       {/* 8. CTA Section */}
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="bg-gradient-to-r from-primary to-blue-800 rounded-2xl p-12 text-center text-white">
-            <h2 className="text-4xl font-bold mb-4">Share Your <span className="text-accent">Memories</span></h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Have photos from campus events? Share them with us and be featured in our gallery
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-accent hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
-                <Upload size={20} /> Upload Photos
-              </button>
-              <button className="bg-white text-primary hover:bg-gray-100 font-bold py-4 px-8 rounded-full transition-all shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
-                <Download size={20} /> Download Brochure
-              </button>
+          <Reveal>
+            <div className="bg-gradient-to-r from-primary to-blue-800 rounded-2xl p-12 text-center text-white">
+              <h2 className="text-4xl font-bold mb-4">Share Your <span className="text-accent">Memories</span></h2>
+              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                Have photos from campus events? Share them with us and be featured in our gallery
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button className="bg-accent hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-full transition-all shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
+                  <Upload size={20} /> Upload Photos
+                </button>
+                <button className="bg-white text-primary hover:bg-gray-100 font-bold py-4 px-8 rounded-full transition-all shadow-lg transform hover:-translate-y-1 flex items-center gap-2">
+                  <Download size={20} /> Download Brochure
+                </button>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
 

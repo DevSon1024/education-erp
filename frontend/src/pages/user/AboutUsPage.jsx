@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import studentStanding from '../../assets/studentWithbooks.webp';
+import Reveal from '../../components/Reveal';
 
 const AboutUsPage = () => {
   const location = useLocation();
@@ -43,6 +44,7 @@ const AboutUsPage = () => {
       {/* 1. About Smart Institute Section */}
       <div id="smart" className="py-20 bg-white scroll-mt-20">
         <div className="container mx-auto px-4">
+          <Reveal>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
@@ -88,12 +90,14 @@ const AboutUsPage = () => {
               </div>
             </motion.div>
           </div>
+          </Reveal>
         </div>
       </div>
 
       {/* 2. Mission Section */}
       <div id="mission" className="py-20 bg-gray-50 scroll-mt-20">
         <div className="container mx-auto px-4">
+          <Reveal>
           <div className="flex flex-col md:flex-row gap-12 items-center">
              <div className="md:w-1/3 flex justify-center">
                 <div className="w-48 h-48 bg-blue-100 rounded-full flex items-center justify-center text-primary">
@@ -146,12 +150,14 @@ const AboutUsPage = () => {
                 </div>
              </div>
           </div>
+          </Reveal>
         </div>
       </div>
 
       {/* 3. Vision Section */}
       <div id="vision" className="py-20 bg-white scroll-mt-20">
         <div className="container mx-auto px-4">
+           <Reveal>
            <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-12">
                     <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center text-accent mx-auto mb-6">
@@ -188,6 +194,7 @@ const AboutUsPage = () => {
                     </div>
                 </div>
            </div>
+           </Reveal>
         </div>
       </div>
 

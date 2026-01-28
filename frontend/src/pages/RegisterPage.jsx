@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, reset } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { User, Lock, Shield, Loader, Eye, EyeOff, AtSign, CheckCircle, XCircle } from 'lucide-react';
+import Reveal from '../components/Reveal';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -61,7 +62,8 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-green-600 relative animate-fadeIn">
+      <Reveal>
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-green-600 relative">
         {/* Back Option */}
         <button onClick={() => navigate('/')} className="absolute top-4 right-4 text-xs font-bold text-gray-500 hover:text-green-600 transition-colors">
             &larr; Back to Home
@@ -187,6 +189,7 @@ const RegisterPage = () => {
            <Link to="/login" className="text-green-600 hover:underline font-medium">Already have an account? Login</Link>
         </div>
       </div>
+      </Reveal>
     </div>
   );
 };

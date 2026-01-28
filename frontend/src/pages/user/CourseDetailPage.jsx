@@ -7,6 +7,7 @@ import {
   DollarSign, Award, Star, Users 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Reveal from '../../components/Reveal';
 
 const CourseDetailPage = () => {
   const { courseId } = useParams();
@@ -73,7 +74,7 @@ const CourseDetailPage = () => {
             
             {/* Left Content Column */}
             <div className="lg:col-span-2 space-y-8">
-                
+                <Reveal>
                 {/* Overview Cards */}
                 <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 flex flex-wrap gap-8 justify-between">
                     <div className="flex items-center gap-4">
@@ -104,8 +105,10 @@ const CourseDetailPage = () => {
                         </div>
                     </div>
                 </div>
+                </Reveal>
 
                 {/* Course Description */}
+                <Reveal delay={0.1}>
                 <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                         <span className="w-1 h-8 bg-accent rounded-full"></span>
@@ -121,8 +124,10 @@ const CourseDetailPage = () => {
                         )}
                     </div>
                 </div>
+                </Reveal>
 
                 {/* Subject Details */}
+                <Reveal delay={0.2}>
                 <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                         <span className="w-1 h-8 bg-primary rounded-full"></span>
@@ -143,11 +148,13 @@ const CourseDetailPage = () => {
                         <div className="text-gray-500 italic">Subject details are being updated.</div>
                     )}
                 </div>
+                </Reveal>
 
             </div>
 
             {/* Right Sidebar */}
             <div className="lg:col-span-1">
+                <Reveal>
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
                     <div className="mb-6">
                         <span className="text-sm text-gray-500 font-semibold uppercase tracking-wider">Course Fee</span>
@@ -161,6 +168,7 @@ const CourseDetailPage = () => {
                     </button>
                     
                 </div>
+                </Reveal>
             </div>
 
         </div>

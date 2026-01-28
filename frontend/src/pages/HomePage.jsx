@@ -13,8 +13,10 @@ import HeroImage1 from '../assets/6.jpg'
 import HeroImage2 from '../assets/5.jpg';
 import HeroImage3 from '../assets/Accounting_optimized.webp';
 import HeroImage4 from '../assets/textileDesign_optimized.webp';
+// import HeroImage5 from '../assets/GraphicDesigning_optimized.webp';
 import HeroImage5 from '../assets/GraphicDesigning_optimized.webp';
 import HeroImage6 from '../assets/textileDesign_2_optimized.webp';
+import Reveal from '../components/Reveal';
 
 // Keep existing generic Carousel for Toppers/Reviews
 const Carousel = ({ items, type = "hero" }) => {
@@ -206,6 +208,7 @@ const HomePage = () => {
             
             {/* Row 1: Image Left, Text Right */}
             <div className="container mx-auto px-4">
+              <Reveal>
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                      <div className="w-full lg:w-1/2">
                         <div className="relative group overflow-hidden rounded-2xl shadow-2xl border-4 border-white">
@@ -235,10 +238,12 @@ const HomePage = () => {
                         </div>
                      </div>
                 </div>
+              </Reveal>
             </div>
 
             {/* Row 2: Text Left, Image Right (on Desktop) */}
             <div className="container mx-auto px-4">
+              <Reveal>
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-8 lg:gap-12">
                      <div className="w-full lg:w-1/2 space-y-6">
                         <div className="inline-block px-4 py-2 bg-accent/10 rounded-full text-accent font-bold text-sm uppercase tracking-wider">
@@ -268,6 +273,7 @@ const HomePage = () => {
                         </div>
                      </div>
                 </div>
+              </Reveal>
             </div>
 
         </div>
@@ -276,6 +282,7 @@ const HomePage = () => {
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             
+            <Reveal>
             <div className="relative">
                 <div className="absolute -top-4 -left-4 w-24 h-24 bg-accent/10 rounded-full blur-xl"></div>
                 <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/10 rounded-full blur-xl"></div>
@@ -312,7 +319,9 @@ const HomePage = () => {
                   Learn More About Us <ArrowRight size={18} />
                 </a>
             </div>
+            </Reveal>
 
+            <Reveal delay={0.4}>
             <div className="relative">
                 <div className="grid grid-cols-1 gap-5"> {/* Changed to single column/simplified grid since items removed */}
                      {/* Best Institute Award & 100% Placement - Removed */}
@@ -330,6 +339,7 @@ const HomePage = () => {
                      </div>
                 </div>
             </div>
+            </Reveal>
 
           </div>
         </div>
@@ -341,6 +351,7 @@ const HomePage = () => {
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-100/40 rounded-full blur-[80px] -translate-x-1/2 translate-y-1/3 pointer-events-none"></div>
 
           <div className="container mx-auto px-4 relative z-10">
+            <Reveal>
             <div className="max-w-6xl mx-auto bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100">
               {/* Left Info Panel */}
               <div className="lg:w-2/5 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-12 text-white flex flex-col justify-between relative overflow-hidden">
@@ -476,16 +487,19 @@ const HomePage = () => {
                 </form>
               </div>
             </div>
+            </Reveal>
           </div>
         </div>
   
         {/* 4. Student Success Stories (Toppers) */}
         <div className="py-20 bg-white">
           <div className="container mx-auto px-4 text-center">
-            <h4 className="text-accent font-bold uppercase tracking-widest text-sm mb-3">Hall of Fame</h4>
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">Student <span className="text-primary">Success Stories</span></h2>
-            <p className="text-gray-500 mb-12 max-w-2xl mx-auto text-lg">Celebrating the academic excellence and outstanding achievements of our brilliant students who have made us proud.</p>
-            <Carousel items={toppers} type="topper" />
+            <Reveal>
+              <h4 className="text-accent font-bold uppercase tracking-widest text-sm mb-3">Hall of Fame</h4>
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">Student <span className="text-primary">Success Stories</span></h2>
+              <p className="text-gray-500 mb-12 max-w-2xl mx-auto text-lg">Celebrating the academic excellence and outstanding achievements of our brilliant students who have made us proud.</p>
+              <Carousel items={toppers} type="topper" />
+            </Reveal>
           </div>
         </div>
   
@@ -502,8 +516,9 @@ const HomePage = () => {
                </a>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {newsLoading ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               <Reveal width="col-span-1 md:col-span-2 lg:col-span-3" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               {newsLoading ? (
                   Array(3).fill(0).map((_, i) => (
                       <div key={i} className="bg-white rounded-2xl p-6 shadow-sm animate-pulse h-64">
                           <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -551,7 +566,8 @@ const HomePage = () => {
                     </div>
                   ))
               )}
-            </div>
+               </Reveal>
+             </div>
           </div>
         </div>
       </div>

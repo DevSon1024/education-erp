@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 
 // Import logo from assets
 import logoImage from '../../assets/logo2.png';
+import Reveal from '../../components/Reveal';
 
 const FeedbackPage = () => {
   const [formData, setFormData] = useState({
@@ -180,28 +181,30 @@ const FeedbackPage = () => {
       {/* 5. Feedback Stats */}
       <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Feedback <span className="text-primary">Statistics</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">See what our students and visitors say about us</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                  {stat.icon}
-                </div>
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Feedback <span className="text-primary">Statistics</span></h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">See what our students and visitors say about us</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {stats.map((stat, index) => (
+                <motion.div 
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="text-center"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                    {stat.icon}
+                  </div>
+                  <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.number}</div>
+                  <div className="text-gray-600">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </div>
 
@@ -211,6 +214,7 @@ const FeedbackPage = () => {
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
               {/* Form */}
+              <Reveal>
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">Share Your <span className="text-primary">Experience</span></h2>
                 <p className="text-gray-600 mb-8">
@@ -329,8 +333,10 @@ const FeedbackPage = () => {
                   </button>
                 </form>
               </div>
+              </Reveal>
               
               {/* Recent Testimonials */}
+              <Reveal delay={0.2}>
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">Recent <span className="text-primary">Testimonials</span></h2>
                 <p className="text-gray-600 mb-8">
@@ -366,6 +372,7 @@ const FeedbackPage = () => {
                   ))}
                 </div>
               </div>
+              </Reveal>
             </div>
           </div>
         </div>
@@ -374,28 +381,30 @@ const FeedbackPage = () => {
       {/* 7. Why Feedback Matters */}
       <div className="py-20 bg-gradient-to-br from-primary to-blue-800 text-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Your <span className="text-accent">Feedback Matters</span></h2>
-            <p className="text-blue-100 max-w-2xl mx-auto">How your feedback helps us improve</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl text-center">
-              <Award className="text-accent mb-4 mx-auto" size={32} />
-              <h3 className="text-xl font-bold mb-3">Improve Quality</h3>
-              <p className="text-blue-100">Your feedback helps us enhance the quality of our courses and services</p>
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold mb-4">Why Your <span className="text-accent">Feedback Matters</span></h2>
+              <p className="text-blue-100 max-w-2xl mx-auto">How your feedback helps us improve</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl text-center">
-              <Users className="text-accent mb-4 mx-auto" size={32} />
-              <h3 className="text-xl font-bold mb-3">Student Experience</h3>
-              <p className="text-blue-100">We use your input to create a better learning environment</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl text-center">
+                <Award className="text-accent mb-4 mx-auto" size={32} />
+                <h3 className="text-xl font-bold mb-3">Improve Quality</h3>
+                <p className="text-blue-100">Your feedback helps us enhance the quality of our courses and services</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl text-center">
+                <Users className="text-accent mb-4 mx-auto" size={32} />
+                <h3 className="text-xl font-bold mb-3">Student Experience</h3>
+                <p className="text-blue-100">We use your input to create a better learning environment</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl text-center">
+                <BookOpen className="text-accent mb-4 mx-auto" size={32} />
+                <h3 className="text-xl font-bold mb-3">Course Development</h3>
+                <p className="text-blue-100">Your suggestions guide us in developing new and relevant courses</p>
+              </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl text-center">
-              <BookOpen className="text-accent mb-4 mx-auto" size={32} />
-              <h3 className="text-xl font-bold mb-3">Course Development</h3>
-              <p className="text-blue-100">Your suggestions guide us in developing new and relevant courses</p>
-            </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Award, Users, Globe } from 'lucide-react';
+import Reveal from '../../components/Reveal';
 
 const WhySmartPage = () => {
   return (
@@ -26,6 +27,7 @@ const WhySmartPage = () => {
         <div className="max-w-4xl mx-auto space-y-12">
           
           {/* Main Introduction */}
+          <Reveal>
           <motion.div 
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -46,9 +48,11 @@ const WhySmartPage = () => {
                 </div>
             </div>
           </motion.div>
+          </Reveal>
 
           {/* Key Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Reveal delay={0.2}>
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -63,7 +67,9 @@ const WhySmartPage = () => {
                       We offer courses and have alliances with companies like Microsoft, Red Hat, Oracle, along with various placement assistance activities.
                   </p>
               </motion.div>
+              </Reveal>
 
+              <Reveal delay={0.3}>
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -78,9 +84,11 @@ const WhySmartPage = () => {
                       Here we provide you after complete the study placement of any company or firm. Our main aim is to give all students world-class education with their placement in any of the place which they needed.
                   </p>
               </motion.div>
+              </Reveal>
           </div>
 
           {/* Recruitment Section */}
+          <Reveal delay={0.4}>
           <motion.div 
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -103,6 +111,7 @@ const WhySmartPage = () => {
                 </div>
              </div>
           </motion.div>
+          </Reveal>
 
         </div>
       </div>

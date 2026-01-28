@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { login, reset } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { User, Lock, Loader, Eye, EyeOff } from 'lucide-react';
+import Reveal from '../components/Reveal';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,8 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-primary relative animate-fadeIn">
+      <Reveal>
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-primary relative">
         {/* Back Option */}
         <button onClick={() => navigate('/')} className="absolute top-4 right-4 text-xs font-bold text-gray-500 hover:text-primary transition-colors">
             &larr; Back to Home
@@ -101,6 +103,7 @@ const LoginPage = () => {
           From Smart Institute
         </div>
       </div>
+      </Reveal>
     </div>
   );
 };
