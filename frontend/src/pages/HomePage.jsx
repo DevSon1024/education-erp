@@ -13,44 +13,60 @@ import HeroImage1 from '../assets/6.jpg'
 import HeroImage2 from '../assets/5.jpg';
 import HeroImage3 from '../assets/Accounting_optimized.webp';
 import HeroImage4 from '../assets/textileDesign_optimized.webp';
-// import HeroImage5 from '../assets/GraphicDesigning_optimized.webp';
 import HeroImage5 from '../assets/GraphicDesigning_optimized.webp';
 import HeroImage6 from '../assets/textileDesign_2_optimized.webp';
 import Reveal from '../components/Reveal';
 
 // Keep existing generic Carousel for Toppers/Reviews
-const Carousel = ({ items, type = "hero" }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
-  };
-
-  // Auto-play removed for non-hero carousels mainly, or can keep if desired
-  useEffect(() => {
-    if (type === 'hero') { // We aren't using this type for hero anymore, but good to keep logic safe
-      const timer = setInterval(nextSlide, 5000);
-      return () => clearInterval(timer);
-    }
-  }, [currentIndex, type]);
-
+const Carousel = ({ items }) => {
   return (
-    <div className={`relative overflow-hidden group ${type === 'hero' ? 'h-[200px] sm:h-[400px] md:h-[550px]' : 'h-auto py-8'}`}>
-      <div 
-        className="flex transition-transform duration-500 ease-out h-full"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+    <div className="relative group px-2 md:px-8">
+      <style>
+        {`
+          .swiper-button-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        `}
+      </style>
+      <Swiper
+        modules={[Navigation, Autoplay]}
+        spaceBetween={30}
+        slidesPerView={1}
+        loop={true}
+        autoplay={{
+          delay: 3000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true
+        }}
+        navigation={{
+           nextEl: '.swiper-button-next-custom',
+           prevEl: '.swiper-button-prev-custom',
+        }}
+        breakpoints={{
+          640: {
+            slidesPerView: 1,
+            spaceBetween: 20,
+          },
+          768: {
+            slidesPerView: 2,
+            spaceBetween: 30,
+          },
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 30,
+          },
+        }}
+        className="!pb-12 !pt-4 !px-2"
       >
         {items.map((item, index) => (
-          <div key={index} className="w-full flex-shrink-0 h-full flex items-center justify-center relative px-2">
-            {type === 'hero' ? (
-              <img src={item.image} alt="Slide" className="w-full h-full object-contain md:object-cover bg-white" />
-            ) : (
-                // Improved Card Design for Toppers / Testimonials
-               <div className="w-full h-full flex justify-center items-center pb-8 pt-4">
+          <SwiperSlide key={index} className="h-auto flex items-stretch justify-center">
+               <div className="flex justify-center items-center w-full">
                  <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center border-t-4 border-accent relative transform hover:scale-105 transition-transform duration-300">
                     <div className="absolute top-4 right-6 text-yellow-400 opacity-20"><Quote size={40} /></div>
                     <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden border-4 border-gray-50 shadow-inner">
@@ -64,14 +80,15 @@ const Carousel = ({ items, type = "hero" }) => {
                     </div>
                  </div>
                </div>
-            )}
-          </div>
+          </SwiperSlide>
         ))}
-      </div>
-      <button onClick={prevSlide} className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 text-gray-800 p-2 rounded-r-lg shadow-md hover:bg-white hover:text-accent transition-all z-10">
+      </Swiper>
+      
+      {/* Custom Navigation Buttons */}
+      <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-3 rounded-full shadow-lg hover:bg-accent hover:text-white transition-all z-20 cursor-pointer border border-gray-100 hidden md:block group-hover:block">
         <ChevronLeft size={24} />
       </button>
-      <button onClick={nextSlide} className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 text-gray-800 p-2 rounded-l-lg shadow-md hover:bg-white hover:text-accent transition-all z-10">
+      <button className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-3 rounded-full shadow-lg hover:bg-accent hover:text-white transition-all z-20 cursor-pointer border border-gray-100 hidden md:block group-hover:block">
         <ChevronRight size={24} />
       </button>
     </div>
@@ -196,6 +213,9 @@ const HomePage = () => {
       { name: "Priya Patel", percentage: "98.5", course: "Full Stack Development", image: "https://placehold.co/600x400/png?text=Priya+Patel" },
       { name: "Rahul Sharma", percentage: "97.2", course: "Data Science & AI", image: "https://placehold.co/600x400/png?text=Rahul+Sharma" },
       { name: "Amit Kumar", percentage: "96.8", course: "Cyber Security", image: "https://placehold.co/600x400/png?text=Amit+Kumar" },
+      { name: "Sneha Gupta", percentage: "95.5", course: "UI/UX Design", image: "https://placehold.co/600x400/png?text=Sneha+Gupta" },
+      { name: "Vikram Singh", percentage: "94.9", course: "Digital Marketing", image: "https://placehold.co/600x400/png?text=Vikram+Singh" },
+      { name: "Anjali Mehta", percentage: "93.7", course: "Web Development", image: "https://placehold.co/600x400/png?text=Anjali+Mehta" },
     ];
   
     return (
@@ -251,7 +271,7 @@ const HomePage = () => {
                         </div>
                         <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
                             Building Leaders <br/>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Since 18 Years</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Since 18+ Years</span>
                         </h2>
                         <p className="text-gray-600 text-lg leading-relaxed">
                             With over a decade of excellence in education, we have shaped the careers of thousands of students. Our alumni are working in top companies across the globe, a testament to our quality education and industry-focused curriculum. Be a part of our legacy.
@@ -498,7 +518,7 @@ const HomePage = () => {
               <h4 className="text-accent font-bold uppercase tracking-widest text-sm mb-3">Hall of Fame</h4>
               <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">Student <span className="text-primary">Success Stories</span></h2>
               <p className="text-gray-500 mb-12 max-w-2xl mx-auto text-lg">Celebrating the academic excellence and outstanding achievements of our brilliant students who have made us proud.</p>
-              <Carousel items={toppers} type="topper" />
+              <Carousel items={toppers} />
             </Reveal>
           </div>
         </div>

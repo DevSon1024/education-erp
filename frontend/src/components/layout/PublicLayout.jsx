@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchCourses } from '../../features/master/masterSlice';
 import { 
   Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Youtube,
-  LogIn, UserPlus, ArrowRight, Menu, X, MapPin, ChevronDown
+  LogIn, UserPlus, ArrowRight, Menu, X, MapPin, ChevronDown, BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoImage from '../../assets/logo2.png';
@@ -13,7 +13,7 @@ const PublicNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null); // For Mobile
   const [hoverDropdown, setHoverDropdown] = useState(null); // For Desktop
-  const location = useLocation(); // Hook to get current location
+  const location = useLocation();
   const dispatch = useDispatch();
 
   // Fetch courses for dynamic dropdown
@@ -25,8 +25,15 @@ const PublicNavbar = () => {
     }
   }, [dispatch, courses.length, isLoading]);
   
-  // Extract unique Course Types
-  const courseTypes = [...new Set(courses.map(course => course.courseType))].filter(Boolean);
+  // Extract unique Course Types and group courses
+  const courseGroups = courses.reduce((acc, course) => {
+    const type = course.courseType || 'Other';
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(course);
+    return acc;
+  }, {});
+  
+  const courseTypes = Object.keys(courseGroups);
 
   const menuItems = [
     { name: 'Home', path: '/' },
@@ -43,11 +50,7 @@ const PublicNavbar = () => {
     { 
       name: 'Course', 
       isDropdown: true, 
-      isDynamic: true, // Marker for dynamic course types
-      subItems: courseTypes.map(type => ({ 
-        name: type, 
-        path: `/course?type=${type}` 
-      }))
+      isMegaMenu: true, // Marker for Mega Menu
     },
     { name: 'Facilities', path: '/facilities' },
     { name: 'Gallery', path: '/gallery' },
@@ -63,8 +66,8 @@ const PublicNavbar = () => {
     return location.pathname.startsWith(path.split('?')[0]);
   };
 
-  // Helper to determine if a dropdown parent should be active
   const isDropdownActive = (subItems) => {
+      if(!subItems) return false;
     return subItems.some(sub => {
        const cleanPath = sub.path.split('#')[0].split('?')[0];
        return location.pathname === cleanPath || (cleanPath !== '/' && location.pathname.startsWith(cleanPath));
@@ -72,16 +75,22 @@ const PublicNavbar = () => {
   };
 
   return (
-    <nav className="bg-primary/95 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 transition-all duration-300">
+    <nav className="bg-white text-gray-800 shadow-sm sticky top-0 z-50 font-sans border-b border-gray-100">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between md:justify-center items-center h-20 relative">
+           
+           {/* Mobile Logo (Visible only on mobile since main logo is in header) */}
+           <div className="md:hidden flex-shrink-0">
+               <img src={logoImage} alt="Logo" className="h-10 w-auto" />
+           </div>
+
            {/* Mobile Menu Button */}
-          <button className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors" onClick={() => setIsOpen(!isOpen)}>
+          <button className="md:hidden p-2 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors absolute right-0" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center justify-center w-full gap-1">
+          {/* Desktop Menu - Centered */}
+          <div className="hidden md:flex items-center justify-center gap-1">
             {menuItems.map((item, index) => (
               <div key={index} className="relative group"
                    onMouseEnter={() => setHoverDropdown(index)}
@@ -89,36 +98,67 @@ const PublicNavbar = () => {
               >
                   {item.isDropdown ? (
                       <div>
-                          <button className={`flex items-center gap-1 px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md ${isDropdownActive(item.subItems) ? 'text-accent' : ''}`}>
-                              {item.name} <ChevronDown size={14} />
+                          <button className={`flex items-center gap-1 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary ${ (item.subItems && isDropdownActive(item.subItems)) || (item.isMegaMenu && location.pathname.includes('/course')) ? 'text-primary border-primary' : 'text-gray-700'}`}>
+                              {item.name} <ChevronDown size={14} className={`transform transition-transform duration-200 ${hoverDropdown === index ? 'rotate-180' : ''}`} />
                           </button>
                           
-                          {/* Desktop Dropdown Content */}
+                          {/* Dropdown Content */}
                           <AnimatePresence>
                               {hoverDropdown === index && (
                                   <motion.div
-                                      initial={{ opacity: 0, y: 10 }}
+                                      initial={{ opacity: 0, y: 15 }}
                                       animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, y: 10 }}
+                                      exit={{ opacity: 0, y: 15 }}
                                       transition={{ duration: 0.2 }}
-                                      className="absolute left-0 mt-0 w-56 bg-white text-gray-800 shadow-xl rounded-md overflow-hidden border-t-4 border-accent"
+                                      className={`absolute left-1/2 -translate-x-1/2 mt-0 bg-white text-gray-800 shadow-2xl rounded-xl overflow-hidden border border-gray-100 z-50 ${item.isMegaMenu ? 'w-[800px] left-1/2 fixed top-[180px] -translate-x-1/2' : 'w-56'}`}
+                                      // Note: Fixed positioning for MegaMenu might need adjustment based on header height, but usually absolute relative to nav is better if nav is full width.
+                                      // Let's stick to absolute but centered.
+                                      style={item.isMegaMenu ? { left: '50%', transform: 'translateX(-50%)', width: '900px', maxWidth: '90vw' } : {}}
                                   >
-                                      {item.subItems.map((sub, subIdx) => (
-                                          <Link 
-                                            key={subIdx} 
-                                            to={sub.path} 
-                                            className={`block px-6 py-3 text-sm font-semibold hover:bg-gray-50 hover:text-primary transition-colors border-b border-gray-100 last:border-0 ${location.pathname === sub.path.split('#')[0].split('?')[0] ? 'text-primary bg-blue-50' : ''}`}
-                                          >
-                                              {sub.name}
-                                          </Link>
-                                      ))}
+                                      {item.isMegaMenu ? (
+                                        // MEGA MENU CONTENT
+                                        <div className="p-8 grid grid-cols-4 gap-8 bg-white">
+                                            {courseTypes.length > 0 ? courseTypes.map((type, idx) => (
+                                                <div key={idx} className="space-y-4">
+                                                    <h4 className="font-black text-primary uppercase text-sm border-b-2 border-primary/10 pb-2 tracking-widest">{type}</h4>
+                                                    <ul className="space-y-2">
+                                                        {courseGroups[type].map(course => (
+                                                            <li key={course._id}>
+                                                                <Link 
+                                                                    to={`/course/${course._id}`} 
+                                                                    className="block text-sm text-gray-600 hover:text-accent hover:translate-x-1 transition-all font-medium"
+                                                                >
+                                                                    {course.name}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )) : (
+                                                <div className="col-span-4 text-center py-10 text-gray-400">Loading courses...</div>
+                                            )}
+                                        </div>
+                                      ) : (
+                                        // STANDARD DROPDOWN
+                                        <div className="py-2">
+                                            {item.subItems.map((sub, subIdx) => (
+                                              <Link 
+                                                key={subIdx} 
+                                                to={sub.path} 
+                                                className={`block px-6 py-3 text-sm font-semibold hover:bg-blue-50 hover:text-primary transition-colors ${location.pathname === sub.path.split('#')[0].split('?')[0] ? 'text-primary bg-blue-50' : 'text-gray-600'}`}
+                                              >
+                                                  {sub.name}
+                                              </Link>
+                                            ))}
+                                        </div>
+                                      )}
                                   </motion.div>
                               )}
                           </AnimatePresence>
                       </div>
                   ) : (
                       <Link to={item.path}
-                          className={`px-5 py-2 text-sm font-bold uppercase tracking-wider hover:bg-white/10 hover:text-accent transition-all rounded-md ${isActive(item.path) ? 'text-accent' : ''}`}
+                          className={`flex items-center gap-1 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary ${isActive(item.path) ? 'text-primary border-primary' : 'text-gray-700'}`}
                       >
                           {item.name}
                       </Link>
@@ -126,28 +166,34 @@ const PublicNavbar = () => {
               </div>
             ))}
           </div>
-          
-           {/* Mobile Right Spacer (optional balance) */}
-           <div className="md:hidden w-10"></div> 
         </div>
       </div>
 
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-primary border-t border-blue-800 overflow-hidden max-h-[85vh] overflow-y-auto"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="md:hidden fixed inset-0 z-50 bg-white"
           >
-            <div className="flex flex-col p-4 space-y-1">
+            <div className="p-4 flex justify-between items-center border-b border-gray-100">
+                <img src={logoImage} alt="Logo" className="h-10 w-auto" />
+                <button onClick={() => setIsOpen(false)} className="p-2 bg-gray-100 rounded-full">
+                    <X size={24} />
+                </button>
+            </div>
+            
+            <div className="flex flex-col p-4 space-y-2 overflow-y-auto h-[calc(100vh-80px)]">
               {menuItems.map((item, index) => (
                 <div key={index}>
                     {item.isDropdown ? (
                         <div>
                             <button 
                                 onClick={() => setActiveDropdown(activeDropdown === index ? null : index)}
-                                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors ${isDropdownActive(item.subItems) ? 'text-accent' : 'text-white'}`}
+                                className={`w-full flex items-center justify-between px-4 py-4 text-base font-bold border-b border-gray-100 ${(item.subItems && isDropdownActive(item.subItems)) || (item.isMegaMenu && location.pathname.includes('/course')) ? 'text-primary bg-blue-50/50' : 'text-gray-800'}`}
                             >
                                 {item.name}
                                 <ChevronDown size={16} className={`transition-transform duration-300 ${activeDropdown === index ? 'rotate-180' : ''}`}/>
@@ -158,38 +204,55 @@ const PublicNavbar = () => {
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        className="bg-blue-900/50 rounded-b-lg overflow-hidden"
+                                        className="bg-gray-50 px-4 py-2"
                                     >
-                                        {item.subItems.map((sub, subIdx) => (
-                                            <Link 
-                                                key={subIdx} 
-                                                to={sub.path} 
-                                                className={`block px-8 py-3 text-sm border-b border-blue-800/30 hover:text-white hover:bg-blue-800 transition-colors ${location.pathname === sub.path.split('#')[0].split('?')[0] ? 'text-accent font-bold' : 'text-blue-100'}`}
-                                                onClick={() => setIsOpen(false)}
-                                            >
-                                                {sub.name}
-                                            </Link>
-                                        ))}
+                                        {item.isMegaMenu ? (
+                                            <div className="space-y-4 py-2">
+                                                 {courseTypes.map((type, idx) => (
+                                                    <div key={idx}>
+                                                        <h5 className="font-bold text-xs uppercase text-gray-500 mb-2">{type}</h5>
+                                                        <ul className="space-y-2 pl-2 border-l-2 border-primary/20">
+                                                            {courseGroups[type].map(course => (
+                                                                <li key={course._id}>
+                                                                    <Link to={`/course/${course._id}`} className="block text-sm text-gray-700 py-1" onClick={() => setIsOpen(false)}>{course.name}</Link>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                 ))}
+                                            </div>
+                                        ) : (
+                                            item.subItems.map((sub, subIdx) => (
+                                                <Link 
+                                                    key={subIdx} 
+                                                    to={sub.path} 
+                                                    className="block py-3 text-sm font-medium text-gray-600 border-b border-gray-100 last:border-0"
+                                                    onClick={() => setIsOpen(false)}
+                                                >
+                                                    {sub.name}
+                                                </Link>
+                                            ))
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to={item.path} className={`block px-4 py-3 text-sm font-bold border-b border-blue-800/30 hover:bg-white/5 hover:text-accent rounded-lg transition-colors ${isActive(item.path) ? 'text-accent' : 'text-white'}`} onClick={() => setIsOpen(false)}>
+                        <Link 
+                           to={item.path} 
+                           className={`block px-4 py-4 text-base font-bold border-b border-gray-100 ${isActive(item.path) ? 'text-primary bg-blue-50/50' : 'text-gray-800'}`} 
+                           onClick={() => setIsOpen(false)}
+                        >
                             {item.name}
                         </Link>
                     )}
                 </div>
               ))}
-
-              {/* Mobile Auth Buttons */}
-              <div className="pt-4 mt-2 border-t border-blue-800/50 grid grid-cols-1 gap-3"> {/* Changed grid-cols-2 to grid-cols-1 since one btn is hidden */}
-                  <Link to="/login" className="flex items-center justify-center gap-2 bg-blue-800 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
-                      <LogIn size={18} /> Login
+              
+              <div className="pt-6 grid grid-cols-1 gap-3">
+                  <Link to="/login" className="flex items-center justify-center gap-2 bg-primary text-white py-3 rounded-xl font-bold" onClick={() => setIsOpen(false)}>
+                      <LogIn size={18} /> Login Portal
                   </Link>
-                  {/* <Link to="/register" className="flex items-center justify-center gap-2 bg-accent hover:bg-orange-600 text-white py-3 rounded-lg transition-colors font-semibold" onClick={() => setIsOpen(false)}>
-                      <UserPlus size={18} /> Register
-                  </Link> */}
               </div>
             </div>
           </motion.div>
@@ -205,78 +268,70 @@ const PublicLayout = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       {/* 1. Slim Top Header */}
-      <div className="bg-gray-900 text-gray-300 py-2 text-xs border-b border-gray-800">
+      <div className="bg-gray-100 text-black py-2.5 text-xs font-medium tracking-wide">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
-          {/* Contact Info - Visible on Mobile & Desktop */}
-          <div className="flex items-center justify-center w-full md:w-auto gap-4 md:gap-6">
-            <span className="flex items-center gap-2 hover:text-white transition-colors"><Phone size={14} className="text-accent" /> <span className="hidden sm:inline">+91-96017-49300</span><span className="sm:hidden">Call Us</span></span>
-            <span className="flex items-center gap-2 hover:text-white transition-colors"><Mail size={14} className="text-accent" /> <span className="hidden sm:inline">info@smartinstitute.co.in</span><span className="sm:hidden">Email Us</span></span>
+          {/* Contact Info */}
+          <div className="flex items-center justify-center w-full md:w-auto gap-6 uppercase tracking-wider text-[11px]">
+            <a href="tel:+919601749300" className="flex items-center gap-2 hover:text-accent transition-colors"><Phone size={12} className="text-accent" /> Call Us</a>
+            <span className="hidden sm:inline text-gray-400">|</span>
+            <a href="mailto:info@smartinstitute.co.in" className="flex items-center gap-2 hover:text-accent transition-colors"><Mail size={12} className="text-accent" /> Email Us</a>
           </div>
 
-          {/* Social & Auth - Hidden on Mobile, Visible on Desktop */}
+          {/* Social & Auth */}
           <div className="hidden md:flex items-center gap-6">
             <div className="flex gap-4 pr-6 border-r border-gray-700">
-              <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 cursor-pointer transition-transform hover:scale-110">
-                <Facebook size={16} />
-              </a>
-              <a href="#" className="hover:text-sky-400 cursor-pointer transition-transform hover:scale-110">
-                <span className="font-bold text-xs" style={{ fontFamily: 'sans-serif' }}>X</span>
-              </a>
-              <a href="#" className="hover:text-pink-500 cursor-pointer transition-transform hover:scale-110">
-                <Instagram size={16} />
-              </a>
-              <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 cursor-pointer transition-transform hover:scale-110">
-                <Youtube size={16} />
-              </a>
+              <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-transform hover:-translate-y-0.5"><Facebook size={14} /></a>
+              <a href="#" className="hover:text-pink-500 transition-transform hover:-translate-y-0.5"><Instagram size={14} /></a>
+              <a href="https://www.youtube.com/channel/UCFfLzGu6VS4gOTZkJRtmfkg" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-transform hover:-translate-y-0.5"><Youtube size={14} /></a>
             </div>
-            <div className="flex gap-4 font-bold tracking-wide">
-              {user ? (
-                 <Link to="/home" className="flex items-center gap-2 hover:text-accent transition-colors">
-                   DASHBOARD <ArrowRight size={14} />
-                 </Link>
-              ) : (
-                <>
-                  <Link to="/login" className="flex items-center gap-1 hover:text-white transition-colors"><LogIn size={16} /> LOGIN</Link>
-                  {/* <Link to="/register" className="flex items-center gap-1 hover:text-white transition-colors"><UserPlus size={16} /> REGISTER</Link> */}
-                </>
-              )}
+            
+            <div className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-4">
+                 <Link to="/contact" className="hover:text-accent transition-colors">Support</Link>
+                 <span className="text-gray-600">/</span>
+                {user ? (
+                    <Link to="/home" className="flex items-center gap-2 text-accent hover:text-white transition-colors">
+                        DASHBOARD <ArrowRight size={12} />
+                    </Link>
+                ) : (
+                    <Link to="/login" className="hover:text-accent transition-colors flex items-center gap-1">
+                        <LogIn size={12} /> Login
+                    </Link>
+                )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Logo & Branding */}
-      <div className="bg-white/90 backdrop-blur-sm py-4 shadow-sm relative z-20 border-b border-gray-100">
+      {/* 2. Logo & Branding Area */}
+      <div className="bg-white py-2">
         <div className="container mx-auto px-4">
-           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
              {/* Logo */}
-             <div className="flex-shrink-0">
+             <div className="flex-shrink-0 hidden md:block">
                 <Link to="/">
-                    <img src={logoImage} alt="Smart Institute Logo" className="h-20 md:h-24 w-auto object-contain drop-shadow-sm hover:scale-105 transition-transform duration-300" />
+                    <img src={logoImage} alt="Smart Institute Logo" className="h-20 md:h-24 w-auto object-contain" />
                 </Link>
              </div>
              
-             {/* Centered Slogan with Mirror Effect */}
-             <div className="flex-grow flex justify-center items-center py-2 overflow-hidden">
-                <h3 className="text-xl sm:text-2xl md:text-4xl font-black tracking-normal md:tracking-wider text-center drop-shadow-sm filter whitespace-nowrap"
-                    style={{ 
-                        fontFamily: "system-ui, -apple-system, sans-serif",
-                    }}>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-800">सपने जो </span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-tr from-orange-500 via-red-500 to-pink-500 text-2xl sm:text-4xl md:text-5xl inline-block transform hover:scale-110 transition-transform duration-300 mx-1 filter drop-shadow-md" style={{ fontFamily: "'Arial Black', sans-serif" }}>SMART</span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-800"> बना दे</span>
-                </h3>
+             {/* Slogan */}
+             <div className="flex-grow flex flex-col items-center justify-center text-center space-y-1">
+                  <h3 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+                    <span className="text-gray-800">सपने जो</span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600 text-3xl md:text-5xl font-extrabold mx-1 font-sans">SMART</span> <span className="text-gray-800">बना दे</span>
+                  </h3>
              </div>
 
-             {/* Right Side Spacer/Visual (Optional, keeps Logo left and Slogan center-ish) */}
-             <div className="hidden md:block w-32">
-                 {/* Placeholder or Call to Action could go here */}
+             {/* Right Side Visual/CTA (Optional) */}
+             <div className="hidden md:flex items-center gap-3">
+                 <div className="text-right hidden lg:block">
+                     <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Admissions Open</p>
+                     <p className="text-lg font-bold text-gray-900">2025-2026 Batch</p>
+                 </div>
              </div>
            </div>
         </div>
       </div>
 
-      {/* 3. Public Navbar */}
+      {/* 3. Public Navbar (Centered & Light Theme) */}
       <PublicNavbar />
 
       {/* 4. Main Page Content */}
@@ -290,7 +345,7 @@ const PublicLayout = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-6">
-                <img src={logoImage} alt="Smart Institute Logo" className="h-10 w-auto object-contain" />
+                <img src={logoImage} alt="Smart Institute Logo" className="h-10 w-auto object-contain bg-white rounded-lg p-1" />
               </div>
               <p className="text-sm text-gray-400 leading-relaxed mb-6">
                 Disclaimer Smart Institute © 2026 Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
@@ -333,11 +388,11 @@ const PublicLayout = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone size={18} className="text-accent shrink-0" />
-                  <span>+91-96017-49300</span>
+                  <a href="tel:+919601749300" className="hover:text-accent transition-colors">+91-96017-49300</a>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail size={18} className="text-accent shrink-0" />
-                  <span>info@smartinstitute.co.in</span>
+                  <a href="mailto:info@smartinstitute.co.in" className="hover:text-accent transition-colors">info@smartinstitute.co.in</a>
                 </li>
               </ul>
             </div>

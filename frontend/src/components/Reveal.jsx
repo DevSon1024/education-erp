@@ -15,7 +15,7 @@ const Reveal = ({ children, width = "w-full", delay = 0.25, className = "" }) =>
   const isInView = useInView(ref, { once: true, margin: "-50px 0px" });
 
   return (
-    <div ref={ref} className={`${width} ${className} relative overflow-hidden`}>
+    <div ref={ref} className={`${width} ${className} relative`}>
       <motion.div
         variants={{
           hidden: { opacity: 0, y: 75 },
