@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentById, confirmRegistration, resetStatus } from '../../../features/student/studentSlice';
 import { toast } from 'react-toastify';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { ArrowLeft, Save, X, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { generateCredentials } from '../../../utils/credentialGenerator';
 
@@ -15,11 +15,12 @@ const StudentRegistrationProcess = () => {
   const { currentStudent: student, isLoading } = useSelector((state) => state.students);
   const { isSuccess, message } = useSelector((state) => state.students); // reusing student slice
 
-  const [step, setStep] = useState(1); // 1: Credentials, 2: Fees. Default will be set by useEffect.
+  const [step, setStep] = useState(1); // Always start with Step 1 (Credentials)
+  const [showPassword, setShowPassword] = useState(false); // For password visibility toggle
   
   // Registration Form Data
   const [regData, setRegData] = useState({
-    regNo: '', // Optional/Auto
+    regNo: 'Loading...', // Will be fetched from API
     username: '',
     password: '',
     isActive: true
@@ -48,32 +49,45 @@ const StudentRegistrationProcess = () => {
     }
   }, [isSuccess, message, navigate]);
 
-  // Initial Logic based on Payment Plan
+
+  // Initial Logic - Always start at Step 1 (Credentials) for all students
   useEffect(() => {
       if (student) {
-          // If Monthly, Start at Step 2 (Fees). If One Time, Start at Step 1 (Credentials).
-          if (student.paymentPlan === 'One Time') {
-              setStep(1);
-          } else {
-              setStep(2);
-              // Auto-fill fee amount
-              if (student.course && student.course.registrationFees) {
-                 setFeeData(prev => ({ ...prev, amount: student.course.registrationFees }));
+          // Auto-Generate Credentials if empty (only once when student loads)
+          setRegData(prev => {
+              const needsCredentials = !prev.username && !prev.password;
+              if (needsCredentials) {
+                  const { username, password } = generateCredentials(student.firstName, student.lastName);
+                  return { ...prev, username, password };
               }
-          }
+              return prev;
+          });
 
-           
-          // Auto-Generate Credentials if empty
-          if (!regData.username && !regData.password) {
-              const { username, password } = generateCredentials(student.firstName, student.lastName);
-              setRegData(prev => ({ ...prev, username, password }));
+          // Fetch Preview Registration Number
+          const fetchPreviewRegNo = async () => {
+              try {
+                  const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/students/preview-regno`, {
+                      params: { branchId: student.branchId },
+                      withCredentials: true
+                  });
+                  setRegData(prev => ({ ...prev, regNo: data.regNo || 'Error' }));
+              } catch (error) {
+                  console.error("Failed to fetch preview regNo", error);
+                  setRegData(prev => ({ ...prev, regNo: "Error" }));
+              }
+          };
+          fetchPreviewRegNo();
+
+          // Auto-fill fee amount for monthly plans
+          if (student.paymentPlan !== 'One Time' && student.course && student.course.registrationFees) {
+              setFeeData(prev => ({ ...prev, amount: student.course.registrationFees }));
           }
       }
-  }, [student]);
+  }, [student]); // Only depend on student, not regData
 
    useEffect(() => {
-        // Fetch Receipt No when entering Fee Step
-        if (step === 2 && student?.paymentPlan !== 'One Time') {
+        // Fetch Receipt No when entering Fee Step (Step 2)
+        if (step === 2 && student) {
             const fetchReceiptNo = async () => {
                 try {
                     const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
@@ -89,17 +103,22 @@ const StudentRegistrationProcess = () => {
         }
    }, [step, student]);
 
-  const handleContinueFromFees = () => {
-      // Validate Fee Data if needed? (Basic required check can be here or HTML required)
-      setStep(1); // Go to Credentials
+  const handleContinueFromCredentials = () => {
+      // Validate credentials before continuing to fees
+      if(!regData.username || !regData.password) {
+          toast.error("Username and Password are required");
+          return;
+      }
+      // For Monthly plan, go to Step 2 (Fees). For One Time, submit directly.
+      if (student.paymentPlan === 'Monthly') {
+          setStep(2); // Go to Fees
+      } else {
+          handleFinalSubmit(); // Submit directly
+      }
   };
 
-  const handleBackFromCredentials = () => {
-      if (student.paymentPlan === 'Monthly') {
-          setStep(2); // Go back to Fees
-      } else {
-          navigate(-1); // Go back to list
-      }
+  const handleBackFromFees = () => {
+      setStep(1); // Go back to Credentials
   };
 
   const handleFinalSubmit = (e) => {
@@ -156,17 +175,16 @@ const StudentRegistrationProcess = () => {
         {step === 1 && (
             <div className="p-6 animate-fade-in">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                {student.paymentPlan === 'Monthly' ? "Step 2: Create Credentials" : "Create Credentials"}
+                Step 1: Create Credentials
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Registration No</label>
                     <input 
                         type="text" 
-                        placeholder="Auto-Generated if empty" 
+                        disabled
                         value={regData.regNo}
-                        onChange={(e) => setRegData({...regData, regNo: e.target.value})}
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full bg-gray-100 border rounded px-3 py-2 text-gray-700 cursor-not-allowed"
                     />
                 </div>
                 <div className="flex items-center mt-6">
@@ -190,22 +208,37 @@ const StudentRegistrationProcess = () => {
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Password <span className="text-red-500">*</span></label>
-                    <input 
-                        type="password" 
-                        required
-                        value={regData.password}
-                        onChange={(e) => setRegData({...regData, password: e.target.value})}
-                        className="w-full border rounded px-3 py-2"
-                    />
+                    <div className="relative">
+                        <input 
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            value={regData.password}
+                            onChange={(e) => setRegData({...regData, password: e.target.value})}
+                            className="w-full border rounded px-3 py-2 pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    </div>
                 </div>
             </div>
             
             <div className="mt-6 flex gap-4">
-                <button onClick={handleFinalSubmit} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
-                    <Save size={18} /> Save & Register
-                </button>
-                <button onClick={handleBackFromCredentials} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
-                    Back
+                {student.paymentPlan === 'Monthly' ? (
+                    <button onClick={handleContinueFromCredentials} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                        Continue to Fee Payment
+                    </button>
+                ) : (
+                    <button onClick={handleContinueFromCredentials} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                        <Save size={18} /> Save & Register
+                    </button>
+                )}
+                <button onClick={() => navigate(-1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                    Cancel
                 </button>
             </div>
             </div>
@@ -214,7 +247,7 @@ const StudentRegistrationProcess = () => {
         {/* SECTION 3: Fees Details - Show Only on Step 2 (Monthly Only) */}
          {step === 2 && student.paymentPlan !== 'One Time' && (
            <div className="p-6 border-t animate-fade-in">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Step 1: Registration Fees Payment</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Step 2: Registration Fees Payment</h3>
               <div className="bg-orange-50 border border-orange-200 p-3 mb-4 rounded text-sm text-orange-800">
                 <strong>Note:</strong> Registration fees payment is required for monthly students.
               </div>
@@ -270,11 +303,11 @@ const StudentRegistrationProcess = () => {
               </div>
 
               <div className="mt-8 flex gap-4">
-                 <button onClick={handleContinueFromFees} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                     Continue
+                 <button onClick={handleFinalSubmit} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                     <Save size={18} /> Save & Register
                  </button>
-                 <button onClick={() => navigate(-1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
-                     Cancel
+                 <button onClick={handleBackFromFees} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                     Back
                  </button>
               </div>
            </div>

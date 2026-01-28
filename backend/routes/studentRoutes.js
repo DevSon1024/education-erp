@@ -11,12 +11,17 @@ const {
     deleteStudent, 
     toggleStudentStatus,
     confirmStudentRegistration,
-    resetStudentLogin // Imported
+    resetStudentLogin,
+    getNextRegNo
 } = require('../controllers/studentController');
 
 router.route('/')
     .get(protect, checkPermission('Student', 'view'), getStudents)
     .post(protect, checkPermission('Student', 'add'), upload.single('studentPhoto'), createStudent);
+
+// Preview Next Registration Number (MUST be before /:id routes)
+router.route('/preview-regno')
+    .get(protect, checkPermission('Student', 'view'), getNextRegNo);
 
 router.route('/:id')
     .get(protect, checkPermission('Student', 'view'), getStudentById)

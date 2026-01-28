@@ -47,7 +47,7 @@ export const MENU_CONFIG = [
           { title: 'Visitors', path: '/transaction/visitors' }
         ]
       },
-      { title: 'Student Admission', path: '/master/student/new' },
+      { title: 'Admission', path: '/master/student/new' },
       { title: 'Pending Admission Fees', path: '/transaction/pending-admission-fees' },
       { title: 'Pending Student Registration', path: '/transaction/pending-registration' },
       { title: 'Student Cancellation', path: '/transaction/student-cancellation' },

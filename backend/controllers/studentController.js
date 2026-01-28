@@ -288,6 +288,54 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     res.json({ message: 'Student Registration Completed', student });
 });
 
+// @desc    Get Next Registration Number Preview
+const getNextRegNo = asyncHandler(async (req, res) => {
+    const { branchId } = req.query;
+    
+    // Same logic as confirmStudentRegistration for generating regNo
+    const lastStudent = await Student.aggregate([
+        { 
+           $match: { 
+               regNo: { $exists: true, $ne: null, $ne: "" },
+               isRegistered: true 
+           } 
+        },
+        {
+           $project: {
+               regNo: 1,
+               seq: {
+                   $convert: {
+                       input: { $arrayElemAt: [{ $split: ["$regNo", "-"] }, 0] },
+                       to: "int",
+                       onError: 0,
+                       onNull: 0
+                   }
+               }
+           }
+        },
+        { $sort: { seq: -1 } },
+        { $limit: 1 }
+    ]);
+
+    let nextSequence = 1;
+    if (lastStudent.length > 0 && lastStudent[0].seq > 0) {
+        nextSequence = lastStudent[0].seq + 1;
+    }
+
+    // Get Branch Short Code
+    let branchCode = 'MN'; // Default
+    if (branchId) {
+        const branch = await Branch.findById(branchId);
+        if (branch && branch.shortCode) {
+            branchCode = branch.shortCode;
+        }
+    }
+
+    const previewRegNo = `${nextSequence}-${branchCode}`;
+    res.json({ regNo: previewRegNo });
+});
+
+
 // @desc    Permanent Delete Student
 const deleteStudent = asyncHandler(async (req, res) => {
     const student = await Student.findByIdAndDelete(req.params.id);
@@ -389,4 +437,4 @@ const resetStudentLogin = asyncHandler(async (req, res) => {
     res.json({ message: 'Login details updated successfully', username: user.username });
 });
 
-module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin };
+module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin, getNextRegNo };

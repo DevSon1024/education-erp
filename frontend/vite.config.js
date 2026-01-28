@@ -28,10 +28,10 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
+        enabled: false, // Disable PWA in dev to avoid warnings
         type: "module",
       },
-      workbox: {
+      workbox: {  
         cleanupOutdatedCaches: true,
         sourcemap: true
       },
