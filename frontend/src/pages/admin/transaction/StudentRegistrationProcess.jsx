@@ -255,7 +255,7 @@ const StudentRegistrationProcess = () => {
                      >
                          <option value="Cash">Cash</option>
                          <option value="Cheque">Cheque</option>
-                         <option value="Online">Online</option>
+                         <option value="Online/UPI">Online/UPI</option>
                      </select>
                  </div>
                  <div>

@@ -69,13 +69,38 @@ const StudentSearch = ({
         }
     };
 
+    // Load all students with pending payments on mount (for fee collection)
+    useEffect(() => {
+        if (!initialLoadDone && !defaultSelectedId) {
+            loadAllStudents();
+        }
+    }, []);
+
+    const loadAllStudents = async () => {
+        setLoading(true);
+        try {
+            const params = {
+                pageSize: 50, // Show more students initially
+                ...additionalFilters
+            };
+            
+            const { data } = await axios.get(API_URL, { params, withCredentials: true });
+            setResults(data.students || []);
+        } catch (error) {
+            console.error("Failed to load students", error);
+            setResults([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const searchStudents = async () => {
         setLoading(true);
         try {
             // Merge query with additional filters
             const params = {
                 studentName: query,
-                pageSize: 10,
+                pageSize: query ? 10 : 50, // Show more when no search query
                 ...additionalFilters
             };
             
@@ -132,7 +157,12 @@ const StudentSearch = ({
                         }
                     }}
                     onFocus={() => {
-                        if (results.length > 0) setIsOpen(true);
+                        if (results.length > 0) {
+                            setIsOpen(true);
+                        } else {
+                            loadAllStudents();
+                            setIsOpen(true);
+                        }
                     }}
                     placeholder={placeholder}
                     className={`w-full border rounded-lg p-2.5 pl-9 pr-8 focus:ring-2 focus:ring-blue-500 outline-none transition-all
@@ -156,7 +186,7 @@ const StudentSearch = ({
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
 
             {/* Recommendation Panel */}
-            {isOpen && query.length >= 2 && (
+            {isOpen && (query.length >= 2 || results.length > 0) && (
                 <div className="absolute z-50 w-full bg-white mt-1 border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-100 scrollbar-thin scrollbar-thumb-gray-200">
                     {loading ? (
                         <div className="p-4 text-center text-gray-400 text-sm">Searching...</div>

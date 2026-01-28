@@ -174,7 +174,7 @@ const getFeeReceipts = asyncHandler(async (req, res) => {
   if (studentId) query.student = studentId;
 
   const receipts = await FeeReceipt.find(query)
-    .populate("student", "firstName lastName")
+    .populate("student", "firstName lastName regNo enrollmentNo middleName mobileStudent mobileParent batch totalFees pendingFees branchName emiDetails")
     .populate("course", "name")
     .sort({ createdAt: -1 });
 
@@ -202,6 +202,24 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
   }
   const receiptNo = String(nextNum);
 
+  // 2.5. Calculate Installment Number for Monthly Payment Students
+  let installmentNumber = 1;
+  
+  // Count existing receipts for this student to determine installment sequence
+  const existingReceipts = await FeeReceipt.find({ student: studentId }).sort({ createdAt: 1 });
+  
+  if (existingReceipts.length > 0) {
+    // Next installment is one more than the count of existing receipts
+    installmentNumber = existingReceipts.length + 1;
+  }
+  // For the first receipt:
+  // - If student hasn't paid admission fees yet, this is installment 1 (Admission)
+  // - If student is registered, this is their first monthly payment
+  if (installmentNumber === 1 && student.isRegistered) {
+    // If already registered, this should be their first monthly installment
+    installmentNumber = 3; // Since 1=Admission, 2=Registration, so monthly starts at 3
+  }
+
   // 3. Create Receipt
   const receipt = await FeeReceipt.create({
     receiptNo,
@@ -212,6 +230,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     remarks,
     date: date || Date.now(),
     createdBy: req.user._id,
+    installmentNumber, // Auto-calculated installment number
   });
 
   // 4. Update Student Pending Fees & Status
@@ -316,7 +335,10 @@ const deleteFeeReceipt = asyncHandler(async (req, res) => {
 const getStudentFees = asyncHandler(async (req, res) => {
   const receipts = await FeeReceipt.find({
     student: req.params.studentId,
-  }).sort({ createdAt: -1 });
+  })
+    .populate("student", "firstName lastName regNo enrollmentNo middleName mobileStudent mobileParent batch totalFees pendingFees branchName emiDetails")
+    .populate("course", "name")
+    .sort({ createdAt: -1 });
   res.json(receipts);
 });
 
@@ -355,7 +377,101 @@ const getStudentLedger = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get Student Payment Summary
+// @route   GET /api/transaction/student/:studentId/payment-summary
+const getStudentPaymentSummary = asyncHandler(async (req, res) => {
+  const student = await Student.findById(req.params.studentId).populate("course");
+  
+  if (!student) {
+    res.status(404);
+    throw new Error("Student not found");
+  }
+
+  // Calculate total received amount
+  const receipts = await FeeReceipt.find({ student: student._id });
+  const totalReceived = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
+
+  // Calculate amounts
+  const totalFees = (student.totalFees || 0) + (student.admissionFeeAmount || 0);
+  const dueAmount = totalFees - totalReceived;
+  const outstandingAmount = student.pendingFees || 0;
+
+  // Determine fees method
+  let feesMethod = student.paymentPlan || "One Time";
+  let emiStructure = null;
+  
+  if (student.paymentPlan === "Monthly" && student.emiDetails) {
+    const monthlyInstallment = student.emiDetails.monthlyInstallment || 0;
+    const months = student.emiDetails.months || 0;
+    if (monthlyInstallment && months) {
+      emiStructure = `₹${monthlyInstallment} x ${months} months`;
+    }
+  }
+
+  res.json({
+    totalReceived,
+    dueAmount,
+    outstandingAmount,
+    feesMethod,
+    emiStructure,
+    totalFees,
+  });
+});
+
+// @desc    Get Student Payment History
+// @route   GET /api/transaction/student/:studentId/payment-history
+const getStudentPaymentHistory = asyncHandler(async (req, res) => {
+  const receipts = await FeeReceipt.find({ student: req.params.studentId })
+    .populate({
+      path: "student",
+      select: "firstName lastName regNo enrollmentNo middleName mobileStudent mobileParent batch totalFees pendingFees branchName emiDetails branchId",
+      populate: {
+        path: "branchId",
+        select: "name address city state phone mobile email"
+      }
+    })
+    .populate("course", "name")
+    .sort({ date: 1 }); // Changed to ascending order (1) - oldest first, latest last
+
+  res.json(receipts);
+});
+
+// @desc    Generate Receipt Report with Filters
+// @route   GET /api/transaction/fees/report
+const generateReceiptReport = asyncHandler(async (req, res) => {
+  const { startDate, endDate, receiptNo, paymentMode, studentId } = req.query;
+
+  let query = {};
+
+  // Apply filters
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    query.date = { $gte: start, $lte: end };
+  }
+
+  if (receiptNo) query.receiptNo = { $regex: receiptNo, $options: "i" };
+  if (paymentMode) query.paymentMode = paymentMode;
+  if (studentId) query.student = studentId;
+
+  const receipts = await FeeReceipt.find(query)
+    .populate("student", "firstName lastName regNo enrollmentNo middleName mobileStudent mobileParent batch totalFees pendingFees branchName emiDetails")
+    .populate("course", "name")
+    .sort({ date: -1 });
+
+  // Calculate total amount
+  const totalAmount = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
+
+  res.json({
+    receipts,
+    totalAmount,
+    count: receipts.length,
+  });
+});
+
 // @desc    Get Next Receipt Number
+
 const getNextReceiptNo = asyncHandler(async (req, res) => {
     const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
     let nextNum = 1;
@@ -375,5 +491,8 @@ module.exports = {
   updateFeeReceipt,
   deleteFeeReceipt,
   getStudentLedger,
-  getNextReceiptNo
+  getNextReceiptNo,
+  getStudentPaymentSummary,
+  getStudentPaymentHistory,
+  generateReceiptReport,
 };

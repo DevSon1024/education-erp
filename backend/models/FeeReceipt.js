@@ -14,13 +14,14 @@ const feeReceiptSchema = new mongoose.Schema(
       required: true,
     },
     amountPaid: { type: Number, required: true },
-    // FIXED: Added "Online" and "EMI" to match Student model and Frontend options
+    // Standardized to 3 receipt types: Cash, Cheque, Online/UPI
     paymentMode: {
       type: String,
-      enum: ["Cash", "UPI", "Bank Transfer", "Cheque", "Online", "EMI"],
+      enum: ["Cash", "Cheque", "Online/UPI"],
       required: true,
     },
-    transactionId: { type: String }, // For UPI/Bank
+    installmentNumber: { type: Number, default: 1 }, // For tracking EMI payments
+    transactionId: { type: String }, // For Online/UPI payments
     remarks: { type: String },
     date: { type: Date, default: Date.now },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

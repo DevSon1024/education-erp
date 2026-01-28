@@ -127,15 +127,15 @@ const AdmissionFormPrint = () => {
                          
                          <div className="flex items-center mt-4 gap-2">
                             <span className="font-bold text-sm text-nowrap">Enrollment Number:</span>
-                            <Editable value={student.enrollmentNo || "________________"} className="font-mono font-bold flex-grow"/>
+                            <Editable value={student.enrollmentNo || ""} className="font-mono font-bold flex-grow"/>
                             <span className="font-bold text-sm text-nowrap ml-4">Registration No. :</span>
-                            <Editable value={student.regNo || "________________"} className="font-mono font-bold w-32"/>
+                            <Editable value={student.regNo || ""} className="font-mono font-bold w-32"/>
                          </div>
                          <div className="flex items-center mt-2 gap-2">
                             <span className="font-bold text-sm">Reg. Date :</span>
-                            <Editable value={student.registrationDate ? moment(student.registrationDate).format('DD / MM / YYYY') : "__ / __ / ____"} className="w-32 text-center"/>
+                            <Editable value={student.registrationDate ? moment(student.registrationDate).format('DD / MM / YYYY') : ""} className="w-32 text-center"/>
                             <span className="font-bold text-sm ml-4 text-nowrap">Student Aadhar No.</span>
-                            <Editable value={student.aadharCard || "___________________"} className="flex-grow"/>
+                            <Editable value={student.aadharCard || ""} className="flex-grow"/>
                          </div>
                     </div>
 

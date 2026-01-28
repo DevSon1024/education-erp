@@ -7,7 +7,10 @@ const {
     createFeeReceipt, getStudentFees,
     getFeeReceipts, updateFeeReceipt, deleteFeeReceipt,
     getStudentLedger,
-    getNextReceiptNo
+    getNextReceiptNo,
+    getStudentPaymentSummary,
+    getStudentPaymentHistory,
+    generateReceiptReport
 } = require('../controllers/transactionController');
 const upload = require('../middlewares/uploadMiddleware'); // Import Upload Middleware
 
@@ -43,6 +46,17 @@ router.route('/fees/:id')
 router.route('/fees/student/:studentId')
     // Viewing fees requires 'view' permission on Fees Receipt
     .get(protect, checkPermission('Fees Receipt', 'view'), getStudentFees);
+
+// --- New Payment Summary & History Routes ---
+router.route('/student/:studentId/payment-summary')
+    .get(protect, checkPermission('Fees Receipt', 'view'), getStudentPaymentSummary);
+
+router.route('/student/:studentId/payment-history')
+    .get(protect, checkPermission('Fees Receipt', 'view'), getStudentPaymentHistory);
+
+// --- Receipt Report Route ---
+router.route('/fees/report')
+    .get(protect, checkPermission('Fees Receipt', 'view'), generateReceiptReport);
 
 // --- Ledger Route ---
 router.route('/ledger')

@@ -1230,16 +1230,15 @@ const StudentAdmission = () => {
                     />
                   </div>
                   <div>
-                    <label className="label">Payment Mode</label>
-                    <select
-                      {...register("receiptPaymentMode")}
-                      className="input"
-                    >
-                      <option value="Cash">Cash</option>
-                      <option value="UPI">Online / UPI</option>
-                      <option value="Cheque">Cheque</option>
-                      <option value="Bank Transfer">Bank Transfer</option>
-                    </select>
+                      <label className="label">Payment Mode</label>
+                      <select
+                        {...register("receiptPaymentMode")}
+                        className="input"
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Online/UPI">Online/UPI</option>
+                      </select>
                   </div>
                   <div className="col-span-2">
                     <label className="label">Remarks</label>

@@ -11,26 +11,34 @@ const generateEnrollmentNumber = require('../utils/enrollmentGenerator');
 
 // @desc    Get Students
 const getStudents = asyncHandler(async (req, res) => {
-    const { 
-        pageNumber, pageSize, 
-        courseId, studentName, batch,
+    const {
+        page = 1, pageSize = 10, courseFilter, studentName,
         hasPendingFees, reference, startDate, endDate,
-        isRegistered, isAdmissionFeesPaid 
+        isRegistered, isAdmissionFeesPaid, batch,
+        sortBy = '-createdAt'
     } = req.query;
     
     let query = { isDeleted: false };
 
-    if (courseId) query.course = courseId;
-    if (batch) query.batch = { $regex: batch, $options: 'i' };
+    // Branch-based filtering: Non-Super Admins only see their branch students
+    if (req.user.role !== 'Super Admin' && req.user.branchId) {
+        query.branchId = req.user.branchId;
+    }
+
+    // Other filters
+    if (courseFilter) query.course = courseFilter;
     if (studentName) {
+        const nameRegex = new RegExp(studentName, 'i');
         query.$or = [
-            { firstName: { $regex: studentName, $options: 'i' } },
-            { lastName: { $regex: studentName, $options: 'i' } },
-            { enrollmentNo: { $regex: studentName, $options: 'i' } }
+            { firstName: nameRegex },
+            { lastName: nameRegex },
+            { regNo: nameRegex },
+            { enrollmentNo: nameRegex }
         ];
     }
     if (hasPendingFees === 'true') query.pendingFees = { $gt: 0 };
     if (reference) query.reference = { $regex: reference, $options: 'i' };
+    if (batch) query.batch = { $regex: batch, $options: 'i' };
     if (startDate && endDate) {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
@@ -46,16 +54,16 @@ const getStudents = asyncHandler(async (req, res) => {
     }
 
     const limit = Number(pageSize) || 10;
-    const page = Number(pageNumber) || 1;
+    const pageNum = Number(page) || 1;
     const count = await Student.countDocuments(query);
 
     const students = await Student.find(query)
         .populate('course', 'name duration shortName durationType')
         .limit(limit)
-        .skip(limit * (page - 1))
+        .skip(limit * (pageNum - 1))
         .sort({ createdAt: -1 });
 
-    res.json({ students, page, pages: Math.ceil(count / limit), count });
+    res.json({ students, page: pageNum, pages: Math.ceil(count / limit), count });
 });
 
 // @desc    Get Single Student
