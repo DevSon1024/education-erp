@@ -28,7 +28,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: false, // Disable PWA in dev to avoid warnings
+        enabled: true, // Enable PWA in dev to avoid warnings and errors
         type: "module",
       },
       workbox: {  

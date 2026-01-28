@@ -68,7 +68,7 @@ const createEmployee = asyncHandler(async (req, res) => {
     let userId = null;
 
     if (loginUsername && loginPassword) {
-        const userExists = await User.findOne({ email: loginUsername });
+        const userExists = await User.findOne({ username: loginUsername });
         if (userExists) {
             res.status(400); throw new Error(`User Login '${loginUsername}' already exists.`);
         }

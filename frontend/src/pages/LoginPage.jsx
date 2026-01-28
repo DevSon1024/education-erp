@@ -45,28 +45,9 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           
-          {/* Role Selection */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Select Role</label>
-            <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-gray-50"
-                {...register('role', { required: 'Please select a role' })}
-                defaultValue="Student" 
-            >
-                <option value="Student">Student</option>
-                <option value="Faculty">Faculty</option>
-                <option value="Branch Director">Branch Director</option>
-                <option value="Manager">Manager</option>
-                <option value="Marketing Person">Marketing Person</option>
-                <option value="Receptionist">Receptionist</option>
-                <option value="Super Admin">Super Admin</option>
-                {/* <option value="Admin">Admin</option> */}
-                {/* <option value="Counselor">Counselor</option> */}
-            </select>
-            {errors.role && <span className="text-xs text-red-500 mt-1">{errors.role.message}</span>}
-          </div>
-
-          {/* Email Field */}
+          {/* Role selection removed - authentication based on stored user role */}
+          
+          {/* Username/Email Field */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Username or Email</label>
             <div className="relative">
@@ -115,18 +96,6 @@ const LoginPage = () => {
             {isLoading ? <Loader className="animate-spin" size={20} /> : 'Secure Login'}
           </button>
         </form>
-        
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
-            <p className="text-sm text-gray-600">
-                {/* Don't have an account?{' '}
-                <span 
-                    onClick={() => navigate('/register-admin-zyx')} 
-                    className="text-primary font-bold cursor-pointer hover:underline"
-                >
-                    Register Now
-                </span> */}
-            </p>
-        </div>
 
         <div className="mt-4 text-center text-[10px] text-gray-400">
           From Smart Institute

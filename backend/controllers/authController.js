@@ -15,19 +15,21 @@ const generateToken = (res, userId) => {
 // @desc Register (Seed Initial Admin)
 // @route POST /api/auth/register
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role, branchId } = req.body;
-    const userExists = await User.findOne({ email });
-
+    const { name, username, password, role, branchId } = req.body;
+    
+    // Check if username already exists
+    const userExists = await User.findOne({ username });
     if (userExists) {
         res.status(400);
-        throw new Error('User already exists');
+        throw new Error('Username already taken');
     }
 
-    const user = await User.create({ name, email, password, role, branchId });
+    // Create user with username (email can be updated later via profile)
+    const user = await User.create({ name, username, password, role, branchId });
     if (user) {
         generateToken(res, user._id);
         res.status(201).json({
-            _id: user._id, name: user.name, email: user.email, role: user.role
+            _id: user._id, name: user.name, username: user.username, role: user.role
         });
     } else {
         res.status(400); throw new Error('Invalid user data');
@@ -74,7 +76,7 @@ const loginUser = asyncHandler(async (req, res) => {
         // --- Self-Healing: Fix swapped Email/Username for Employees ---
         // If User.email doesn't look like an email but looks like a username, 
         // and we have a linked Employee with a real email, swap/fix it.
-        if (user.role !== 'Student' && !user.email.includes('@')) {
+        if (user.role !== 'Student' && user.email && !user.email.includes('@')) {
              const employee = await require('../models/Employee').findOne({ userAccount: user._id });
              if (employee && employee.email) {
                  // The current 'email' field in User is actually the username
@@ -190,4 +192,12 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { registerUser, loginUser, logoutUser, updateProfile, resetPassword };
+// @desc Check if username is available
+// @route GET /api/auth/check-username/:username
+const checkUsername = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+    const userExists = await User.findOne({ username });
+    res.json({ available: !userExists });
+});
+
+module.exports = { registerUser, loginUser, logoutUser, updateProfile, resetPassword, checkUsername };
