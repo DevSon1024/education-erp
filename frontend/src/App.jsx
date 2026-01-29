@@ -30,6 +30,8 @@ const FranchisePage = lazy(() => import("./pages/user/FranchisePage"));
 const ContactPage = lazy(() => import("./pages/user/ContactPage"));
 const BlogPage = lazy(() => import("./pages/user/BlogPage"));
 const FeedbackPage = lazy(() => import("./pages/user/FeedbackPage"));
+const OnlineAdmission = lazy(() => import("./pages/user/OnlineAdmission"));
+const TermsAndConditions = lazy(() => import("./pages/user/TermsAndConditions"));
 
 // Master Pages
 const StudentList = lazy(() => import("./pages/admin/master/StudentList"));
@@ -53,6 +55,7 @@ const ExamRequestList = lazy(() =>
 const ExamSchedule = lazy(() => import("./pages/admin/master/ExamSchedule"));
 const ExamResult = lazy(() => import("./pages/admin/master/ExamResult"));
 const ManageNews = lazy(() => import("./pages/admin/master/ManageNews"));
+const ManageTerms = lazy(() => import("./pages/admin/master/ManageTerms"));
 const BranchMaster = lazy(() => import("./pages/admin/master/BranchMaster"));
 
 // Transaction Pages
@@ -228,6 +231,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <ManageNews />
+                  </PrivateRoute>
+                }
+              />
+               <Route
+                path="/master/manage-terms"
+                element={
+                  <PrivateRoute>
+                    <ManageTerms />
                   </PrivateRoute>
                 }
               />
@@ -434,6 +445,8 @@ function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
+                <Route path="/online-admission" element={<OnlineAdmission />} />
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               </Route>
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

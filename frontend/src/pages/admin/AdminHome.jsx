@@ -5,7 +5,7 @@ import { fetchExamRequests, fetchCourses } from '../../features/master/masterSli
 import EmployeeDashboard from './EmployeeDashboard';
 import { useUserRights } from '../../hooks/useUserRights';
 import { useNavigate } from 'react-router-dom';
-import { Search, RefreshCw, ExternalLink, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, RefreshCw, ExternalLink, Clock, AlertCircle, CheckCircle, UserPlus } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const AdminHome = () => {
@@ -18,7 +18,7 @@ const AdminHome = () => {
   const { user } = useSelector((state) => state.auth);
 
   // Local State
-  const [activeTab, setActiveTab] = useState('inquiry'); // 'inquiry' or 'exam'
+  const [activeTab, setActiveTab] = useState('inquiry'); // 'inquiry', 'online-admission', 'exam'
   
   // Exam Filters
   const [examFilters, setExamFilters] = useState({
@@ -29,6 +29,10 @@ const AdminHome = () => {
   // Initial Fetch
   useEffect(() => {
     // Fetching ONLY "QuickContact" for dashboard as per requirements
+    dispatch(fetchInquiries({ source: 'QuickContact' })); 
+    // We don't fetch OnlineAdmission here automatically to avoid over-fetching, 
+    // we fetch when tab changes or we can fetch both if needed. 
+    // Let's fetch both or handle based on tab.
     dispatch(fetchInquiries({ source: 'QuickContact' })); 
     dispatch(fetchExamRequests()); // Changed from fetchPendingExams
     dispatch(fetchCourses());
@@ -61,6 +65,7 @@ const AdminHome = () => {
   // Check User Rights
   const { view: hasDashboardAccess } = useUserRights('Admin Home');
   const { view: canViewInquiryList } = useUserRights('Admin Home - Inquiry List');
+  const { view: canViewOnlineAdmissions } = useUserRights('Admin Home - Online Admissions');
   const { view: canViewExamList } = useUserRights('Admin Home - Exam Pending List');
 
   // Conditionally Render Fallback
@@ -91,6 +96,22 @@ const AdminHome = () => {
             }`}
           >
             Inquiry List
+          </button>
+          )}
+
+          {(canViewOnlineAdmissions || (user && user.role === 'Super Admin')) && (
+          <button 
+            onClick={() => {
+                setActiveTab('online-admission');
+                dispatch(fetchInquiries({ source: 'OnlineAdmission' }));
+            }}
+            className={`px-8 py-2 rounded-full font-medium transition-all ${
+              activeTab === 'online-admission' 
+              ? 'bg-primary text-white shadow-sm' 
+              : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            Online Admissions
           </button>
           )}
           
@@ -178,6 +199,74 @@ const AdminHome = () => {
                             <tr><td colSpan="10" className="text-center py-10 text-gray-500 flex flex-col items-center justify-center w-full">
                                 <AlertCircle size={32} className="mb-2 opacity-50"/>
                                 No Quick Contact inquiries found.
+                            </td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      )}
+
+      {/* --- CONTENT: ONLINE ADMISSION LIST --- */}
+      {activeTab === 'online-admission' && (canViewOnlineAdmissions || (user && user.role === 'Super Admin')) && (
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn">
+            <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <UserPlus size={20} className="text-green-600"/> Online Admission Inquiries
+                </h3>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                        Total: {inquiries?.length || 0}
+                    </span>
+                    <button onClick={() => dispatch(fetchInquiries({ source: 'OnlineAdmission' }))} className="p-1 hover:bg-gray-200 rounded-full transition-colors" title="Refresh">
+                        <RefreshCw size={16} className="text-gray-500"/>
+                    </button>
+                </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Applied Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Student Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Mobile</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">City</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Course</th>
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Branch</th>
+                            <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {inquiries && inquiries.length > 0 ? inquiries.map((inq) => (
+                            <tr key={inq._id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 text-sm text-gray-900">
+                                    {inq.createdAt ? new Date(inq.createdAt).toLocaleDateString('en-GB') : '-'}
+                                </td>
+                                <td className="px-6 py-4 text-sm font-medium text-blue-900">
+                                    {inq.firstName} {inq.lastName}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{inq.contactStudent}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600">{inq.city || '-'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-600 font-semibold">
+                                    {inq.interestedCourse?.name || 'General'}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600">
+                                    {inq.branchId?.name || 'All'}
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                    <button 
+                                        onClick={() => navigate('/master/student/new', { state: { inquiryData: inq } })}
+                                        className="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-md text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 mx-auto"
+                                    >
+                                        <CheckCircle size={14}/> Complete Admission
+                                    </button>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr><td colSpan="7" className="text-center py-10 text-gray-500 flex flex-col items-center justify-center w-full">
+                                <AlertCircle size={32} className="mb-2 opacity-50"/>
+                                No Online Admission inquiries found.
                             </td></tr>
                         )}
                     </tbody>

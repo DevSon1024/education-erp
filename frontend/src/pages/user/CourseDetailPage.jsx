@@ -163,9 +163,9 @@ const CourseDetailPage = () => {
                         </div>
                     </div>
 
-                    <button className="w-full bg-accent hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-1 mb-4 flex items-center justify-center gap-2">
+                    <Link to={`/online-admission?courseId=${course._id}`} className="w-full bg-accent hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-1 mb-4 flex items-center justify-center gap-2">
                         Enroll Now <ArrowRightIcon size={20} />
-                    </button>
+                    </Link>
                     
                 </div>
                 </Reveal>

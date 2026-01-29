@@ -19,6 +19,7 @@ export const MENU_CONFIG = [
       { title: 'Exam Schedule', path: '/master/exam-schedule' },
       { title: 'Exam Result', path: '/master/exam-result' },
       { title: 'Manage News', path: '/master/manage-news' },
+      { title: 'Manage Terms', path: '/master/manage-terms' },
       { title: 'User Rights', path: '/master/user-rights' },
       { title: 'Branch', path: '/master/branch', restricted: true } // Super Admin only
     ]
@@ -126,6 +127,7 @@ export const getMenuSections = () => {
                     // Specific Handling for Admin Home Granular Rights
                     if (sub.title === 'Admin Home') {
                         pageNames.push('Admin Home - Inquiry List');
+                        pageNames.push('Admin Home - Online Admissions');
                         pageNames.push('Admin Home - Exam Pending List');
                     }
                 }

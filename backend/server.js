@@ -53,6 +53,8 @@ app.use("/uploads", express.static("uploads"));
 app.get("/", (req, res) => res.send("API is running..."));
 app.get("/api", (req, res) => res.send("API is running..."));
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use('/api/master/news', require('./routes/newsRoutes'));
+app.use('/api/master/terms', require('./routes/termsRoutes'));
 app.use("/api/students", require("./routes/studentRoutes"));
 app.use("/api/master", require("./routes/masterRoutes"));
 app.use("/api/transaction", require("./routes/transactionRoutes"));

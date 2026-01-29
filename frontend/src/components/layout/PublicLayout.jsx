@@ -325,6 +325,9 @@ const PublicLayout = () => {
                      <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Admissions Open</p>
                      <p className="text-lg font-bold text-gray-900">2025-2026 Batch</p>
                  </div>
+                 <Link to="/online-admission" className="bg-gradient-to-r from-red-600 to-orange-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider shadow-lg hover:shadow-orange-500/30 hover:-translate-y-1 transition-all flex items-center gap-2 text-sm animate-pulse-subtle">
+                      <UserPlus size={18} /> Enroll Now
+                  </Link>
              </div>
            </div>
         </div>
