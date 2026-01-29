@@ -168,6 +168,18 @@ const StudentRegistrationProcess = () => {
             <div><span className="text-gray-500 block">Mobile</span> <span className="font-medium">{student.mobileStudent || student.mobileParent}</span></div>
             <div><span className="text-gray-500 block">Email</span> <span className="font-medium">{student.email || '-'}</span></div>
             <div><span className="text-gray-500 block">Date of Birth</span> <span className="font-medium">{new Date(student.dob).toLocaleDateString()}</span></div>
+            <div className="col-span-1 md:col-span-3 mt-2">
+                <span className="text-gray-500 block mb-1">Student Photo</span>
+                {student.studentPhoto ? (
+                    <img 
+                        src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/${student.studentPhoto}`} 
+                        alt="Student" 
+                        className="h-24 w-24 object-cover rounded border"
+                    />
+                ) : (
+                    <span className="text-gray-400 italic">No Photo Available</span>
+                )}
+            </div>
           </div>
         </div>
 
@@ -230,7 +242,7 @@ const StudentRegistrationProcess = () => {
             <div className="mt-6 flex gap-4">
                 {student.paymentPlan === 'Monthly' ? (
                     <button onClick={handleContinueFromCredentials} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                        Continue to Fee Payment
+                        Continue
                     </button>
                 ) : (
                     <button onClick={handleContinueFromCredentials} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">

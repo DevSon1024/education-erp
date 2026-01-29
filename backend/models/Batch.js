@@ -9,6 +9,7 @@ const batchSchema = new mongoose.Schema({
     endTime: { type: String, required: true },   // "12:00"
 
     // Relations
+    branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' }, // Added for Branch Scoping
     faculty: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
     
     // Changed from single 'course' to multiple 'courses'

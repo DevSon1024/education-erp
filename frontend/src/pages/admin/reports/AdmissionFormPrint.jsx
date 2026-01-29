@@ -151,7 +151,7 @@ const AdmissionFormPrint = () => {
                          </div>
                          <div className="flex items-center mt-2 gap-2">
                             <span className="font-bold text-sm">Reg. Date :</span>
-                            <Editable value={student.registrationDate ? moment(student.registrationDate).format('DD / MM / YYYY') : ""} className="w-32 text-center"/>
+                            <Editable value={student.isRegistered && student.registrationDate ? moment(student.registrationDate).format('DD / MM / YYYY') : ""} className="w-32 text-center"/>
                             <span className="font-bold text-sm ml-4 text-nowrap">Student Aadhar No.</span>
                             <Editable value={student.aadharCard || ""} className="flex-grow"/>
                          </div>
@@ -294,7 +294,7 @@ const AdmissionFormPrint = () => {
                                                 </tr>
                                                 <tr className="h-full">
                                                     <td className="border-r border-black text-center p-2 align-top">
-                                                        <Editable value={student.admissionDate ? moment(student.admissionDate).format('DD/MM/YY') : ""} />
+                                                        <Editable value={student.isRegistered && student.isAdmissionFeesPaid && student.admissionDate ? moment(student.admissionDate).format('DD/MM/YY') : ""} />
                                                     </td>
                                                     <td className="text-center p-2 align-top">
                                                         {/* Show ONLY if Monthly payment plan is selected. Shows PAID amount. */}

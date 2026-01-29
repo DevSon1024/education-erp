@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, toggleActiveStatus, resetStudentLogin, resetStatus } from '../../../features/student/studentSlice';
+import { fetchStudents, toggleActiveStatus, resetStudentLogin, resetStatus, deleteStudent } from '../../../features/student/studentSlice';
 import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save } from 'lucide-react';
+import { Eye, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 
@@ -76,6 +76,12 @@ const StudentList = () => {
               id: resetData.id, 
               data: { username: resetData.username, password: resetData.password } 
           }));
+      }
+  };
+
+  const handleDelete = (id) => {
+      if (window.confirm("Are you sure you want to permanently delete this student? This action cannot be undone.")) {
+          dispatch(deleteStudent(id));
       }
   };
 
@@ -196,6 +202,9 @@ const StudentList = () => {
                         <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Update">
                             <Edit size={16}/>
                         </Link>
+                        <button onClick={() => handleDelete(s._id)} className="bg-red-50 text-red-600 p-1.5 rounded hover:bg-red-100 transition" title="Delete">
+                            <Trash2 size={16}/>
+                        </button>
                         <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print">
                             <Printer size={16}/>
                         </Link>

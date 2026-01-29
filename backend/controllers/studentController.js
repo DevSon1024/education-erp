@@ -119,8 +119,8 @@ const createStudent = asyncHandler(async (req, res) => {
             isRegistered: false 
         };
 
-        // NEW: Generate Enrollment Number if paying admission fee immediately
-        if (isAdmissionFeesPaid && finalBranchId) {
+        // NEW: Generate Enrollment Number for ALL admissions (User request)
+        if (finalBranchId) {
             studentData.enrollmentNo = await generateEnrollmentNumber(finalBranchId);
         }
 

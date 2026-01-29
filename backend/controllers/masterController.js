@@ -105,6 +105,13 @@ const getBatches = asyncHandler(async (req, res) => {
         }
     }
 
+    // Filter by Branch if provided (for Multi-Branch Support)
+    if (req.query.branchId) {
+        query.branchId = req.query.branchId;
+    } else if (req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin') && req.user.branchId) {
+        query.branchId = req.user.branchId;
+    }
+
     // 1. Fetch Batches (Use .lean() to get plain JS objects for modification)
     const batches = await Batch.find(query)
         .populate('courses', 'name')
@@ -139,7 +146,12 @@ const getBatches = asyncHandler(async (req, res) => {
 });
 
 const createBatch = asyncHandler(async (req, res) => {
-    const batch = await Batch.create(req.body);
+    const data = { ...req.body };
+    // If user is restricted branch user, enforce their branch
+    if (req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin') && req.user.branchId) {
+        data.branchId = req.user.branchId;
+    }
+    const batch = await Batch.create(data);
     res.status(201).json(batch);
 });
 

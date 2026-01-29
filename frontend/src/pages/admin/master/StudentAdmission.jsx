@@ -103,14 +103,18 @@ const StudentAdmission = () => {
   const watchFirstName = watch("firstName");
   const watchLastName = watch("lastName");
   const watchCourseSelection = watch("selectedCourseId");
-  const watchSelectedBatch = watch("selectedBatch"); 
+  const watchSelectedBatch = watch("selectedBatch");
   const watchReference = watch("reference");
   const watchState = watch("state");
   const watchRelation = watch("relationType");
+  const watchBranchId = watch("branchId"); // Watch Branch Selection
 
   useEffect(() => {
-    dispatch(fetchCourses());
-    dispatch(fetchBatches());
+    dispatch(fetchCourses()); // One call only
+    // Only fetch batches initially if NOT Super Admin (Super Admin waits for selection)
+    if (user?.role !== 'Super Admin') {
+      dispatch(fetchBatches());
+    }
     dispatch(fetchInquiries({ status: "Open" }));
     dispatch(fetchStudents());
     dispatch(fetchEmployees());
@@ -120,6 +124,14 @@ const StudentAdmission = () => {
         dispatch(getBranches());
     }
   }, [dispatch, user]);
+
+  // Fetch batches when Branch changes (For Super Admin)
+  useEffect(() => {
+    if (user?.role === 'Super Admin' && watchBranchId) {
+        dispatch(fetchBatches({ branchId: watchBranchId }));
+        setValue("selectedBatch", ""); // Reset batch selection on branch change
+    }
+  }, [dispatch, user, watchBranchId, setValue]);
 
   // Handle inquiry data from location state (when navigating from Complete status)
   useEffect(() => {
@@ -676,6 +688,10 @@ const StudentAdmission = () => {
                   {...register("firstName", { required: true })}
                   className="input"
                   placeholder="Student Name"
+                  onChange={(e) => {
+                      const val = e.target.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                      setValue('firstName', val);
+                  }}
                 />
               </div>
               <div className="col-span-6 md:col-span-2">
@@ -694,6 +710,10 @@ const StudentAdmission = () => {
                   {...register("middleName")}
                   className="input"
                   placeholder={`${watchRelation}'s Name`}
+                  onChange={(e) => {
+                      const val = e.target.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                      setValue('middleName', val);
+                  }}
                 />
               </div>
               <div className="col-span-12 md:col-span-4">
@@ -702,6 +722,10 @@ const StudentAdmission = () => {
                   {...register("lastName", { required: true })}
                   className="input"
                   placeholder="Surname"
+                  onChange={(e) => {
+                      const val = e.target.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                      setValue('lastName', val);
+                  }}
                 />
               </div>
 
@@ -1145,7 +1169,8 @@ const StudentAdmission = () => {
                         <th className="p-3">Course</th>
                         <th className="p-3">Batch</th>
                         <th className="p-3">Fees</th>
-                        <th className="p-3">Admissionn Fee</th>
+                        <th className="p-3">Registration Fee</th>
+                        <th className="p-3">Admission Fee</th>
                         <th className="p-3">Payment Plan</th>
                         <th className="p-3 text-right">Action</th>
                       </tr>
@@ -1162,6 +1187,9 @@ const StudentAdmission = () => {
                             </span>
                           </td>
                           <td className="p-3">₹{item.fees}</td>
+                          <td className="p-3">
+                              {item.emiConfig ? `₹${item.emiConfig.registrationFees}` : '-'}
+                          </td>
                           <td className="p-3">₹{item.admissionFees}</td>
                           <td className="p-3">
                             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
@@ -1184,10 +1212,7 @@ const StudentAdmission = () => {
                         <tr>
                           <td colSpan="6" className="p-3">
                             <strong>Monthly Breakdown:</strong> Total: ₹
-                            {previewCourses[0].fees} | Registration: ₹
-                            {previewCourses[0].emiConfig.registrationFees} |
-                            EMI: ₹
-                            {previewCourses[0].emiConfig.monthlyInstallment} x{" "}
+                            {previewCourses[0].fees} | Registration: ₹{previewCourses[0].emiConfig.registrationFees} | EMI: ₹{previewCourses[0].emiConfig.monthlyInstallment} x{" "}
                             {previewCourses[0].emiConfig.months} Months
                           </td>
                         </tr>
