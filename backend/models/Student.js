@@ -8,6 +8,13 @@ const studentSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     isRegistered: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
+    
+    // --- Document Verification Fields ---
+    isPhotos: { type: Boolean, default: false },
+    isIDProof: { type: Boolean, default: false },
+    isMarksheetCertificate: { type: Boolean, default: false },
+    isAddressProof: { type: Boolean, default: false },
+    
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
     branchName: { type: String, default: "Main Branch" },
     registrationDate: { type: Date },

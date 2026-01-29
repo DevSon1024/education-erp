@@ -178,10 +178,11 @@ const StudentList = () => {
                 <td className="px-3 py-2 text-gray-600">{s.branchName || 'Main Branch'}</td>
 
                 <td className="px-3 py-2 text-center">
-                    <button onClick={() => dispatch(toggleActiveStatus(s._id))} className="text-primary hover:scale-110 transition" title="Toggle Status">
-                        {s.isActive ? <CheckSquare className="text-green-600" size={16}/> : <Square className="text-gray-400" size={16}/>}
-                    </button>
-                    <span className="sr-only">{s.isActive ? 'Active' : 'Inactive'}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        s.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                        {s.isActive ? 'Active' : 'Inactive'}
+                    </span>
                 </td>
 
                 <td className="px-3 py-2 text-right sticky right-0 bg-white">
@@ -192,7 +193,7 @@ const StudentList = () => {
                         <button onClick={() => handleOpenResetModal(s)} className="bg-yellow-50 text-yellow-600 p-1.5 rounded hover:bg-yellow-100 transition" title="Reset Login">
                             <Lock size={16}/>
                         </button>
-                        <Link to={`/master/student/edit/${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Edit">
+                        <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Update">
                             <Edit size={16}/>
                         </Link>
                         <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print">

@@ -366,6 +366,7 @@ const updateStudent = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id);
 
     if (student) {
+        // Personal Details
         student.firstName = req.body.firstName || student.firstName;
         student.middleName = req.body.middleName || student.middleName;
         student.lastName = req.body.lastName || student.lastName;
@@ -380,16 +381,48 @@ const updateStudent = asyncHandler(async (req, res) => {
         student.mobileParent = req.body.mobileParent || student.mobileParent;
         student.contactHome = req.body.contactHome || student.contactHome;
         student.education = req.body.education || student.education;
+        student.aadharCard = req.body.aadharCard || student.aadharCard;
         
         student.relationType = req.body.relationType || student.relationType;
         student.occupationType = req.body.occupationType || student.occupationType;
         student.occupationName = req.body.occupationName || student.occupationName;
         student.motherName = req.body.motherName || student.motherName;
+        student.reference = req.body.reference || student.reference;
         
+        // Course and Batch Details
+        if(req.body.course) {
+            student.course = req.body.course;
+        }
         if(req.body.batch) {
             student.batch = req.body.batch;
         }
+        if(req.body.paymentPlan) {
+            student.paymentPlan = req.body.paymentPlan;
+        }
+        if(req.body.totalFees !== undefined) {
+            student.totalFees = req.body.totalFees;
+        }
 
+        // Document Verification Fields
+        if(req.body.isPhotos !== undefined) {
+            student.isPhotos = req.body.isPhotos;
+        }
+        if(req.body.isIDProof !== undefined) {
+            student.isIDProof = req.body.isIDProof;
+        }
+        if(req.body.isMarksheetCertificate !== undefined) {
+            student.isMarksheetCertificate = req.body.isMarksheetCertificate;
+        }
+        if(req.body.isAddressProof !== undefined) {
+            student.isAddressProof = req.body.isAddressProof;
+        }
+        
+        // Active Status
+        if(req.body.isActive !== undefined) {
+            student.isActive = req.body.isActive;
+        }
+
+        // Photo Upload
         if (req.file) {
             student.studentPhoto = req.file.path.replace(/\\/g, "/");
         }

@@ -5,6 +5,8 @@ import {
   registerStudent,
   fetchStudents,
   resetStatus,
+  fetchStudentById,
+  updateStudent,
 } from "../../../features/student/studentSlice";
 import {
   fetchCourses,
@@ -17,7 +19,7 @@ import {
 import { fetchInquiries } from "../../../features/transaction/transactionSlice";
 import { fetchEmployees } from "../../../features/employee/employeeSlice";
 import { getBranches } from "../../../features/master/branchSlice"; // Import API
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios"; // Added axios
 import {
@@ -45,8 +47,14 @@ const LOCATION_DATA = {
 const StudentAdmission = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const { isSuccess, students, isLoading, message } = useSelector(
+  // Check if we're in update mode
+  const updateId = searchParams.get('updateId');
+  const isUpdateMode = Boolean(updateId);
+
+  const { isSuccess, students, isLoading, message, currentStudent } = useSelector(
     (state) => state.students
   );
   const { inquiries } = useSelector((state) => state.transaction);
@@ -114,7 +122,6 @@ const StudentAdmission = () => {
   }, [dispatch, user]);
 
   // Handle inquiry data from location state (when navigating from Complete status)
-  const location = useLocation();
   useEffect(() => {
     if (location.state?.inquiryData) {
       const inquiry = location.state.inquiryData;
@@ -148,18 +155,98 @@ const StudentAdmission = () => {
     }
   }, [location, setValue]);
 
+  // Fetch student data when in update mode
+  useEffect(() => {
+    if (isUpdateMode && updateId) {
+      dispatch(fetchStudentById(updateId));
+    }
+  }, [isUpdateMode, updateId, dispatch]);
+  
+  // Pre-fill form when student data is loaded in update mode
+  useEffect(() => {
+    if (isUpdateMode && currentStudent) {
+      // Personal Details
+      setValue("admissionDate", currentStudent.admissionDate?.split("T")[0]);
+      setValue("aadharCard", currentStudent.aadharCard);
+      setValue("firstName", currentStudent.firstName);
+      setValue("middleName", currentStudent.middleName);
+      setValue("lastName", currentStudent.lastName);
+      setValue("relationType", currentStudent.relationType || "Father");
+      setValue("occupationType", currentStudent.occupationType);
+      setValue("occupationName", currentStudent.occupationName);
+      setValue("motherName", currentStudent.motherName);
+      setValue("email", currentStudent.email);
+      setValue("dob", currentStudent.dob?.split("T")[0]);
+      setValue("gender", currentStudent.gender);
+      setValue("contactHome", currentStudent.contactHome);
+      setValue("mobileStudent", currentStudent.mobileStudent);
+      setValue("mobileParent", currentStudent.mobileParent);
+      setValue("education", currentStudent.education);
+      setValue("address", currentStudent.address);
+      setValue("state", currentStudent.state);
+      setValue("city", currentStudent.city);
+      setValue("pincode", currentStudent.pincode);
+      setValue("reference", currentStudent.reference);
+      setValue("branchId", currentStudent.branchId);
+
+      // Document Verification Fields
+      setValue("isPhotos", currentStudent.isPhotos || false);
+      setValue("isIDProof", currentStudent.isIDProof || false);
+      setValue("isMarksheetCertificate", currentStudent.isMarksheetCertificate || false);
+      setValue("isAddressProof", currentStudent.isAddressProof || false);
+      setValue("isActive", currentStudent.isActive);
+
+      // Course Details
+      setValue("selectedCourseId", currentStudent.course?._id || currentStudent.course);
+      setValue("selectedBatch", currentStudent.batch);
+      setValue("paymentType", currentStudent.paymentPlan || "One Time");
+
+      // Photo
+      if (currentStudent.studentPhoto) {
+        const photoUrl = currentStudent.studentPhoto.startsWith("http")
+          ? currentStudent.studentPhoto
+          : `${import.meta.env.VITE_API_URL}/${currentStudent.studentPhoto}`;
+        setPreviewImage(photoUrl);
+      }
+
+      // Set preview courses for display
+      if (currentStudent.course) {
+        const courseObj = courses.find(c => c._id === (currentStudent.course._id || currentStudent.course));
+        if (courseObj) {
+          const batchObj = batches.find(b => b.name === currentStudent.batch);
+          setPreviewCourses([{
+            id: Date.now(),
+            courseId: courseObj._id,
+            courseName: courseObj.name,
+            batch: currentStudent.batch,
+            batchTime: batchObj ? `${batchObj.startTime} - ${batchObj.endTime}` : "N/A",
+            startDate: currentStudent.admissionDate?.split("T")[0],
+            fees: currentStudent.totalFees,
+            admissionFees: courseObj.admissionFees || 500,
+            paymentType: currentStudent.paymentPlan || "One Time",
+            emiConfig: currentStudent.emiDetails,
+          }]);
+        }
+      }
+    }
+  }, [isUpdateMode, currentStudent, setValue, courses, batches]);
+
 // educationOptions effect removed
 
   useEffect(() => {
     if (isSuccess) {
       toast.success(
-        payAdmissionFee
+        isUpdateMode
+          ? "Student details updated successfully!"
+          : payAdmissionFee
           ? "Student Admitted & Fees Paid!"
           : "Admission Draft Created!"
       );
       dispatch(resetStatus());
       navigate(
-        payAdmissionFee
+        isUpdateMode
+          ? "/master/student"
+          : payAdmissionFee
           ? "/transaction/pending-student-registration"
           : "/transaction/pending-admission-fees"
       );
@@ -172,7 +259,7 @@ const StudentAdmission = () => {
     if (!isLoading) {
       setIsSubmitting(false);
     }
-  }, [isSuccess, message, isLoading, dispatch, navigate, payAdmissionFee]);
+  }, [isSuccess, message, isLoading, dispatch, navigate, payAdmissionFee, isUpdateMode]);
 
   useEffect(() => {
     if (watchFirstName && watchLastName) {
@@ -295,7 +382,7 @@ const StudentAdmission = () => {
       emiConfig,
     };
     setPreviewCourses([newEntry]);
-    setValue("selectedCourseId", null);
+    setValue("selectedCourseId", "");
   };
 
   const onSubmit = (data) => {
@@ -318,6 +405,12 @@ const StudentAdmission = () => {
       reference: data.reference,
       // Legacy referenceDetails removed in favor of standardized Reference Master
       referenceDetails: null,
+      // Include document verification fields
+      isPhotos: data.isPhotos || false,
+      isIDProof: data.isIDProof || false,
+      isMarksheetCertificate: data.isMarksheetCertificate || false,
+      isAddressProof: data.isAddressProof || false,
+      isActive: data.isActive !== undefined ? data.isActive : true,
       feeDetails: payAdmissionFee
         ? {
             amount: Number(data.amountPaid),
@@ -329,7 +422,12 @@ const StudentAdmission = () => {
         : null,
     };
 
-    dispatch(registerStudent(payload));
+    // Check if we're in update mode
+    if (isUpdateMode && updateId) {
+      dispatch(updateStudent({ id: updateId, data: payload }));
+    } else {
+      dispatch(registerStudent(payload));
+    }
   };
 
   // Auto-set payment for One Time plan
@@ -387,7 +485,7 @@ const StudentAdmission = () => {
       <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-900 to-indigo-800 p-4 flex justify-between items-center text-white shadow-md">
           <h1 className="text-xl font-bold flex items-center gap-2">
-            <UserCheck size={24} /> New Student Admission
+            <UserCheck size={24} /> {isUpdateMode ? "Update Student Details" : "New Student Admission"}
           </h1>
           <button
             type="button"
@@ -984,6 +1082,45 @@ const StudentAdmission = () => {
                         <option value="Monthly">Monthly</option>
                       </select>
                     </div>
+
+                    {/* Document Verification Section */}
+                    <div className="col-span-4 bg-purple-50 p-4 rounded border border-purple-200 mt-4">
+                      <label className="label text-purple-800 mb-3 block">Document Verification Status</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            {...register("isPhotos")}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          Photo Uploaded
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            {...register("isIDProof")}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          ID Proof Verified
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            {...register("isMarksheetCertificate")}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          Marksheet/Certificate
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            {...register("isAddressProof")}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          Address Proof
+                        </label>
+                      </div>
+                    </div>
                     <div className="col-span-2 flex justify-end items-end">
                       <button
                         type="button"
@@ -1008,8 +1145,8 @@ const StudentAdmission = () => {
                         <th className="p-3">Course</th>
                         <th className="p-3">Batch</th>
                         <th className="p-3">Fees</th>
-                        <th className="p-3">Admsn Fee</th>
-                        <th className="p-3">Plan</th>
+                        <th className="p-3">Admissionn Fee</th>
+                        <th className="p-3">Payment Plan</th>
                         <th className="p-3 text-right">Action</th>
                       </tr>
                     </thead>
@@ -1030,11 +1167,6 @@ const StudentAdmission = () => {
                             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                               {item.paymentType}
                             </span>
-                            {item.paymentType === "Monthly" && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                EMI: ₹{item.emiConfig?.monthlyInstallment}/mo
-                              </div>
-                            )}
                           </td>
                           <td className="p-3 text-right">
                             <button
@@ -1047,7 +1179,7 @@ const StudentAdmission = () => {
                         </tr>
                       ))}
                     </tbody>
-                    {previewCourses[0].paymentType === "Monthly" && (
+                    {previewCourses[0].paymentType === "Monthly" && previewCourses[0].emiConfig && (
                       <tfoot className="bg-yellow-50 text-xs text-yellow-800">
                         <tr>
                           <td colSpan="6" className="p-3">
