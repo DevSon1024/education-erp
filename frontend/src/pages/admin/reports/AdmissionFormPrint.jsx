@@ -5,6 +5,7 @@ import axios from 'axios';
 import logo from '../../../assets/logo2.png';
 import moment from 'moment';
 import { fetchBatches } from '../../../features/master/masterSlice';
+import { getBranches } from '../../../features/master/branchSlice';
 
 const AdmissionFormPrint = () => {
     const { id } = useParams();
@@ -16,6 +17,7 @@ const AdmissionFormPrint = () => {
     const [loading, setLoading] = useState(true);
     const { user } = useSelector((state) => state.auth); 
     const { batches } = useSelector((state) => state.master); // Get batches from Redux
+    const { branches } = useSelector((state) => state.branch); // Get branches from Redux
     
     // ... rest of code
     const canEdit = user && (user.role === 'Super Admin' || user.role === 'Admin');
@@ -24,6 +26,7 @@ const AdmissionFormPrint = () => {
 
     useEffect(() => {
         dispatch(fetchBatches()); // Fetch batches
+        dispatch(getBranches()); // Fetch branches
         const fetchStudent = async () => {
              // ... existing fetch logic
             try {
@@ -71,7 +74,23 @@ const AdmissionFormPrint = () => {
         return student.batch || ""; // Fallback
     };
     
+    const getBatchDate = () => {
+        if (!student || !batches) return "";
+        const batchObj = batches.find(b => b.name === student.batch);
+        if (batchObj && batchObj.startDate) return moment(batchObj.startDate).format('DD/MM/YYYY');
+        return "";
+    };
+
+    const getBranchInfo = () => {
+        if (!student || !branches) return {};
+        // Match by ID (student.branch) or Name (student.branchName)
+        const branchObj = branches.find(b => b._id === student.branch || b.name === student.branchName);
+        return branchObj || {};
+    };
+
     const batchTimeDisplay = getBatchTime();
+    const batchDateDisplay = getBatchDate();
+    const branchInfo = getBranchInfo();
 
     return (
         <div className="max-w-[210mm] mx-auto bg-white min-h-screen p-0 print:p-0">
@@ -100,19 +119,18 @@ const AdmissionFormPrint = () => {
                         <img src={logo} alt="Logo" className="h-16 object-contain" />
                     </div>
                     <div className="w-2/3 text-right">
-                         {/* Editable Header for flexibility */}
                         <h1 className="text-xl font-bold uppercase tracking-wide">
-                            <Editable value={student.branchName || "JAYESH INSTITUTE BRANCH"} />
+                            <Editable value={branchInfo.name || student.branchName || "JAYESH INSTITUTE BRANCH"} />
                         </h1>
                         <p className="text-xs font-semibold mt-1">
-                             <Editable value={student.branchLocation || "LUDHIANA"} />
+                             <Editable value={branchInfo.address || student.branchLocation || "LUDHIANA"} />
                         </p>
                         <p className="text-xs">
-                            Ph. No.: <Editable value={student.branchPhone || "6354116595"} /> &nbsp; 
-                            Mo.: +91 <Editable value={student.branchMobile || "6354116595"} />
+                            Ph. No.: <Editable value={branchInfo.phone || student.branchPhone || "6354116595"} /> &nbsp; 
+                            Mo.: +91 <Editable value={branchInfo.mobile || student.branchMobile || "6354116595"} />
                         </p>
                         <p className="text-xs font-bold text-blue-800">
-                            <Editable value={student.website || "www.smartinstituteonline.com"} />
+                            <Editable value={branchInfo.website || student.website || "www.smartinstituteonline.com"} />
                         </p>
                     </div>
                 </div>
@@ -127,7 +145,7 @@ const AdmissionFormPrint = () => {
                          
                          <div className="flex items-center mt-4 gap-2">
                             <span className="font-bold text-sm text-nowrap">Enrollment Number:</span>
-                            <Editable value={student.enrollmentNo || ""} className="font-mono font-bold flex-grow"/>
+                            <Editable value={student.enrollmentNo || ""} className="font-mono font-bold w-32"/>
                             <span className="font-bold text-sm text-nowrap ml-4">Registration No. :</span>
                             <Editable value={student.regNo || ""} className="font-mono font-bold w-32"/>
                          </div>
@@ -172,10 +190,11 @@ const AdmissionFormPrint = () => {
                     <div className="flex items-end gap-2">
                         <span className="font-bold w-32 flex-shrink-0">Occupation :</span>
                         <div className="flex items-center gap-4">
-                             <CheckBox label="Service" />
-                             <CheckBox label="Business" />
+                             <CheckBox label="Service" checked={student.occupationType === 'Service'} />
+                             <CheckBox label="Business" checked={student.occupationType === 'Business'} />
+                             <CheckBox label="Other" checked={!['Service', 'Business'].includes(student.occupationType) && !!student.occupationType} />
                         </div>
-                        <Editable value="" className="flex-grow border-b border-gray-300"/>
+                        <Editable value={student.occupation || ""} className="flex-grow border-b border-gray-300"/>
                     </div>
 
                     <div className="flex items-end gap-2">
@@ -278,8 +297,14 @@ const AdmissionFormPrint = () => {
                                                         <Editable value={student.admissionDate ? moment(student.admissionDate).format('DD/MM/YY') : ""} />
                                                     </td>
                                                     <td className="text-center p-2 align-top">
-                                                        {/* Fixed: Show admissionFeeAmount if paid */}
-                                                        <Editable value={student.isAdmissionFeesPaid ? student.admissionFeeAmount : ""} />
+                                                        {/* Show ONLY if Monthly payment plan is selected. Shows PAID amount. */}
+                                                        <Editable 
+                                                            value={
+                                                                student.paymentPlan === 'Monthly' 
+                                                                    ? (student.isAdmissionFeesPaid ? student.admissionFeeAmount : "") 
+                                                                    : "" 
+                                                            } 
+                                                        />
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -292,8 +317,7 @@ const AdmissionFormPrint = () => {
                         <div className="grid grid-cols-2 gap-4 mt-2">
                              <div className="flex items-end gap-1">
                                 <span className="font-bold text-nowrap">Batch Date:</span>
-                                {/* Assuming batch date isn't specific, maybe use admission date or leave blank for filling */}
-                                <Editable value="" className="w-32 text-center"/>
+                                <Editable value={batchDateDisplay} className="w-32 text-center"/>
                              </div>
                              <div className="flex items-end gap-1">
                                 <span className="font-bold text-nowrap">Batch Time:</span>
