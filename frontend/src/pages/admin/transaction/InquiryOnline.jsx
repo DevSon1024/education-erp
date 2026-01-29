@@ -131,7 +131,7 @@ const InquiryOnline = () => {
   // Filter State
   const [filters, setFilters] = useState({
       startDate: '',
-      endDate: '',
+      endDate: new Date().toISOString().split('T')[0],
       status: '',
       studentName: '',
       dateFilterType: 'inquiryDate',
@@ -159,7 +159,7 @@ const InquiryOnline = () => {
 
   const handleResetFilters = () => {
       setFilters({ 
-          startDate: '', endDate: '', status: '', studentName: '', 
+          startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', 
           dateFilterType: 'inquiryDate', source: 'Online' 
       });
   };

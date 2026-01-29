@@ -22,8 +22,8 @@ const EmployeeAttendance = () => {
     
     // Filters
     const [filters, setFilters] = useState({
-        fromDate: '',
-        toDate: ''
+        fromDate: new Date().toISOString().split('T')[0],
+        toDate: new Date().toISOString().split('T')[0]
     });
 
     // Form
@@ -46,7 +46,7 @@ const EmployeeAttendance = () => {
     };
 
     const handleResetFilters = () => {
-        setFilters({ fromDate: '', toDate: '' });
+        setFilters({ fromDate: new Date().toISOString().split('T')[0], toDate: new Date().toISOString().split('T')[0] });
         dispatch(fetchEmployeeAttendanceHistory({}));
     };
 

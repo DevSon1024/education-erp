@@ -16,7 +16,7 @@ const StudentList = () => {
   // Filter States
   const [filters, setFilters] = useState({
     fromDate: '',
-    toDate: '',
+    toDate: new Date().toISOString().split('T')[0],
     courseId: '',
     studentName: '',
     batch: '',
@@ -53,7 +53,7 @@ const StudentList = () => {
 
   const resetFilters = () => {
     setFilters({
-        fromDate: '', toDate: '', courseId: '', studentName: '', batch: '', 
+        fromDate: '', toDate: new Date().toISOString().split('T')[0], courseId: '', studentName: '', batch: '', 
         pageSize: 10, pageNumber: 1, isRegistered: 'true'
     });
   };

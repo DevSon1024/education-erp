@@ -12,7 +12,7 @@ const ManageNews = () => {
     // Filters
     const [filters, setFilters] = useState({
         fromDate: '',
-        toDate: '',
+        toDate: new Date().toISOString().split('T')[0],
         isBreaking: '', // '' for all, 'true', 'false'
         search: '',
         limit: 10
@@ -62,7 +62,7 @@ const ManageNews = () => {
     const handleResetFilters = () => {
         setFilters({
             fromDate: '',
-            toDate: '',
+            toDate: new Date().toISOString().split('T')[0],
             isBreaking: '',
             search: '',
             limit: 10

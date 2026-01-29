@@ -25,11 +25,12 @@ const StudentAttendance = () => {
     
     // --- Filters for History List ---
     const [filters, setFilters] = useState({
-        fromDate: '',
-        toDate: '',
-        batch: ''
+        fromDate: new Date().toISOString().split('T')[0],
+        toDate: new Date().toISOString().split('T')[0],
+        batch: '',
+        batchTime: ''
     });
-
+    
     // --- Form State ---
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
@@ -56,7 +57,7 @@ const StudentAttendance = () => {
 
     // Reset Filters
     const handleResetFilters = () => {
-        setFilters({ fromDate: '', toDate: '', batch: '', batchTime: '' });
+        setFilters({ fromDate: new Date().toISOString().split('T')[0], toDate: new Date().toISOString().split('T')[0], batch: '', batchTime: '' });
         dispatch(fetchStudentAttendanceHistory({}));
     };
 

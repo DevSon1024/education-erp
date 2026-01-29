@@ -30,7 +30,7 @@ const EmployeeMaster = () => {
   // --- FILTERS STATE ---
   const initialFilters = {
     joiningFrom: '', 
-    joiningTo: '', 
+    joiningTo: new Date().toISOString().split('T')[0], 
     gender: '', 
     searchBy: 'name', 
     searchValue: ''

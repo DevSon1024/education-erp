@@ -21,7 +21,7 @@ const BatchMaster = () => {
 
   // Initial Filters
   const [filters, setFilters] = useState({
-    startDate: '', endDate: '', searchBy: 'Batch Name', searchValue: ''
+    startDate: '', endDate: new Date().toISOString().split('T')[0], searchBy: 'Batch Name', searchValue: ''
   });
 
   useEffect(() => {

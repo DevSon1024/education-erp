@@ -16,8 +16,8 @@ const PendingStudentRegistration = () => {
   const [filters, setFilters] = useState({
     studentName: '',
     reference: '',
-    startDate: new Date().toISOString().split('T')[0], // Default Today
-    endDate: '',
+    startDate: '', // Default Today
+    endDate: new Date().toISOString().split('T')[0],
     isRegistered: 'false', // Only unregistered
     isAdmissionFeesPaid: 'true' // Only those who paid admission fees
   });

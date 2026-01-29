@@ -123,7 +123,7 @@ const InquiryDSR = () => {
   const { inquiries, isSuccess, message } = useSelector((state) => state.transaction);
   
   // Filter defaults to DSR
-  const [filters, setFilters] = useState({ startDate: '', endDate: '', status: '', studentName: '', source: 'DSR' });
+  const [filters, setFilters] = useState({ startDate: '', endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', source: 'DSR' });
   const [modal, setModal] = useState({ type: null, data: null });
 
   useEffect(() => { dispatch(fetchInquiries(filters)); dispatch(fetchCourses()); }, [dispatch, filters]);
@@ -188,9 +188,9 @@ const InquiryDSR = () => {
         
         {/* Filter Bar */}
         <div className="bg-white p-3 rounded border shadow-sm flex gap-3 mb-4 flex-wrap">
-             <input type="date" onChange={e => setFilters({...filters, startDate: e.target.value})} className="border p-2 rounded text-sm"/>
-             <input type="date" onChange={e => setFilters({...filters, endDate: e.target.value})} className="border p-2 rounded text-sm"/>
-             <select onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm min-w-[120px]">
+             <input type="date" value={filters.startDate} onChange={e => setFilters({...filters, startDate: e.target.value})} className="border p-2 rounded text-sm"/>
+             <input type="date" value={filters.endDate} onChange={e => setFilters({...filters, endDate: e.target.value})} className="border p-2 rounded text-sm"/>
+             <select value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm min-w-[120px]">
                 <option value="">All Status</option>
                 <option value="Open">Open</option>
                 <option value="InProgress">InProgress</option>
@@ -198,7 +198,7 @@ const InquiryDSR = () => {
                  <option value="Close">Close</option>
                  <option value="Complete">Complete</option>
              </select>
-             <input placeholder="Search Name..." onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow min-w-[200px]"/>
+             <input placeholder="Search Name..." value={filters.studentName} onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow min-w-[200px]"/>
              <button onClick={() => dispatch(fetchInquiries(filters))} className="bg-gray-800 text-white px-4 rounded hover:bg-black"><Search size={18}/></button>
         </div>
 

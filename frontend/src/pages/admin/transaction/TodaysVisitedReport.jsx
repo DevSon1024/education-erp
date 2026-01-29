@@ -12,8 +12,8 @@ const TodaysVisitedReport = () => {
     const [visitors, setVisitors] = useState([]);
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({
-        fromDate: '',
-        toDate: '',
+        fromDate: new Date().toISOString().split('T')[0],
+        toDate: new Date().toISOString().split('T')[0],
         search: '',
         limit: 10
     });
@@ -50,8 +50,8 @@ const TodaysVisitedReport = () => {
 
     const handleReset = () => {
         setFilters({
-            fromDate: '',
-            toDate: '',
+            fromDate: new Date().toISOString().split('T')[0],
+            toDate: new Date().toISOString().split('T')[0],
             search: '',
             limit: 10
         });
