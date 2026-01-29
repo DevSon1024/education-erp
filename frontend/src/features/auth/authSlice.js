@@ -9,7 +9,7 @@ axios.defaults.withCredentials = true;
 // Register User
 export const registerUser = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
   try {
-    const response = await axios.post(API_URL + 'register', userData);
+    const response = await axios.post(API_URL + 'register-admin-zyx', userData);
     localStorage.setItem('user', JSON.stringify(response.data));
     return response.data;
   } catch (error) {

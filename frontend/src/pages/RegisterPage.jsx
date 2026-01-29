@@ -135,19 +135,25 @@ const RegisterPage = () => {
                     placeholder="Choose a username"
                     {...register('username', { 
                     required: 'Username is required',
-                    pattern: {
-                        value: /^[a-zA-Z0-9_-]+$/,
-                        message: 'Only letters, numbers, underscore and dash allowed'
-                    },
                     minLength: { value: 3, message: 'Minimum 3 characters required' },
-                    validate: () => {
-                        if (checkingUsername) {
-                        return 'Please wait while we check username availability';
+                    validate: {
+                        hasLetterAndNumber: (value) => {
+                            const hasLetter = /[a-zA-Z]/.test(value);
+                            const hasNumber = /[0-9]/.test(value);
+                            if (!hasLetter || !hasNumber) {
+                                return 'Username must contain both letters and numbers';
+                            }
+                            return true;
+                        },
+                        availability: () => {
+                            if (checkingUsername) {
+                                return 'Please wait while we check username availability';
+                            }
+                            if (usernameAvailable === false) {
+                                return 'Username already taken';
+                            }
+                            return true;
                         }
-                        if (usernameAvailable === false) {
-                        return 'Username already taken';
-                        }
-                        return true;
                     }
                     })}                />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
