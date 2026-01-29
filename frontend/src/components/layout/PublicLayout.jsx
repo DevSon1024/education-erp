@@ -110,10 +110,9 @@ const PublicNavbar = () => {
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, y: 15 }}
                                       transition={{ duration: 0.2 }}
-                                      className={`absolute left-1/2 -translate-x-1/2 mt-0 bg-white text-gray-800 shadow-2xl rounded-xl overflow-hidden border border-gray-100 z-50 ${item.isMegaMenu ? 'w-[800px] left-1/2 fixed top-[180px] -translate-x-1/2' : 'w-56'}`}
-                                      // Note: Fixed positioning for MegaMenu might need adjustment based on header height, but usually absolute relative to nav is better if nav is full width.
-                                      // Let's stick to absolute but centered.
-                                      style={item.isMegaMenu ? { left: '50%', transform: 'translateX(-50%)', width: '900px', maxWidth: '90vw' } : {}}
+                                      className={`absolute left-1/2 -translate-x-1/2 mt-0 bg-white text-gray-800 shadow-2xl rounded-xl overflow-hidden border border-gray-100 z-50 ${item.isMegaMenu ? 'w-[800px]' : 'w-56'}`}
+                                      // Note: Using absolute positioning relative to the parent nav item
+                                      style={item.isMegaMenu ? { width: '900px', maxWidth: '90vw' } : {}}
                                   >
                                       {item.isMegaMenu ? (
                                         // MEGA MENU CONTENT

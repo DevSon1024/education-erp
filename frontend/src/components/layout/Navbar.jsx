@@ -149,7 +149,7 @@ const Navbar = () => {
             animate={{ opacity: 1, y: 0 }} 
             exit={{ opacity: 0, y: 10 }} 
             transition={{ duration: 0.2 }} 
-            className="absolute left-0 top-full pt-2 w-64 z-50" 
+            className="absolute left-0 top-full pt-0 w-64 z-50" 
           >
             <div className="bg-white text-gray-800 shadow-xl rounded-md overflow-hidden border border-gray-200 ring-1 ring-black/5">
               <div className="h-1 bg-primary w-full"></div>
@@ -230,7 +230,7 @@ const Navbar = () => {
                                           animate={{ opacity: 1, y: 0 }} 
                                           exit={{ opacity: 0, y: 10 }} 
                                           transition={{ duration: 0.2 }} 
-                                          className="absolute left-0 top-full pt-2 w-56 z-50"
+                                          className="absolute left-0 top-full pt-0 w-56 z-50"
                                       >
                                       <div className="bg-white text-gray-800 shadow-xl rounded-md overflow-hidden border border-gray-200 ring-1 ring-black/5">
                                           <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>

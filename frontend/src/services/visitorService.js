@@ -5,7 +5,7 @@ import axios from 'axios';
 // For now using relative path assuming proxy.
 
 // const API_URL = 'http://localhost:5000/api/visitors';
-const API_URL = `${import.meta.env.VITE_API_URL}/visitors/`;
+const API_URL = `${import.meta.env.VITE_API_URL}/visitors`;
 
 // for production use uncomment below one line
 // const API_URL = '/api/visitors';
