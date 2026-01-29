@@ -42,12 +42,9 @@ const inquirySchema = new mongoose.Schema(
         "Online",
         "Call",
         "DSR",
-        "DSR",
         "QuickContact",
         "OnlineAdmission",
-      ],
-      default: "Walk-in",
-    },
+      ],    },
 
     // Specific Reference Detail
     referenceBy: { type: String },

@@ -54,14 +54,14 @@ const ManageTerms = () => {
             </div>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Terms Content (Markdown Supported)</label>
+                <label htmlFor="terms-content" className="block text-sm font-semibold text-gray-700 mb-2">Terms Content (Markdown Supported)</label>
                 <textarea 
+                    id="terms-content"
                     className="w-full h-96 border rounded-lg p-4 font-mono text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                     placeholder="Enter terms and conditions here..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                 ></textarea>
-
                 <div className="mt-6 flex justify-end">
                     <button 
                         onClick={handleSave} 

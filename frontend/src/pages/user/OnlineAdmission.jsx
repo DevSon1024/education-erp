@@ -85,26 +85,29 @@ const OnlineAdmission = () => {
     
     // Actually, Inquiry.js has `referenceDetail` for new references.
     if (newRefMode) {
-        formData.append('referenceBy', 'New Reference');
-        // This relies on backend handling 'referenceDetail' mapping if we provided it, 
-        // OR we just create the reference now.
-        // Let's create it now to be safe and consistent.
-        if(newRefName) {
-             const refRes = await dispatch(createReference({ name: newRefName, mobile: newRefMobile }));
-             if(!refRes.error) {
-                 formData.set('referenceBy', newRefName); // Update to the newly created name
-             }
+        if(!newRefName.trim()) {
+            toast.error("Please enter reference name");
+            return;
+        }
+        try {
+            await dispatch(createReference({ name: newRefName, mobile: newRefMobile })).unwrap();
+            formData.set('referenceBy', newRefName);
+        } catch (err) {
+            toast.error("Failed to create reference");
+            return;
         }
     }
      if (newEduMode) {
-        if(newEduName) {
-             const eduRes = await dispatch(createEducation({ name: newEduName }));
-             if(!eduRes.error) {
-                 formData.set('education', newEduName);
-             }
+        if(newEduName.trim()) {
+            try {
+                await dispatch(createEducation({ name: newEduName })).unwrap();
+                formData.set('education', newEduName);
+            } catch (err) {
+                toast.error("Failed to create education record");
+                return;
+            }
         }
-    }
-    
+    }    
     // Explicitly set Source
     formData.set('source', 'OnlineAdmission');
 
@@ -116,13 +119,19 @@ const OnlineAdmission = () => {
     });
   };
 
+  useEffect(() => {
+    return () => {
+      if (previewImage) URL.revokeObjectURL(previewImage);
+    };
+  }, [previewImage]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (previewImage) URL.revokeObjectURL(previewImage);
       setPreviewImage(URL.createObjectURL(file));
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -182,8 +191,7 @@ const OnlineAdmission = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Student Photo</label>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border">
-                            {previewImage ? <img src={previewImage} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-gray-400"/>}
-                        </div>
+                            {previewImage ? <img src={previewImage} alt="Student photo preview" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-gray-400"/>}                        </div>
                         <label className="cursor-pointer bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors flex items-center gap-1">
                             <Upload size={14}/> Upload
                             <input type="file" className="hidden" accept="image/*" {...register("studentPhoto")} onChange={handleImageChange} />
@@ -317,8 +325,7 @@ const OnlineAdmission = () => {
           <div className="pt-4 border-t">
               <label className="flex items-start gap-3 cursor-pointer group">
                   <div className="relative flex items-center">
-                     <input type="checkbox" {...register("agreeTerms", { required: true })} className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 shadow-sm transition-allchecked:border-primary checked:bg-primary hover:shadow-md" />
-                      <CheckCircle className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                     <input type="checkbox" {...register("agreeTerms", { required: true })} className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 shadow-sm transition-all checked:border-primary checked:bg-primary hover:shadow-md" />
                   </div>
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                       I agree to the <Link to="/terms-and-conditions" target="_blank" className="text-primary font-bold hover:underline">Terms and Conditions</Link> for admission at Smart Institute.

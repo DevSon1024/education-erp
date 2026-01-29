@@ -26,10 +26,9 @@ const TermsAndConditions = () => {
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
             <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-primary px-6 py-4 flex items-center gap-4">
-                    <Link to="/online-admission" className="text-white hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <Link to="/online-admission" className="text-white hover:bg-white/20 p-2 rounded-full transition-colors" aria-label="Back to Admission Form">
                         <ArrowLeft size={20} />
-                    </Link>
-                    <h1 className="text-xl font-bold text-white">Terms and Conditions</h1>
+                    </Link>                    <h1 className="text-xl font-bold text-white">Terms and Conditions</h1>
                 </div>
                 
                 <div className="p-8">

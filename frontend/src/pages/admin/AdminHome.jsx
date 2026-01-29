@@ -29,11 +29,7 @@ const AdminHome = () => {
   // Initial Fetch
   useEffect(() => {
     // Fetching ONLY "QuickContact" for dashboard as per requirements
-    dispatch(fetchInquiries({ source: 'QuickContact' })); 
-    // We don't fetch OnlineAdmission here automatically to avoid over-fetching, 
-    // we fetch when tab changes or we can fetch both if needed. 
-    // Let's fetch both or handle based on tab.
-    dispatch(fetchInquiries({ source: 'QuickContact' })); 
+    dispatch(fetchInquiries({ source: 'QuickContact' }));
     dispatch(fetchExamRequests()); // Changed from fetchPendingExams
     dispatch(fetchCourses());
   }, [dispatch]);

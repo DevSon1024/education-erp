@@ -17,22 +17,22 @@ const getTerms = async (req, res) => {
 const updateTerms = async (req, res) => {
     try {
         const { content } = req.body;
-        // Find existing or create new
-        let terms = await TermsAndConditions.findOne();
-        
-        if (terms) {
-            terms.content = content;
-            await terms.save();
-        } else {
-            terms = await TermsAndConditions.create({ content });
+
+        if (typeof content !== 'string') {
+            return res.status(400).json({ message: 'Content must be a string' });
         }
-        
+
+        const terms = await TermsAndConditions.findOneAndUpdate(
+            {},
+            { content },
+            { upsert: true, new: true, runValidators: true }
+        );
+
         res.status(200).json(terms);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
-
 module.exports = {
     getTerms,
     updateTerms

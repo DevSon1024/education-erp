@@ -80,8 +80,8 @@ const PublicNavbar = () => {
         <div className="flex justify-between md:justify-center items-center h-20 relative">
            
            {/* Mobile Logo (Visible only on mobile since main logo is in header) */}
-           <div className="md:hidden flex-shrink-0">
-               <img src={logoImage} alt="Logo" className="h-10 w-auto" />
+           <div className="md:hidden flex-shrink-0 bg-white/95 backdrop-blur-sm p-1.5 rounded-lg shadow-lg shadow-black/10 border border-white/20 transform hover:scale-105 transition-all">
+               <img src={logoImage} alt="Logo" className="h-9 w-auto object-contain" />
            </div>
 
            {/* Mobile Menu Button */}
@@ -325,7 +325,7 @@ const PublicLayout = () => {
                      <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Admissions Open</p>
                      <p className="text-lg font-bold text-gray-900">2025-2026 Batch</p>
                  </div>
-                 <Link to="/online-admission" className="bg-gradient-to-r from-red-600 to-orange-500 text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider shadow-lg hover:shadow-orange-500/30 hover:-translate-y-1 transition-all flex items-center gap-2 text-sm animate-pulse-subtle">
+                 <Link to="/online-admission" className="bg-primary text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-wider shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all flex items-center gap-2 text-sm animate-pulse-subtle">
                       <UserPlus size={18} /> Enroll Now
                   </Link>
              </div>
