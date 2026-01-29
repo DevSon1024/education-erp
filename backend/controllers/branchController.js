@@ -40,8 +40,10 @@ const createBranch = asyncHandler(async (req, res) => {
                 password: hashedPassword, // Store hashed password in User model
                 role: 'Branch Director'
             });
+        } else {
+            res.status(400);
+            throw new Error('Selected employee does not have a linked user account');
         }
-
         // Update employee's role in Employee collection
         employee.type = 'Branch Director';
         await employee.save();

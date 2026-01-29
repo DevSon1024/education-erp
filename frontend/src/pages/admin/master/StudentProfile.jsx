@@ -168,20 +168,39 @@ const StudentProfile = () => {
                         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
                             <CreditCard size={20} className="text-primary"/> Fees Summary
                         </h2>
-                        <div className="grid grid-cols-3 gap-4 mt-4 bg-gray-50 p-4 rounded-lg">
-                             <div>
-                                <span className="block text-gray-500 text-xs">Total Fees</span>
-                                <span className="font-bold text-gray-800 text-lg">₹{student.totalFees}</span>
-                            </div>
-                             <div>
-                                <span className="block text-gray-500 text-xs">Pending Fees</span>
-                                <span className="font-bold text-red-600 text-lg">₹{student.pendingFees}</span>
-                            </div>
-                             <div>
-                                <span className="block text-gray-500 text-xs">Payment Plan</span>
-                                <span className="font-medium text-gray-800">{student.paymentPlan || 'One Time'}</span>
-                            </div>
-                        </div>
+                        {/* Dynamic Calculation for Display */}
+                        {(() => {
+                            const courseAdmFee = student.course?.admissionFees || 0;
+                            const paidAdmFee = student.admissionFeeAmount || 0;
+                            // Effective Admission Fee (Paid or Course Default, whichever is higher, or just Course Default if we follow standard)
+                            // User Logic: "total fees = course fees + dynamic admission fees"
+                            const effectiveAdmFee = Math.max(courseAdmFee, paidAdmFee);
+                            
+                            const calculatedTotalFees = (student.totalFees || 0) + effectiveAdmFee;
+                            
+                            const pendingAdmission = Math.max(0, courseAdmFee - paidAdmFee);
+                            const calculatedPendingFees = (student.pendingFees || 0) + pendingAdmission;
+
+                            return (
+                                <div className="grid grid-cols-3 gap-4 mt-4 bg-gray-50 p-4 rounded-lg">
+                                    <div>
+                                        <span className="block text-gray-500 text-xs">Total Fees</span>
+                                        <span className="font-bold text-gray-800 text-lg">₹{calculatedTotalFees}</span>
+                                        <span className="block text-[10px] text-gray-400">
+                                            (Include Adm: ₹{effectiveAdmFee})
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs">Pending Fees</span>
+                                        <span className="font-bold text-red-600 text-lg">₹{calculatedPendingFees}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs">Payment Plan</span>
+                                        <span className="font-medium text-gray-800">{student.paymentPlan || 'One Time'}</span>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                  </div>
 
                  {/* Footer for Print */}

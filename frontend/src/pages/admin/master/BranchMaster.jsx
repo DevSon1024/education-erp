@@ -369,13 +369,12 @@ const BranchMaster = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         >
                                             <option value="">-- No Director --</option>
-                                            {branchEmployees.map(emp => (
+                                            {Array.isArray(branchEmployees) && branchEmployees.map(emp => (
                                                 <option key={emp._id} value={emp._id}>
                                                     {emp.name} ({emp.type})
                                                 </option>
                                             ))}
-                                        </select>
-                                    </div>
+                                        </select>                                    </div>
                                     <div className="space-y-1">
                                         <label className="text-sm font-semibold text-gray-700">Director Username</label>
                                         <input

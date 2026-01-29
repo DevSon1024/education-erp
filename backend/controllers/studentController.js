@@ -87,8 +87,9 @@ const createStudent = asyncHandler(async (req, res) => {
         admissionFeeAmount = Number(feeDetails.amount);
         isAdmissionFeesPaid = true;
         
-        // CHANGED: Always calculate pending fees based on amount paid, even for "One Time"
-        pendingFees = totalFees - admissionFeeAmount;
+        // CHANGED: Admission Fees are now separate/additive. 
+        // We do NOT subtract them from pendingFees (Tuition).
+        // pendingFees remains = totalFees initially.
     }
 
     try {

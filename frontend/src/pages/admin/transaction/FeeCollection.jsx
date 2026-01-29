@@ -347,6 +347,11 @@ const FeeCollection = () => {
                             className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base"
                             placeholder="Enter amount"
                         />
+                         {paymentSummary && (
+                            <p className="text-xs text-red-500 mt-1 font-semibold">
+                                Outstanding: ₹{paymentSummary.outstandingAmount} | Total Due: ₹{paymentSummary.dueAmount}
+                            </p>
+                        )}
                     </div>
 
                     {/* Remark */}

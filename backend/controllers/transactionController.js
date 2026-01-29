@@ -234,19 +234,23 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
   });
 
   // 4. Update Student Pending Fees & Status
-  student.pendingFees = student.pendingFees - Number(amountPaid);
-
   let admissionCompletedNow = false;
-  // CRITICAL LOGIC: If admission fees weren't paid, mark them as paid now
-  // This moves the student from "Pending Admission Fees" -> "Pending Registration"
+
+  // CRITICAL LOGIC: 
+  // If admission fees weren't paid, this payment is treated as Admission Fee
+  // Admission Fee is ADDITIVE to the course fee, so we do NOT reduce pendingFees (Tuition).
   if (!student.isAdmissionFeesPaid) {
     student.isAdmissionFeesPaid = true;
+    student.admissionFeeAmount = Number(amountPaid); // Track the actual amount paid for admission
     admissionCompletedNow = true;
     
     // NEW: Generate Enrollment No if not present
     if (!student.enrollmentNo && student.branchId) {
         student.enrollmentNo = await generateEnrollmentNumber(student.branchId);
     }
+  } else {
+    // Regular Tuition Fee Payment -> Reduce Pending Fees
+    student.pendingFees = student.pendingFees - Number(amountPaid);
   }
 
   await student.save();
@@ -392,20 +396,68 @@ const getStudentPaymentSummary = asyncHandler(async (req, res) => {
   const totalReceived = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
   // Calculate amounts
-  const totalFees = (student.totalFees || 0) + (student.admissionFeeAmount || 0);
-  const dueAmount = totalFees - totalReceived;
-  const outstandingAmount = student.pendingFees || 0;
-
-  // Determine fees method
-  let feesMethod = student.paymentPlan || "One Time";
-  let emiStructure = null;
+  // Calculate amounts
+  // Total Expected = Tuition (student.totalFees) + Admission (student.course.admissionFees or paid amount if higher?)
+  // Actually, let's trust the course admission fee as the 'Required' amount. 
+  // If student paid MORE, it's fine. If less, they owe.
+  const courseAdmissionFee = student.course && student.course.admissionFees ? student.course.admissionFees : 0;
+  const paidAdmissionFee = student.admissionFeeAmount || 0;
   
+  // Pending Admission = Expected - Paid. (Ensure not negative if they overpaid)
+  const pendingAdmission = Math.max(0, courseAdmissionFee - paidAdmissionFee);
+
+  // Total Fees for Calculation = Tuition (pending + paid_tuition) + Admission (pending + paid)
+  // But easier: Total Expected = Student.totalFees (Tuition) + MAX(courseAdmissionFee, paidAdmissionFee)
+  // Using MAX ensures if they paid 600 (vs 500), the total reflects 600.
+  const effectiveAdmissionFee = Math.max(courseAdmissionFee, paidAdmissionFee);
+  const totalFees = (student.totalFees || 0) + effectiveAdmissionFee;
+  
+  // Due Amount = Total Fees - Total Received
+  const dueAmount = totalFees - totalReceived;
+
+  // --- NEW OUTSTANDING AMOUNT LOGIC ---
+  // Start with Pending Admission Fees
+  let outstandingAmount = pendingAdmission;
+  
+  let emiStructure = null;
+  let feesMethod = student.paymentPlan || "One Time";
+
   if (student.paymentPlan === "Monthly" && student.emiDetails) {
     const monthlyInstallment = student.emiDetails.monthlyInstallment || 0;
     const months = student.emiDetails.months || 0;
+    const regFees = student.emiDetails.registrationFees || 0;
+
     if (monthlyInstallment && months) {
       emiStructure = `₹${monthlyInstallment} x ${months} months`;
     }
+
+    // 1. Calculate how much Registration Fee has been paid
+    const regReceipts = receipts.filter(r => {
+        const rem = (r.remarks || "").toLowerCase();
+        return rem.includes("registration") || r.installmentNumber === 2;
+    });
+    const totalRegPaid = regReceipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
+
+    // 2. Calculate Pending Registration Fee
+    const pendingReg = Math.max(0, regFees - totalRegPaid);
+
+    // 3. Determine Next Installment Amount
+    let nextInstallment = monthlyInstallment;
+    if (nextInstallment > student.pendingFees) { // pendingFees is Tuition Only
+        nextInstallment = student.pendingFees;
+    }
+
+    // 4. Add to Outstanding
+    // Outstanding = Pending Admission + Pending Registration + Next Installment
+    outstandingAmount += pendingReg;
+    
+    // Only add installment if there is tuition pending
+    if (student.pendingFees > 0) {
+        outstandingAmount += nextInstallment;
+    }
+  } else {
+      // For One Time: Outstanding = Pending Admission + Pending Tuition
+      outstandingAmount += (student.pendingFees || 0);
   }
 
   res.json({

@@ -142,6 +142,10 @@ const StudentRegistrationProcess = () => {
             feeDetails: student.paymentPlan === 'One Time' ? null : { ...feeData, amount: Number(feeData.amount) || 0 }
         }
     };
+    
+    // Check loading state to prevent double submission
+    if (isLoading) return;
+    
     dispatch(confirmRegistration(payload));
   };
 
@@ -315,8 +319,12 @@ const StudentRegistrationProcess = () => {
               </div>
 
               <div className="mt-8 flex gap-4">
-                 <button onClick={handleFinalSubmit} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
-                     <Save size={18} /> Save & Register
+                 <button 
+                    onClick={handleFinalSubmit} 
+                    disabled={isLoading}
+                    className={`bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700 flex items-center gap-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                 >
+                     <Save size={18} /> {isLoading ? 'Processing...' : 'Save & Register'}
                  </button>
                  <button onClick={handleBackFromFees} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                      Back

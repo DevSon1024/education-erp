@@ -84,6 +84,9 @@ const PendingAdmissionFeePayment = () => {
       return;
     }
 
+    // FIXED: Prevent double click
+    if (feeLoading) return;
+
     const feeData = {
       studentId: student._id,
       courseId: student.course._id,
