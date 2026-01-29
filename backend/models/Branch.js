@@ -45,6 +45,19 @@ const branchSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    branchDirector: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee',
+        default: null
+    },
+    directorUsername: {
+        type: String,
+        default: null
+    },
+    directorPassword: {
+        type: String, // Plain text password for display (hashed version stored in User model)
+        default: null
     }
 }, {
     timestamps: true

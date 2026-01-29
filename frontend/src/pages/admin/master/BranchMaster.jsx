@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBranch, getBranches, updateBranch, deleteBranch, reset } from '../../../features/master/branchSlice';
+import { createBranch, getBranches, updateBranch, deleteBranch, getBranchEmployees, reset } from '../../../features/master/branchSlice';
 import { toast } from 'react-toastify';
-import { Edit, Trash2, Plus, Search, X } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, X, Eye, EyeOff } from 'lucide-react';
 
 const BranchMaster = () => {
     const dispatch = useDispatch();
-    const { branches, isLoading, isError, message } = useSelector((state) => state.branch);
+    const { branches, branchEmployees, isLoading, isError, message } = useSelector((state) => state.branch);
     const { user } = useSelector((state) => state.auth);
 
     const [formData, setFormData] = useState({
@@ -18,13 +18,17 @@ const BranchMaster = () => {
         address: '',
         city: '',
         state: '',
-        isActive: true
+        isActive: true,
+        branchDirector: '',
+        directorUsername: '',
+        directorPassword: ''
     });
 
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showDirectorPassword, setShowDirectorPassword] = useState(false);
 
     useEffect(() => {
         if (isError) {
@@ -36,7 +40,15 @@ const BranchMaster = () => {
         };
     }, [isError, message, dispatch]);
 
-    const { name, shortCode, phone, mobile, email, address, city, state: branchState, isActive } = formData;
+    // Fetch employees when modal is open (for both create and edit)
+    useEffect(() => {
+        if (isModalOpen) {
+            dispatch(getBranchEmployees());
+        }
+    }, [isModalOpen, dispatch]);
+
+    const { name, shortCode, phone, mobile, email, address, city, state: branchState, isActive, 
+            branchDirector, directorUsername, directorPassword } = formData;
 
     const onChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -75,7 +87,10 @@ const BranchMaster = () => {
             address: branch.address || '',
             city: branch.city || '',
             state: branch.state || '',
-            isActive: branch.isActive
+            isActive: branch.isActive,
+            branchDirector: branch.branchDirector || '',
+            directorUsername: branch.directorUsername || '',
+            directorPassword: branch.directorPassword || ''
         });
         setIsModalOpen(true);
     };
@@ -95,6 +110,7 @@ const BranchMaster = () => {
         setIsModalOpen(false);
         setIsEditMode(false);
         setEditId(null);
+        setShowDirectorPassword(false);
         setFormData({
             name: '',
             shortCode: '',
@@ -104,7 +120,10 @@ const BranchMaster = () => {
             address: '',
             city: '',
             state: '',
-            isActive: true
+            isActive: true,
+            branchDirector: '',
+            directorUsername: '',
+            directorPassword: ''
         });
     };
 
@@ -335,6 +354,68 @@ const BranchMaster = () => {
                                     className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                                 />
                                 <label htmlFor="isActive" className="text-sm text-gray-700">Branch is Active</label>
+                            </div>
+
+                            {/* Branch Director Section */}
+                            <div className="md:col-span-2 mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <h3 className="text-sm font-bold text-blue-800 mb-4 uppercase">Assign Branch Director</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">Select Employee</label>
+                                        <select
+                                            name="branchDirector"
+                                            value={branchDirector}
+                                            onChange={onChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        >
+                                            <option value="">-- No Director --</option>
+                                            {branchEmployees.map(emp => (
+                                                <option key={emp._id} value={emp._id}>
+                                                    {emp.name} ({emp.type})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">Director Username</label>
+                                        <input
+                                            type="text"
+                                            name="directorUsername"
+                                            value={directorUsername}
+                                            onChange={onChange}
+                                            disabled={!branchDirector}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:bg-gray-100"
+                                            placeholder="Enter username"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">Director Password</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showDirectorPassword ? "text" : "password"}
+                                                name="directorPassword"
+                                                value={directorPassword}
+                                                onChange={onChange}
+                                                disabled={!branchDirector}
+                                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:bg-gray-100"
+                                                placeholder="Enter password"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowDirectorPassword(!showDirectorPassword)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                                disabled={!branchDirector}
+                                            >
+                                                {showDirectorPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {branchDirector && (
+                                    <p className="text-xs text-blue-600 mt-2">
+                                        ℹ️ Assigning a director will update their login credentials to the ones specified above.
+                                    </p>
+                                )}
                             </div>
 
                             <div className="pt-4 flex gap-3 justify-end border-t border-gray-100 mt-4">

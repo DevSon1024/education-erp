@@ -6,7 +6,8 @@ const {
     getBranchById,
     updateBranch,
     deleteBranch,
-    getPublicBranches
+    getPublicBranches,
+    getAllEmployees
 } = require('../controllers/branchController');
 const { protect, admin } = require('../middlewares/authMiddleware'); // Assuming these exist
 
@@ -15,6 +16,9 @@ router.get('/public', getPublicBranches);
 
 // Apply protect middleware to all routes
 router.use(protect);
+
+// Get All Employees for Director Selection
+router.get('/employees/list', getAllEmployees);
 
 // Apply admin middleware to all routes (Only Super Admin can manage branches)
 // If we want read access for others, we might need to adjust this

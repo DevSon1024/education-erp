@@ -2,12 +2,15 @@ const asyncHandler = require('express-async-handler');
 const Branch = require('../models/Branch');
 const User = require('../models/User');
 const Student = require('../models/Student');
+const Employee = require('../models/Employee');
+const bcrypt = require('bcryptjs');
 
 // @desc    Create a new branch
 // @route   POST /api/branches
 // @access  Private/Super Admin
 const createBranch = asyncHandler(async (req, res) => {
-    const { name, shortCode, phone, mobile, email, address, city, state, isActive } = req.body;
+    const { name, shortCode, phone, mobile, email, address, city, state, isActive, 
+            branchDirector, directorUsername, directorPassword } = req.body;
 
     // Check if branch already exists
     const branchExists = await Branch.findOne({ $or: [{ name }, { shortCode }] });
@@ -15,6 +18,33 @@ const createBranch = asyncHandler(async (req, res) => {
     if (branchExists) {
         res.status(400);
         throw new Error('Branch with this name or short code already exists');
+    }
+
+    // Handle branch director credential update
+    if (branchDirector && directorUsername && directorPassword) {
+        // Verify employee exists
+        const employee = await Employee.findById(branchDirector);
+        if (!employee) {
+            res.status(400);
+            throw new Error('Selected employee not found');
+        }
+
+        // Hash the director password for User authentication
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(directorPassword, salt);
+
+        // Update employee's User account with new director credentials
+        if (employee.userAccount) {
+            await User.findByIdAndUpdate(employee.userAccount, {
+                username: directorUsername,
+                password: hashedPassword, // Store hashed password in User model
+                role: 'Branch Director'
+            });
+        }
+
+        // Update employee's role in Employee collection
+        employee.type = 'Branch Director';
+        await employee.save();
     }
 
     const branch = await Branch.create({
@@ -26,7 +56,10 @@ const createBranch = asyncHandler(async (req, res) => {
         address,
         city,
         state,
-        isActive: isActive === undefined ? true : isActive
+        isActive: isActive === undefined ? true : isActive,
+        branchDirector: branchDirector || null,
+        directorUsername: directorUsername || null,
+        directorPassword: directorPassword || null // Store plain text password in Branch for display
     });
 
     if (branch) {
@@ -87,6 +120,46 @@ const updateBranch = asyncHandler(async (req, res) => {
             branch.isActive = req.body.isActive;
         }
 
+        // Handle branch director updates
+        if (req.body.branchDirector !== undefined) {
+            const { branchDirector, directorUsername, directorPassword } = req.body;
+            
+            if (branchDirector && directorUsername && directorPassword) {
+                // Verify employee exists
+                const employee = await Employee.findById(branchDirector);
+                if (!employee) {
+                    res.status(400);
+                    throw new Error('Selected employee not found');
+                }
+
+                // Hash the director password for User authentication
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(directorPassword, salt);
+
+                // Update employee's User account with new director credentials
+                if (employee.userAccount) {
+                    await User.findByIdAndUpdate(employee.userAccount, {
+                        username: directorUsername,
+                        password: hashedPassword, // Store hashed password in User model
+                        role: 'Branch Director'
+                    });
+                }
+
+                // Update employee's role in Employee collection
+                employee.type = 'Branch Director';
+                await employee.save();
+
+                branch.branchDirector = branchDirector;
+                branch.directorUsername = directorUsername;
+                branch.directorPassword = directorPassword; // Store plain text password in Branch for display
+            } else {
+                // Clear director if no value provided
+                branch.branchDirector = null;
+                branch.directorUsername = null;
+                branch.directorPassword = null;
+            }
+        }
+
         const updatedBranch = await branch.save();
 
         // Sync branchName updates to related collections (User, Student)
@@ -124,11 +197,24 @@ const deleteBranch = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Get all active employees for director selection
+// @route   GET /api/branches/employees/list
+// @access  Private
+const getAllEmployees = asyncHandler(async (req, res) => {
+    const employees = await Employee.find({ 
+        isDeleted: false,
+        isActive: true
+    }).select('_id name email mobile type');
+    
+    res.json(employees);
+});
+
 module.exports = {
     createBranch,
     getBranches,
     getBranchById,
     updateBranch,
     deleteBranch,
-    getPublicBranches
+    getPublicBranches,
+    getAllEmployees
 };

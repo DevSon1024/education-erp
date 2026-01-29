@@ -42,7 +42,7 @@ const getEmployees = asyncHandler(async (req, res) => {
         }
     }
 
-    const employees = await Employee.find(query).sort({ createdAt: -1 });
+    const employees = await Employee.find(query).populate('branchId', 'name shortCode').sort({ createdAt: -1 });
     res.json(employees);
 });
 
@@ -56,6 +56,11 @@ const createEmployee = asyncHandler(async (req, res) => {
     const empExists = await Employee.findOne({ email });
     if (empExists) {
         res.status(400); throw new Error('Employee with this email already exists');
+    }
+
+    // Sanitize branchId - empty string causes CastError
+    if (req.body.branchId === '') {
+        delete req.body.branchId;
     }
 
     // Fetch Branch Name if ID is provided
@@ -128,7 +133,10 @@ const createEmployee = asyncHandler(async (req, res) => {
              sendSMS(mobile, message);
         }
 
-        res.status(201).json(employee);
+        // Populate branchId for the immediate response
+        const populatedEmployee = await Employee.findById(employee._id).populate('branchId', 'name shortCode');
+
+        res.status(201).json(populatedEmployee);
 
     } catch (error) {
         if(userId) await User.findByIdAndDelete(userId);
@@ -165,8 +173,25 @@ const updateEmployee = asyncHandler(async (req, res) => {
         }
     }
 
-    const updatedEmployee = await Employee.findByIdAndUpdate(id, req.body, { new: true });
-    res.json(updatedEmployee);
+    // Update employee using save() to ensure all hooks/types run correctly
+    // We already fetched 'employee' above
+    Object.keys(req.body).forEach(key => {
+        // Prevent updating immutable fields if any, or _id
+        if (key !== '_id' && key !== 'userAccount' && key !== 'createdAt' && key !== 'updatedAt') {
+            employee[key] = req.body[key];
+        }
+    });
+
+    // Explicitly set type if provided
+    if (type) employee.type = type;
+
+    const updatedEmployee = await employee.save();
+
+    // Re-fetch to populate
+    const populatedEmployee = await Employee.findById(updatedEmployee._id)
+        .populate('branchId', 'name shortCode');
+
+    res.json(populatedEmployee);
 });
 
 // @desc    Delete Employee

@@ -79,6 +79,29 @@ export const getPublicBranches = createAsyncThunk(
   }
 );
 
+// Get all active employees
+export const getBranchEmployees = createAsyncThunk(
+  'branches/getEmployees',
+  async (_, thunkAPI) => {
+    try {
+      const config = {
+        withCredentials: true,
+      };
+      // Adjusted route to fetch ALL candidates
+      const response = await axios.get(`${API_URL}/employees/list`, config);
+      return response.data;
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 // Update branch
 export const updateBranch = createAsyncThunk(
   'branches/update',
@@ -130,6 +153,7 @@ const branchSlice = createSlice({
   name: 'branch',
   initialState: {
     branches: [],
+    branchEmployees: [],
     isError: false,
     isSuccess: false,
     isLoading: false,
@@ -215,6 +239,18 @@ const branchSlice = createSlice({
         );
       })
       .addCase(deleteBranch.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(getBranchEmployees.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getBranchEmployees.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.branchEmployees = action.payload;
+      })
+      .addCase(getBranchEmployees.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

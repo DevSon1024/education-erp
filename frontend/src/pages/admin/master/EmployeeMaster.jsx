@@ -237,6 +237,7 @@ const EmployeeMaster = () => {
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Mobile</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Email</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Role</th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Branch</th>
                     <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Joining Date</th>
                     <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
                     {(edit || canDelete) && <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>}
@@ -252,6 +253,15 @@ const EmployeeMaster = () => {
                         <td className="px-4 py-3 text-gray-600">{emp.mobile}</td>
                         <td className="px-4 py-3 text-gray-600">{emp.email}</td>
                         <td className="px-4 py-3 text-gray-600">{emp.type}</td>
+                        <td className="px-4 py-3 text-gray-600">
+                             {emp.branchId ? (
+                                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">
+                                     {emp.branchId.name || emp.branchName}
+                                 </span>
+                             ) : (
+                                 <span className="text-gray-400 text-xs">Main Branch</span>
+                             )}
+                        </td>
                         <td className="px-4 py-3 text-center text-gray-600">
                             {emp.dateOfJoining ? new Date(emp.dateOfJoining).toLocaleDateString('en-GB') : '-'}
                         </td>
