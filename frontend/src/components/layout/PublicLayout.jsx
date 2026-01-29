@@ -75,7 +75,7 @@ const PublicNavbar = () => {
   };
 
   return (
-    <nav className="bg-white text-gray-800 shadow-sm sticky top-0 z-50 font-sans border-b border-gray-100">
+    <nav className="bg-blue-900 text-white shadow-sm sticky top-0 z-50 font-sans border-b border-blue-800">
       <div className="container mx-auto px-4">
         <div className="flex justify-between md:justify-center items-center h-20 relative">
            
@@ -85,7 +85,7 @@ const PublicNavbar = () => {
            </div>
 
            {/* Mobile Menu Button */}
-          <button className="md:hidden p-2 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors absolute right-0" onClick={() => setIsOpen(!isOpen)}>
+          <button className="md:hidden p-2 text-white hover:bg-blue-800 rounded-lg transition-colors absolute right-0" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
 
@@ -98,7 +98,7 @@ const PublicNavbar = () => {
               >
                   {item.isDropdown ? (
                       <div>
-                          <button className={`flex items-center gap-1 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary ${ (item.subItems && isDropdownActive(item.subItems)) || (item.isMegaMenu && location.pathname.includes('/course')) ? 'text-primary border-primary' : 'text-gray-700'}`}>
+                          <button className={`flex items-center gap-1 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:text-yellow-300 transition-colors border-b-2 border-transparent hover:border-yellow-300 ${ (item.subItems && isDropdownActive(item.subItems)) || (item.isMegaMenu && location.pathname.includes('/course')) ? 'text-yellow-300 border-yellow-300' : 'text-white'}`}>
                               {item.name} <ChevronDown size={14} className={`transform transition-transform duration-200 ${hoverDropdown === index ? 'rotate-180' : ''}`} />
                           </button>
                           
@@ -157,7 +157,7 @@ const PublicNavbar = () => {
                       </div>
                   ) : (
                       <Link to={item.path}
-                          className={`flex items-center gap-1 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary ${isActive(item.path) ? 'text-primary border-primary' : 'text-gray-700'}`}
+                          className={`flex items-center gap-1 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:text-yellow-300 transition-colors border-b-2 border-transparent hover:border-yellow-300 ${isActive(item.path) ? 'text-yellow-300 border-yellow-300' : 'text-white'}`}
                       >
                           {item.name}
                       </Link>
