@@ -89,12 +89,13 @@ const createStudent = asyncHandler(async (req, res) => {
         }
     }
     
-    console.log("Create Student Request Body:", { 
-        paymentPlan,
-        feeDetails,
-        branchId: req.body.branchId
-    });
-    
+    if (process.env.NODE_ENV === 'development') {
+        console.log("Create Student Request Body:", { 
+            paymentPlan,
+            feeDetails,
+            branchId: req.body.branchId
+        });
+    }    
     let pendingFees = totalFees;
     let isAdmissionFeesPaid = false;
     let admissionFeeAmount = 0;
@@ -278,14 +279,14 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         // Fetch next receipt number if not provided or valid
         let receiptNo = feeDetails.receiptNo;
         if (!receiptNo || receiptNo === 'Loading...' || receiptNo === 'Error') {
-             const lastReceipt = await FeeReceipt.findOne({ branch: student.branchId }).sort({ receiptNo: -1 });
-             receiptNo = lastReceipt ? lastReceipt.receiptNo + 1 : 1;
+             const lastReceipt = await FeeReceipt.findOne({ branch: student.branchId }).sort({ createdAt: -1 });
+             receiptNo = lastReceipt && !isNaN(lastReceipt.receiptNo) ? Number(lastReceipt.receiptNo) + 1 : 1;
         }
 
         await FeeReceipt.create({
             receiptNo,
-            studentId: student._id,
-            courseId: student.course,
+            student: student._id,
+            course: student.course,
             amountPaid: Number(feeDetails.amount),
             date: feeDetails.date || new Date(),
             paymentMode: feeDetails.paymentMode,
