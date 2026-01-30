@@ -32,7 +32,13 @@ const StudentRegistrationProcess = () => {
     date: new Date().toISOString().split('T')[0],
     amount: '',
     paymentMode: 'Cash',
-    remarks: ''
+    remarks: '',
+    // Dynamic Fields
+    bankName: '',
+    chequeNumber: '',
+    chequeDate: '',
+    transactionId: '',
+    transactionDate: ''
   });
 
   useEffect(() => {
@@ -78,9 +84,15 @@ const StudentRegistrationProcess = () => {
           };
           fetchPreviewRegNo();
 
-          // Auto-fill fee amount for monthly plans
-          if (student.paymentPlan !== 'One Time' && student.course && student.course.registrationFees) {
-              setFeeData(prev => ({ ...prev, amount: student.course.registrationFees }));
+          // Auto-fill fee amount
+          if (student.course) {
+              // Always prefer Registration Fees if defined (User requested "pre decided registration fees")
+              if (student.course.registrationFees && student.course.registrationFees > 0) {
+                  setFeeData(prev => ({ ...prev, amount: student.course.registrationFees }));
+              } else if (student.paymentPlan === 'One Time') {
+                   // Fallback for One Time if no reg fee defined: Total Fees
+                   setFeeData(prev => ({ ...prev, amount: student.course.fees || student.course.courseFees }));
+              }
           }
       }
   }, [student]); // Only depend on student, not regData
@@ -109,12 +121,8 @@ const StudentRegistrationProcess = () => {
           toast.error("Username and Password are required");
           return;
       }
-      // For Monthly plan, go to Step 2 (Fees). For One Time, submit directly.
-      if (student.paymentPlan === 'Monthly') {
-          setStep(2); // Go to Fees
-      } else {
-          handleFinalSubmit(); // Submit directly
-      }
+      // Go to Step 2 (Fees) for ALL plans now
+      setStep(2); 
   };
 
   const handleBackFromFees = () => {
@@ -128,18 +136,17 @@ const StudentRegistrationProcess = () => {
         return;
     }
 
-    // Validate Fees for Monthly plan
-    if (student.paymentPlan !== 'One Time' && (!feeData.amount || Number(feeData.amount) <= 0)) {
-        toast.error("Please enter a valid amount for registration fees");
+    // Validate Fees for both plans
+    if (!feeData.amount || Number(feeData.amount) <= 0) {
+        toast.error("Please enter a valid amount for fees");
         return;
     }
 
-    // For One Time payment, no fee details needed (already paid)
     const payload = {
         id: student._id,
         data: {
             ...regData,
-            feeDetails: student.paymentPlan === 'One Time' ? null : { ...feeData, amount: Number(feeData.amount) || 0 }
+            feeDetails: { ...feeData, amount: Number(feeData.amount) || 0 }
         }
     };
     
@@ -176,7 +183,7 @@ const StudentRegistrationProcess = () => {
                 <span className="text-gray-500 block mb-1">Student Photo</span>
                 {student.studentPhoto ? (
                     <img 
-                        src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/${student.studentPhoto}`} 
+                        src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/${student.studentPhoto.replace(/\\/g, '/')}`} 
                         alt="Student" 
                         className="h-24 w-24 object-cover rounded border"
                     />
@@ -244,15 +251,9 @@ const StudentRegistrationProcess = () => {
             </div>
             
             <div className="mt-6 flex gap-4">
-                {student.paymentPlan === 'Monthly' ? (
-                    <button onClick={handleContinueFromCredentials} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                        Continue
-                    </button>
-                ) : (
-                    <button onClick={handleContinueFromCredentials} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
-                        <Save size={18} /> Save & Register
-                    </button>
-                )}
+                <button onClick={handleContinueFromCredentials} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                    Continue
+                </button>
                 <button onClick={() => navigate(-1)} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                     Cancel
                 </button>
@@ -260,12 +261,12 @@ const StudentRegistrationProcess = () => {
             </div>
         )}
 
-        {/* SECTION 3: Fees Details - Show Only on Step 2 (Monthly Only) */}
-         {step === 2 && student.paymentPlan !== 'One Time' && (
+        {/* SECTION 3: Fees Details - Show Only on Step 2 */}
+         {step === 2 && (
            <div className="p-6 border-t animate-fade-in">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Step 2: Registration Fees Payment</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Step 2: Fee Payment</h3>
               <div className="bg-orange-50 border border-orange-200 p-3 mb-4 rounded text-sm text-orange-800">
-                <strong>Note:</strong> Registration fees payment is required for monthly students.
+                <strong>Note:</strong> {student.paymentPlan === 'Monthly' ? 'Registration fees payment is required.' : 'Please pay the remaining course fees.'}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div>
@@ -307,6 +308,75 @@ const StudentRegistrationProcess = () => {
                          <option value="Online/UPI">Online/UPI</option>
                      </select>
                  </div>
+
+                 {/* Dynamic Payment Fields */}
+                 {feeData.paymentMode === 'Cheque' && (
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Bank Name *</label>
+                            <input 
+                                type="text"
+                                value={feeData.bankName}
+                                onChange={(e) => setFeeData({...feeData, bankName: e.target.value})}
+                                className="w-full border rounded px-3 py-2"
+                                placeholder="Bank Name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Cheque Number *</label>
+                            <input 
+                                type="text"
+                                value={feeData.chequeNumber}
+                                onChange={(e) => setFeeData({...feeData, chequeNumber: e.target.value})}
+                                className="w-full border rounded px-3 py-2"
+                                placeholder="Cheque No"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Cheque Date *</label>
+                            <input 
+                                type="date"
+                                value={feeData.chequeDate}
+                                onChange={(e) => setFeeData({...feeData, chequeDate: e.target.value})}
+                                className="w-full border rounded px-3 py-2"
+                            />
+                        </div>
+                    </>
+                 )}
+
+                 {feeData.paymentMode === 'Online/UPI' && (
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Bank Name *</label>
+                            <input 
+                                type="text"
+                                value={feeData.bankName}
+                                onChange={(e) => setFeeData({...feeData, bankName: e.target.value})}
+                                className="w-full border rounded px-3 py-2"
+                                placeholder="Bank / Wallet Name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID *</label>
+                            <input 
+                                type="text"
+                                value={feeData.transactionId}
+                                onChange={(e) => setFeeData({...feeData, transactionId: e.target.value})}
+                                className="w-full border rounded px-3 py-2"
+                                placeholder="Txn ID / Ref No"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Date *</label>
+                            <input 
+                                type="date"
+                                value={feeData.transactionDate}
+                                onChange={(e) => setFeeData({...feeData, transactionDate: e.target.value})}
+                                className="w-full border rounded px-3 py-2"
+                            />
+                        </div>
+                    </>
+                 )}
                  <div>
                      <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
                      <textarea 

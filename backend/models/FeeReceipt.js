@@ -21,6 +21,12 @@ const feeReceiptSchema = new mongoose.Schema(
       required: true,
     },
     installmentNumber: { type: Number, default: 1 }, // For tracking EMI payments
+    // Dynamic Payment Fields
+    bankName: { type: String },
+    chequeNumber: { type: String },
+    chequeDate: { type: Date },
+    transactionDate: { type: Date },
+    
     transactionId: { type: String }, // For Online/UPI payments
     remarks: { type: String },
     date: { type: Date, default: Date.now },

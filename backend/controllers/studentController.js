@@ -77,7 +77,23 @@ const getStudentById = asyncHandler(async (req, res) => {
 
 // @desc    Create Student (Admission Phase)
 const createStudent = asyncHandler(async (req, res) => {
-    const { totalFees, feeDetails, paymentPlan } = req.body;
+    let { totalFees, feeDetails, paymentPlan } = req.body;
+
+    // FIXED: Parse feeDetails if it comes as a string (due to FormData)
+    if (typeof feeDetails === 'string') {
+        try {
+            feeDetails = JSON.parse(feeDetails);
+        } catch (error) {
+            console.error("Error parsing feeDetails JSON:", error);
+            feeDetails = null;
+        }
+    }
+    
+    console.log("Create Student Request Body:", { 
+        paymentPlan,
+        feeDetails,
+        branchId: req.body.branchId
+    });
     
     let pendingFees = totalFees;
     let isAdmissionFeesPaid = false;
@@ -192,6 +208,14 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         feeDetails 
     } = req.body;
 
+    // DEBUG LOG
+    console.log("Confirm Registration Body:", {
+        regNo,
+        hasFeeDetails: !!feeDetails,
+        feeAmount: feeDetails?.amount,
+        feeType: typeof feeDetails?.amount
+    });
+
     let finalRegNo = regNo;
     if (!finalRegNo) {
         // --- New Logic: <GlobalSequence>-<BranchCode> ---
@@ -249,26 +273,36 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     console.log("User Created for Student:", newUser._id);
 
 
-    if (student.paymentPlan !== 'One Time' && feeDetails && feeDetails.amount > 0) {
-        const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
-        let nextNum = 1;
-        if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
-            nextNum = Number(lastReceipt.receiptNo) + 1;
+    // FIXED: Allow receipt creation for ALL plans (including One Time) if amount > 0
+    if (feeDetails && Number(feeDetails.amount) > 0) {
+        // Fetch next receipt number if not provided or valid
+        let receiptNo = feeDetails.receiptNo;
+        if (!receiptNo || receiptNo === 'Loading...' || receiptNo === 'Error') {
+             const lastReceipt = await FeeReceipt.findOne({ branch: student.branchId }).sort({ receiptNo: -1 });
+             receiptNo = lastReceipt ? lastReceipt.receiptNo + 1 : 1;
         }
-        const receiptNo = String(nextNum);
-        
+
         await FeeReceipt.create({
-            receiptNo,  
-            student: student._id,
-            course: student.course,
-            amountPaid: feeDetails.amount,
+            receiptNo,
+            studentId: student._id,
+            courseId: student.course,
+            amountPaid: Number(feeDetails.amount),
+            date: feeDetails.date || new Date(),
             paymentMode: feeDetails.paymentMode,
             remarks: feeDetails.remarks || 'Registration Fee',
-            date: feeDetails.date || new Date(),
-            createdBy: req.user._id
+            createdBy: req.user?._id, 
+            branch: student.branchId,
+            // Dynamic Fields
+            bankName: feeDetails.bankName,
+            chequeNumber: feeDetails.chequeNumber,
+            chequeDate: feeDetails.chequeDate,
+            transactionId: feeDetails.transactionId,
+            transactionDate: feeDetails.transactionDate
         });
-
-        student.pendingFees = Math.max(0, student.pendingFees - feeDetails.amount);
+        
+        // Update pending fees
+        student.pendingFees = Math.max(0, student.pendingFees - Number(feeDetails.amount));
+        student.isRegistrationFeesPaid = true;
     }
 
     student.regNo = finalRegNo;

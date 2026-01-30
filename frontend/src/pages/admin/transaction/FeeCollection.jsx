@@ -157,7 +157,12 @@ const FeeCollection = () => {
         date: '',
         amountPaid: '',
         paymentMode: 'Cash',
-        remarks: ''
+        remarks: '',
+        bankName: '',
+        chequeNumber: '',
+        chequeDate: '',
+        transactionId: '',
+        transactionDate: ''
     });
 
     const handleEdit = (receipt) => {
@@ -167,7 +172,12 @@ const FeeCollection = () => {
             date: receipt.date?.split('T')[0],
             amountPaid: receipt.amountPaid,
             paymentMode: receipt.paymentMode,
-            remarks: receipt.remarks || ''
+            remarks: receipt.remarks || '',
+            bankName: receipt.bankName || '',
+            chequeNumber: receipt.chequeNumber || '',
+            chequeDate: receipt.chequeDate ? receipt.chequeDate.split('T')[0] : '',
+            transactionId: receipt.transactionId || '',
+            transactionDate: receipt.transactionDate ? receipt.transactionDate.split('T')[0] : ''
         });
         setShowEditModal(true);
     };
@@ -191,7 +201,12 @@ const FeeCollection = () => {
             amountPaid: editFormData.amountPaid,
             paymentMode: editFormData.paymentMode,
             remarks: editFormData.remarks,
-            date: editFormData.date
+            date: editFormData.date,
+            bankName: editFormData.bankName,
+            chequeNumber: editFormData.chequeNumber,
+            chequeDate: editFormData.chequeDate,
+            transactionId: editFormData.transactionId,
+            transactionDate: editFormData.transactionDate
         };
 
         dispatch(updateFeeReceipt({ id: editingReceipt._id, data: payload }));
@@ -306,6 +321,41 @@ const FeeCollection = () => {
                             <option value="Online/UPI">Online/UPI</option>
                         </select>
                     </div>
+
+                    {/* Dynamic Fields for Cash/Cheque/UPI in Main Form */}
+                    {watch('paymentMode') === 'Cheque' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Bank Name *</label>
+                                <input {...register('bankName', { required: true })} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base" placeholder="Bank Name"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Cheque Number *</label>
+                                <input {...register('chequeNumber', { required: true })} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base" placeholder="Cheque No"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Cheque Date *</label>
+                                <input type="date" {...register('chequeDate', { required: true })} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base"/>
+                            </div>
+                        </>
+                    )}
+
+                    {watch('paymentMode') === 'Online/UPI' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Bank Name *</label>
+                                <input {...register('bankName', { required: true })} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base" placeholder="Bank Name"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Transaction Number *</label>
+                                <input {...register('transactionId', { required: true })} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base" placeholder="Trans ID"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Transaction Date *</label>
+                                <input type="date" {...register('transactionDate', { required: true })} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-base"/>
+                            </div>
+                        </>
+                    )}
 
                     {/* Student Name */}
                     <div>
@@ -740,6 +790,75 @@ const FeeCollection = () => {
                                     <option value="Online/UPI">Online/UPI</option>
                                 </select>
                             </div>
+
+                            {/* Dynamic Fields for Edit Modal */}
+                            {editFormData.paymentMode === 'Cheque' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">Bank Name</label>
+                                        <input 
+                                            value={editFormData.bankName}
+                                            onChange={(e) => setEditFormData({...editFormData, bankName: e.target.value})}
+                                            className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-500 outline-none"
+                                            placeholder="Bank Name"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">Cheque No</label>
+                                            <input 
+                                                value={editFormData.chequeNumber}
+                                                onChange={(e) => setEditFormData({...editFormData, chequeNumber: e.target.value})}
+                                                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-500 outline-none"
+                                                placeholder="Cheque No"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">Cheque Date</label>
+                                            <input 
+                                                type="date"
+                                                value={editFormData.chequeDate}
+                                                onChange={(e) => setEditFormData({...editFormData, chequeDate: e.target.value})}
+                                                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-500 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {editFormData.paymentMode === 'Online/UPI' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">Bank Name</label>
+                                        <input 
+                                            value={editFormData.bankName}
+                                            onChange={(e) => setEditFormData({...editFormData, bankName: e.target.value})}
+                                            className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-500 outline-none"
+                                            placeholder="Bank Name"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">Trans. ID</label>
+                                            <input 
+                                                value={editFormData.transactionId}
+                                                onChange={(e) => setEditFormData({...editFormData, transactionId: e.target.value})}
+                                                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-500 outline-none"
+                                                placeholder="Transaction ID"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">Trans. Date</label>
+                                            <input 
+                                                type="date"
+                                                value={editFormData.transactionDate}
+                                                onChange={(e) => setEditFormData({...editFormData, transactionDate: e.target.value})}
+                                                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-orange-500 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             {/* Remarks */}
                             <div>

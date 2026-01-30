@@ -183,8 +183,10 @@ const getFeeReceipts = asyncHandler(async (req, res) => {
 
 // @desc Create Fee Receipt (FIXED: Improved Receipt No Logic)
 const createFeeReceipt = asyncHandler(async (req, res) => {
-  const { studentId, courseId, amountPaid, paymentMode, remarks, date } =
-    req.body;
+  const { 
+    studentId, courseId, amountPaid, paymentMode, remarks, date,
+    bankName, chequeNumber, chequeDate, transactionId, transactionDate 
+  } = req.body;
 
   // 1. Validation
   const student = await Student.findById(studentId);
@@ -231,6 +233,11 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     date: date || Date.now(),
     createdBy: req.user._id,
     installmentNumber, // Auto-calculated installment number
+    bankName,
+    chequeNumber,
+    chequeDate,
+    transactionId,
+    transactionDate
   });
 
   // 4. Update Student Pending Fees & Status
@@ -308,6 +315,13 @@ const updateFeeReceipt = asyncHandler(async (req, res) => {
     receipt.paymentMode = req.body.paymentMode || receipt.paymentMode;
     receipt.remarks = req.body.remarks || receipt.remarks;
     receipt.date = req.body.date || receipt.date;
+    
+    // Update dynamic fields
+    if (req.body.bankName !== undefined) receipt.bankName = req.body.bankName;
+    if (req.body.chequeNumber !== undefined) receipt.chequeNumber = req.body.chequeNumber;
+    if (req.body.chequeDate !== undefined) receipt.chequeDate = req.body.chequeDate;
+    if (req.body.transactionId !== undefined) receipt.transactionId = req.body.transactionId;
+    if (req.body.transactionDate !== undefined) receipt.transactionDate = req.body.transactionDate;
 
     await receipt.save();
     res.json(receipt);

@@ -34,6 +34,7 @@ import {
   CreditCard,
   CheckCircle,
   Trash2,
+  Edit2,
 } from "lucide-react";
 
 const LOCATION_DATA = {
@@ -259,7 +260,7 @@ const StudentAdmission = () => {
         isUpdateMode
           ? "/master/student"
           : payAdmissionFee
-          ? "/transaction/pending-student-registration"
+          ? "/transaction/pending-registration"
           : "/transaction/pending-admission-fees"
       );
     }
@@ -364,15 +365,15 @@ const StudentAdmission = () => {
     let finalFees = courseObj.courseFees;
     let emiConfig = null;
     const admissionFee = courseObj.admissionFees || 500;
+    const registrationFees = courseObj.registrationFees || 0; // Capture for all plans
 
     if (paymentType === "Monthly") {
-      const regFees = courseObj.registrationFees || 0;
       const installments = courseObj.totalInstallment || 1;
-      const remaining = finalFees - regFees;
+      const remaining = finalFees - registrationFees;
       const monthlyAmt = Math.ceil(remaining / installments);
 
       emiConfig = {
-        registrationFees: regFees,
+        registrationFees: registrationFees,
         monthlyInstallment: monthlyAmt,
         months: installments,
         admissionFees: admissionFee,
@@ -390,6 +391,7 @@ const StudentAdmission = () => {
       startDate,
       fees: finalFees,
       admissionFees: admissionFee,
+      registrationFees: registrationFees, // Added field
       paymentType,
       emiConfig,
     };
@@ -408,6 +410,8 @@ const StudentAdmission = () => {
 
     const primaryCourse = previewCourses[0];
 
+    const isPaying = payAdmissionFee || (data.amountPaid && Number(data.amountPaid) > 0);
+      
     const payload = {
       ...data,
       course: primaryCourse.courseId,
@@ -423,16 +427,29 @@ const StudentAdmission = () => {
       isMarksheetCertificate: data.isMarksheetCertificate || false,
       isAddressProof: data.isAddressProof || false,
       isActive: data.isActive !== undefined ? data.isActive : true,
-      feeDetails: payAdmissionFee
+      feeDetails: isPaying
         ? {
             amount: Number(data.amountPaid),
             paymentMode: data.receiptPaymentMode,
             // FIXED: If remarks is empty, send 'Admission Fee'
             remarks: data.remarks || 'Admission Fee',
             date: data.receiptDate,
+            // Dynamic Fields
+            bankName: data.bankName,
+            chequeNumber: data.chequeNumber,
+            chequeDate: data.chequeDate,
+            transactionId: data.transactionId,
+            transactionDate: data.transactionDate,
           }
         : null,
     };
+    
+    console.log("Submitting Student Data:", { 
+        payAdmissionFeeState: payAdmissionFee,
+        isPayingComputed: isPaying,
+        feeDetailsPayload: payload.feeDetails,
+        amountPaid: data.amountPaid
+    });
 
     // Check if we're in update mode
     if (isUpdateMode && updateId) {
@@ -442,21 +459,9 @@ const StudentAdmission = () => {
     }
   };
 
-  // Auto-set payment for One Time plan
+// Auto-set payment for One Time plan removed - now optional for all
   useEffect(() => {
-    if (previewCourses.length > 0) {
-      if (previewCourses[0].paymentType === "One Time") {
-        setPayAdmissionFee(true);
-      } else {
-        // If switching or new add (Monthly), reset if needed or keep user choice?
-        // For safety, if it was auto-set to true, we might want to respect that, 
-        // but if it's a new Monthly course, typically we let them choose (null).
-        // Let's rely on the user choosing again if they switch. 
-        // But to avoid stuck "true" state if they delete One Time and add Monthly:
-        // We can just leave it or set to null if it's currently true? 
-        // Let's just handle the One Time enforcement.
-      }
-    } else {
+    if (previewCourses.length === 0) {
         setPayAdmissionFee(null); // Reset when list cleared
     }
   }, [previewCourses]);
@@ -1166,40 +1171,62 @@ const StudentAdmission = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-100 border-b text-left">
                       <tr>
+                        <th className="p-3">Sr.No</th>
                         <th className="p-3">Course</th>
                         <th className="p-3">Batch</th>
-                        <th className="p-3">Fees</th>
-                        <th className="p-3">Registration Fee</th>
-                        <th className="p-3">Admission Fee</th>
-                        <th className="p-3">Payment Plan</th>
-                        <th className="p-3 text-right">Action</th>
+                        <th className="p-3">Batch Time</th>
+                        <th className="p-3">Course Fees</th>
+                        <th className="p-3">Duration</th>
+                        <th className="p-3">Registration Fees</th>
+                        <th className="p-3">Monthly Fees</th>
+                        <th className="p-3">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {previewCourses.map((item) => (
+                      {previewCourses.map((item, index) => (
                         <tr key={item.id} className="border-b bg-white">
+                          <td className="p-3">{index + 1}</td>
                           <td className="p-3 font-medium">{item.courseName}</td>
-                          <td className="p-3">
-                            {item.batch}
-                            <br />
-                            <span className="text-xs text-gray-500">
-                              {item.batchTime}
-                            </span>
-                          </td>
+                          <td className="p-3">{item.batch}</td>
+                          <td className="p-3">{item.batchTime}</td>
                           <td className="p-3">₹{item.fees}</td>
                           <td className="p-3">
-                              {item.emiConfig ? `₹${item.emiConfig.registrationFees}` : '-'}
+                             {/* Find duration from course object if possible, or just skip if not in item */}
+                             {courses.find(c => c._id === item.courseId)?.duration} {courses.find(c => c._id === item.courseId)?.durationType}
                           </td>
-                          <td className="p-3">₹{item.admissionFees}</td>
+                           <td className="p-3">
+                              {item.registrationFees !== undefined ? `₹${item.registrationFees}` : (item.emiConfig ? `₹${item.emiConfig.registrationFees}` : '-')}
+                          </td>
                           <td className="p-3">
-                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                              {item.paymentType}
-                            </span>
+                              {item.emiConfig ? `₹${item.emiConfig.monthlyInstallment}` : '-'}
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 flex gap-2">
+                             <button
+                                type="button"
+                                onClick={() => {
+                                    // Edit Functionality: Load data back to form and remove from list
+                                    setValue("selectedCourseId", item.courseId);
+                                    setValue("selectedBatch", item.batch);
+                                    setValue("batchStartDate", item.startDate);
+                                    setValue("paymentType", item.paymentType);
+                                    // Document verification status should also be restored hopefully it persisted in form state if not cleared
+                                    // Remove from specific index
+                                    const newList = previewCourses.filter((_, i) => i !== index);
+                                    setPreviewCourses(newList);
+                                }}
+                                className="text-blue-500 hover:text-blue-700"
+                                title="Edit"
+                            >
+                              <Edit2 size={16} />
+                            </button>
                             <button
-                              onClick={() => setPreviewCourses([])}
+                              type="button"
+                              onClick={() => {
+                                  const newList = previewCourses.filter((_, i) => i !== index);
+                                  setPreviewCourses(newList);
+                              }}
                               className="text-red-500 hover:text-red-700"
+                              title="Delete"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -1207,10 +1234,10 @@ const StudentAdmission = () => {
                         </tr>
                       ))}
                     </tbody>
-                    {previewCourses[0].paymentType === "Monthly" && previewCourses[0].emiConfig && (
+                    {previewCourses.length > 0 && previewCourses[0].paymentType === "Monthly" && previewCourses[0].emiConfig && (
                       <tfoot className="bg-yellow-50 text-xs text-yellow-800">
                         <tr>
-                          <td colSpan="6" className="p-3">
+                          <td colSpan="9" className="p-3">
                             <strong>Monthly Breakdown:</strong> Total: ₹
                             {previewCourses[0].fees} | Registration: ₹{previewCourses[0].emiConfig.registrationFees} | EMI: ₹{previewCourses[0].emiConfig.monthlyInstallment} x{" "}
                             {previewCourses[0].emiConfig.months} Months
@@ -1222,8 +1249,8 @@ const StudentAdmission = () => {
                 </div>
               )}
 
-              {/* Show Payment Option Only if NOT One Time */}
-              {previewCourses.length > 0 && previewCourses[0].paymentType !== 'One Time' && (
+              {/* Show Payment Option for ALL Plans */}
+              {previewCourses.length > 0 && (
                 <div className="bg-white p-6 rounded border shadow-sm mt-6">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 border-b pb-2">
                     Admission Fee Payment
@@ -1291,19 +1318,6 @@ const StudentAdmission = () => {
                   </div>
                 </div>
               )}
-              
-              {/* Force Info for One Time */}
-              {previewCourses.length > 0 && previewCourses[0].paymentType === 'One Time' && (
-                 <div className="bg-blue-50 border border-blue-200 p-4 rounded mt-6">
-                    <p className="text-blue-800 font-bold flex items-center gap-2">
-                        <CheckCircle size={20} />
-                        One Time Payment Selected
-                    </p>
-                    <p className="text-blue-700 text-sm ml-7">
-                        Full fees must be paid now. Proceed to generate receipt.
-                    </p>
-                 </div>
-              )}
 
               <div className="flex justify-between mt-8">
                 <button
@@ -1318,11 +1332,8 @@ const StudentAdmission = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const amountToSet =
-                        previewCourses[0].paymentType === "One Time"
-                          ? previewCourses[0].fees +
-                            previewCourses[0].admissionFees
-                          : previewCourses[0].admissionFees;
+                      // UPDATED: Now One Time also pays only Admission Fee initially (as per user request)
+                      const amountToSet = previewCourses[0].admissionFees;
                       setValue("amountPaid", amountToSet);
                       setStep(3);
                     }}
@@ -1372,12 +1383,14 @@ const StudentAdmission = () => {
                     {previewCourses[0]?.paymentType === "One Time" && (
                       <>
                         <br />
-                        <strong className="text-green-700">
-                          Total Payable Now:
+                        <strong className="text-orange-700">
+                          Pay Admission Now:
                         </strong>{" "}
-                        ₹
-                        {previewCourses[0]?.fees +
-                          previewCourses[0]?.admissionFees}
+                        ₹{previewCourses[0]?.admissionFees}
+                        <br />
+                        <span className="text-xs">
+                          Remaining Fees (₹{previewCourses[0]?.fees}) will be pending.
+                        </span>
                       </>
                     )}
                     {previewCourses[0]?.paymentType === "Monthly" && (
@@ -1432,6 +1445,41 @@ const StudentAdmission = () => {
                         <option value="Online/UPI">Online/UPI</option>
                       </select>
                   </div>
+                  
+                  {/* Dynamic Payment Fields */}
+                  {watch("receiptPaymentMode") === "Cheque" && (
+                     <>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="label">Bank Name *</label>
+                            <input {...register("bankName", { required: true })} className="input" placeholder="Bank Name" />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="label">Cheque Number *</label>
+                            <input {...register("chequeNumber", { required: true })} className="input" placeholder="Cheque No" />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="label">Cheque Date *</label>
+                            <input type="date" {...register("chequeDate", { required: true })} className="input" />
+                        </div>
+                     </>
+                  )}
+                  
+                  {watch("receiptPaymentMode") === "Online/UPI" && (
+                     <>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="label">Bank Name *</label>
+                            <input {...register("bankName", { required: true })} className="input" placeholder="Bank Name" />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="label">Transaction Number *</label>
+                            <input {...register("transactionId", { required: true })} className="input" placeholder="Trans ID / Ref No" />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="label">Transaction Date *</label>
+                            <input type="date" {...register("transactionDate", { required: true })} className="input" />
+                        </div>
+                     </>
+                  )}
                   <div className="col-span-2">
                     <label className="label">Remarks</label>
                     <input
