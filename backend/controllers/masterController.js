@@ -116,6 +116,7 @@ const getBatches = asyncHandler(async (req, res) => {
     const batches = await Batch.find(query)
         .populate('courses', 'name')
         .populate('faculty', 'name')
+        .populate('branchId', 'name')
         .sort({ createdAt: -1 })
         .lean();
 

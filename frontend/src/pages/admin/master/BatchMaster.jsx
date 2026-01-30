@@ -11,6 +11,7 @@ import { Search, Plus, X, Clock, Users, Edit2, Trash2, CheckSquare, Square } fro
 const BatchMaster = () => {
   const dispatch = useDispatch();
   const { batches, courses, employees, isSuccess } = useSelector((state) => state.master);
+  const { user } = useSelector((state) => state.auth);
   
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -170,8 +171,11 @@ const BatchMaster = () => {
             <thead className="bg-gray-50">
                 <tr>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Batch Name</th>
+                    {user?.role === 'Super Admin' && (
+                        <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Branch</th>
+                    )}
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Timing</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Faculty</th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Employee</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Start Date</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">End Date</th>
                     <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>
@@ -182,10 +186,12 @@ const BatchMaster = () => {
                     <tr key={batch._id} className="hover:bg-blue-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-gray-900">
                             {batch.name}
-                            <div className="text-xs text-gray-500 mt-1">
-                                {batch.courses?.map(c => c.name).join(', ') || 'No Courses'}
-                            </div>
                         </td>
+                        {user?.role === 'Super Admin' && (
+                            <td className="px-4 py-3 text-gray-600">
+                                {batch.branchId?.name || <span className="text-gray-400 italic">Global/Main</span>}
+                            </td>
+                        )}
                         <td className="px-4 py-3 text-gray-600">
                             <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded w-fit">
                                 <Clock size={12} className="text-gray-500"/> {batch.startTime} - {batch.endTime}
