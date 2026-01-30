@@ -4,6 +4,7 @@ const Student = require("../models/Student");
 const Batch = require("../models/Batch");
 const asyncHandler = require("express-async-handler");
 const generateEnrollmentNumber = require("../utils/enrollmentGenerator");
+const sendSMS = require("../utils/smsSender"); // Moved to top for global use
 
 // --- INQUIRY ---
 
@@ -37,20 +38,17 @@ const getInquiries = asyncHandler(async (req, res) => {
   }
 
   // --- BRANCH SCOPING ---
-  // If user is a Branch Director OR Branch Admin, restrict to their branch
   if (req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin') && req.user.branchId) {
       query.branchId = req.user.branchId;
   }
-  // If Super Admin specifically requests a branch (future proofing), allow it
   if (req.query.branchId) {
       query.branchId = req.query.branchId;
   }
-  // ----------------------
 
   const inquiries = await Inquiry.find(query)
     .populate("interestedCourse", "name")
     .populate("allocatedTo", "name")
-    .populate("branchId", "name shortCode") // Populate branch details
+    .populate("branchId", "name shortCode")
     .sort({ createdAt: -1 });
 
   res.json(inquiries);
@@ -181,7 +179,7 @@ const getFeeReceipts = asyncHandler(async (req, res) => {
   res.json(receipts);
 });
 
-// @desc Create Fee Receipt (FIXED: Improved Receipt No Logic)
+// @desc Create Fee Receipt
 const createFeeReceipt = asyncHandler(async (req, res) => {
   const { 
     studentId, courseId, amountPaid, paymentMode, remarks, date,
@@ -195,8 +193,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     throw new Error("Student not found");
   }
 
-  // 2. Generate Receipt No (FIXED: Safe sequential numbering)
-  // Find the last receipt created to determine the next number
+  // 2. Generate Receipt No
   const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
   let nextNum = 1;
   if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
@@ -204,22 +201,16 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
   }
   const receiptNo = String(nextNum);
 
-  // 2.5. Calculate Installment Number for Monthly Payment Students
+  // 2.5. Calculate Installment Number
   let installmentNumber = 1;
-  
-  // Count existing receipts for this student to determine installment sequence
   const existingReceipts = await FeeReceipt.find({ student: studentId }).sort({ createdAt: 1 });
   
   if (existingReceipts.length > 0) {
-    // Next installment is one more than the count of existing receipts
     installmentNumber = existingReceipts.length + 1;
   }
-  // For the first receipt:
-  // - If student hasn't paid admission fees yet, this is installment 1 (Admission)
-  // - If student is registered, this is their first monthly payment
+  
   if (installmentNumber === 1 && student.isRegistered) {
-    // If already registered, this should be their first monthly installment
-    installmentNumber = 3; // Since 1=Admission, 2=Registration, so monthly starts at 3
+    installmentNumber = 3; 
   }
 
   // 3. Create Receipt
@@ -232,7 +223,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     remarks,
     date: date || Date.now(),
     createdBy: req.user._id,
-    installmentNumber, // Auto-calculated installment number
+    installmentNumber,
     bankName,
     chequeNumber,
     chequeDate,
@@ -243,30 +234,56 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
   // 4. Update Student Pending Fees & Status
   let admissionCompletedNow = false;
 
-  // CRITICAL LOGIC: 
-  // If admission fees weren't paid, this payment is treated as Admission Fee
-  // Admission Fee is ADDITIVE to the course fee, so we do NOT reduce pendingFees (Tuition).
   if (!student.isAdmissionFeesPaid) {
     student.isAdmissionFeesPaid = true;
-    student.admissionFeeAmount = Number(amountPaid); // Track the actual amount paid for admission
+    student.admissionFeeAmount = Number(amountPaid);
     admissionCompletedNow = true;
     
-    // NEW: Generate Enrollment No if not present
     if (!student.enrollmentNo && student.branchId) {
         student.enrollmentNo = await generateEnrollmentNumber(student.branchId);
     }
   } else {
-    // Regular Tuition Fee Payment -> Reduce Pending Fees
     student.pendingFees = student.pendingFees - Number(amountPaid);
   }
 
   await student.save();
 
-  // 5. Send Admission SMS
+  // 5. Send Transaction SMS (Applies to ALL Receipts)
+  try {
+      const var1 = `${student.firstName} ${student.lastName}`; // Student Name
+      const var2 = amountPaid; // Amount
+      
+      // Determine var3 (Purpose)
+      let var3 = `Installment ${installmentNumber}`;
+      if (admissionCompletedNow || (remarks && remarks.toLowerCase().includes('admission'))) {
+          var3 = "Admission";
+      } else if (remarks && remarks.toLowerCase().includes('registration')) {
+          var3 = "Registration";
+      }
+
+      // Determine var4 (Reg No or Enrollment No)
+      const var4 = student.regNo || student.enrollmentNo || "N/A";
+
+      const smsMessage = `Dear, ${var1}. Your Course fees ${var2} has been deposited for ${var3}, Reg.No. ${var4}. Thank you,\nSmart Institute`;
+
+      const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))]; 
+      
+      // Send SMS asynchronously
+      contacts.forEach(num => {
+          sendSMS(num, smsMessage).catch(err => console.error(`Failed to send Transaction SMS to ${num}`, err));
+      });
+      
+  } catch (error) {
+      console.error("Error setting up Transaction SMS", error);
+  }
+
+  // 6. Send Specific Welcome SMS (Only for new Admission)
+  // This can be kept if you want a separate welcome message, or removed if the generic one is enough.
+  // I have kept it as it provides specific Batch Time info which the generic one does not.
   if (admissionCompletedNow) {
     try {
       const Course = require("../models/Course");
-      const sendSMS = require("../utils/smsSender");
+      // sendSMS already imported at top
 
       const courseDoc = await Course.findById(courseId);
       const batchDoc = await Batch.findOne({ name: student.batch });
@@ -277,7 +294,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
         : "N/A";
       const fullName = `${student.firstName} ${student.lastName}`;
 
-      const smsMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
+      const welcomeMessage = `Welcome to Smart Institute, Dear, ${fullName}. your admission has been successfully completed. Enrollment No. ${student.enrollmentNo}, course ${courseName}, Batch Time ${batchTime}`;
 
       const contacts = [
         ...new Set(
@@ -288,9 +305,9 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
           ].filter(Boolean)
         ),
       ];
-      await Promise.all(contacts.map((num) => sendSMS(num, smsMessage)));
+      await Promise.all(contacts.map((num) => sendSMS(num, welcomeMessage)));
     } catch (error) {
-      console.error("Failed to send Admission SMS via Receipt", error);
+      console.error("Failed to send Welcome SMS", error);
     }
   }
 
@@ -316,7 +333,6 @@ const updateFeeReceipt = asyncHandler(async (req, res) => {
     receipt.remarks = req.body.remarks || receipt.remarks;
     receipt.date = req.body.date || receipt.date;
     
-    // Update dynamic fields
     if (req.body.bankName !== undefined) receipt.bankName = req.body.bankName;
     if (req.body.chequeNumber !== undefined) receipt.chequeNumber = req.body.chequeNumber;
     if (req.body.chequeDate !== undefined) receipt.chequeDate = req.body.chequeDate;
@@ -396,7 +412,6 @@ const getStudentLedger = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get Student Payment Summary
-// @route   GET /api/transaction/student/:studentId/payment-summary
 const getStudentPaymentSummary = asyncHandler(async (req, res) => {
   const student = await Student.findById(req.params.studentId).populate("course");
   
@@ -405,34 +420,17 @@ const getStudentPaymentSummary = asyncHandler(async (req, res) => {
     throw new Error("Student not found");
   }
 
-  // Calculate total received amount
   const receipts = await FeeReceipt.find({ student: student._id });
   const totalReceived = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
-  // Calculate amounts
-  // Calculate amounts
-  // Total Expected = Tuition (student.totalFees) + Admission (student.course.admissionFees or paid amount if higher?)
-  // Actually, let's trust the course admission fee as the 'Required' amount. 
-  // If student paid MORE, it's fine. If less, they owe.
   const courseAdmissionFee = student.course && student.course.admissionFees ? student.course.admissionFees : 0;
   const paidAdmissionFee = student.admissionFeeAmount || 0;
-  
-  // Pending Admission = Expected - Paid. (Ensure not negative if they overpaid)
   const pendingAdmission = Math.max(0, courseAdmissionFee - paidAdmissionFee);
-
-  // Total Fees for Calculation = Tuition (pending + paid_tuition) + Admission (pending + paid)
-  // But easier: Total Expected = Student.totalFees (Tuition) + MAX(courseAdmissionFee, paidAdmissionFee)
-  // Using MAX ensures if they paid 600 (vs 500), the total reflects 600.
   const effectiveAdmissionFee = Math.max(courseAdmissionFee, paidAdmissionFee);
   const totalFees = (student.totalFees || 0) + effectiveAdmissionFee;
-  
-  // Due Amount = Total Fees - Total Received
   const dueAmount = totalFees - totalReceived;
 
-  // --- NEW OUTSTANDING AMOUNT LOGIC ---
-  // Start with Pending Admission Fees
   let outstandingAmount = pendingAdmission;
-  
   let emiStructure = null;
   let feesMethod = student.paymentPlan || "One Time";
 
@@ -445,32 +443,23 @@ const getStudentPaymentSummary = asyncHandler(async (req, res) => {
       emiStructure = `₹${monthlyInstallment} x ${months} months`;
     }
 
-    // 1. Calculate how much Registration Fee has been paid
     const regReceipts = receipts.filter(r => {
         const rem = (r.remarks || "").toLowerCase();
         return rem.includes("registration") || r.installmentNumber === 2;
     });
     const totalRegPaid = regReceipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
-
-    // 2. Calculate Pending Registration Fee
     const pendingReg = Math.max(0, regFees - totalRegPaid);
 
-    // 3. Determine Next Installment Amount
     let nextInstallment = monthlyInstallment;
-    if (nextInstallment > student.pendingFees) { // pendingFees is Tuition Only
+    if (nextInstallment > student.pendingFees) { 
         nextInstallment = student.pendingFees;
     }
 
-    // 4. Add to Outstanding
-    // Outstanding = Pending Admission + Pending Registration + Next Installment
     outstandingAmount += pendingReg;
-    
-    // Only add installment if there is tuition pending
     if (student.pendingFees > 0) {
         outstandingAmount += nextInstallment;
     }
   } else {
-      // For One Time: Outstanding = Pending Admission + Pending Tuition
       outstandingAmount += (student.pendingFees || 0);
   }
 
@@ -485,7 +474,6 @@ const getStudentPaymentSummary = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get Student Payment History
-// @route   GET /api/transaction/student/:studentId/payment-history
 const getStudentPaymentHistory = asyncHandler(async (req, res) => {
   const receipts = await FeeReceipt.find({ student: req.params.studentId })
     .populate({
@@ -497,19 +485,17 @@ const getStudentPaymentHistory = asyncHandler(async (req, res) => {
       }
     })
     .populate("course", "name")
-    .sort({ date: 1 }); // Changed to ascending order (1) - oldest first, latest last
+    .sort({ date: 1 });
 
   res.json(receipts);
 });
 
 // @desc    Generate Receipt Report with Filters
-// @route   GET /api/transaction/fees/report
 const generateReceiptReport = asyncHandler(async (req, res) => {
   const { startDate, endDate, receiptNo, paymentMode, studentId } = req.query;
 
   let query = {};
 
-  // Apply filters
   if (startDate && endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -526,7 +512,6 @@ const generateReceiptReport = asyncHandler(async (req, res) => {
     .populate("course", "name")
     .sort({ date: -1 });
 
-  // Calculate total amount
   const totalAmount = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
   res.json({
@@ -537,7 +522,6 @@ const generateReceiptReport = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get Next Receipt Number
-
 const getNextReceiptNo = asyncHandler(async (req, res) => {
     const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
     let nextNum = 1;
