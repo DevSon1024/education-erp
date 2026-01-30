@@ -15,6 +15,8 @@ const AdmissionFormPrint = () => {
     
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [localPaymentPlan, setLocalPaymentPlan] = useState(null); // Local state for print toggle
+
     const { user } = useSelector((state) => state.auth); 
     const { batches } = useSelector((state) => state.master); // Get batches from Redux
     const { branches } = useSelector((state) => state.branch); // Get branches from Redux
@@ -32,6 +34,7 @@ const AdmissionFormPrint = () => {
             try {
                 const { data } = await axios.get(API_URL + id, { withCredentials: true });
                 setStudent(data);
+                setLocalPaymentPlan(data.paymentPlan || 'Monthly'); // Default to Monthly if not set
                 setLoading(false);
             } catch (error) {
                 console.error("Failed to fetch student", error);
@@ -56,9 +59,12 @@ const AdmissionFormPrint = () => {
         </Tag>
     );
 
-    // Helper for checkbox
-    const CheckBox = ({ label, checked = false }) => (
-        <div className="flex items-center gap-1 mr-4">
+    // Helper for checkbox (Made interactive)
+    const CheckBox = ({ label, checked = false, onClick }) => (
+        <div 
+            className="flex items-center gap-1 mr-4 cursor-pointer print:cursor-default"
+            onClick={onClick}
+        >
             <div className={`w-4 h-4 border border-gray-800 flex items-center justify-center ${checked ? 'bg-black text-white' : ''}`}>
                 {checked && <span className="text-xs">✓</span>}
             </div>
@@ -192,7 +198,8 @@ const AdmissionFormPrint = () => {
                         <div className="flex items-center gap-4">
                              <CheckBox label="Service" checked={student.occupationType === 'Service'} />
                              <CheckBox label="Business" checked={student.occupationType === 'Business'} />
-                             <CheckBox label="Other" checked={!['Service', 'Business'].includes(student.occupationType) && !!student.occupationType} />
+                             <CheckBox label="Student" checked={student.occupationType === 'Student'} />
+                             <CheckBox label="Other" checked={!['Service', 'Business', 'Student'].includes(student.occupationType) && !!student.occupationType} />
                         </div>
                         <Editable value={student.occupation || ""} className="flex-grow border-b border-gray-300"/>
                     </div>
@@ -235,13 +242,12 @@ const AdmissionFormPrint = () => {
                 <hr className="border-black my-4"/>
 
                 {/* Course & Fees Section */}
-                {mode !== 'NO_FEES' ? (
-                    <div className="text-sm">
-                        <div className="flex items-center gap-6 mb-2">
+                <div className="text-sm">
+                    <div className="flex items-center gap-6 mb-2">
                              <span className="font-bold">Select Fees method:</span>
-                             {/* Corrected Mapping: paymentPlan instead of paymentType */}
-                             <CheckBox label="(A) One Time" checked={student.paymentPlan === 'One Time'} />
-                             <CheckBox label="(B) Monthly" checked={student.paymentPlan === 'Monthly'} />
+                             {/* Interactive Checkboxes for Print Adjustment */}
+                             <CheckBox label="(A) One Time" checked={localPaymentPlan === 'One Time'} onClick={() => setLocalPaymentPlan('One Time')} />
+                             <CheckBox label="(B) Monthly" checked={localPaymentPlan === 'Monthly'} onClick={() => setLocalPaymentPlan('Monthly')} />
                         </div>
 
                         <table className="w-full border border-black border-collapse text-xs">
@@ -267,7 +273,7 @@ const AdmissionFormPrint = () => {
                                             {/* Logic: If Monthly, show EMI amount (Student EMI > Course Default > Blank) */}
                                            <Editable 
                                                 value={
-                                                    student.paymentPlan === 'Monthly' 
+                                                    localPaymentPlan === 'Monthly' 
                                                         ? (student.emiDetails?.monthlyInstallment || student.course?.monthlyFees || "")
                                                         : ""
                                                 } 
@@ -277,7 +283,7 @@ const AdmissionFormPrint = () => {
                                            <span className="font-bold ml-1">Time</span>
                                            <Editable 
                                                 value={
-                                                    student.paymentPlan === 'Monthly'
+                                                    localPaymentPlan === 'Monthly'
                                                         ? (student.emiDetails?.months || student.course?.totalInstallment || "")
                                                         : ""
                                                 }
@@ -294,14 +300,14 @@ const AdmissionFormPrint = () => {
                                                 </tr>
                                                 <tr className="h-full">
                                                     <td className="border-r border-black text-center p-2 align-top">
-                                                        <Editable value={student.isRegistered && student.isAdmissionFeesPaid && student.admissionDate ? moment(student.admissionDate).format('DD/MM/YY') : ""} />
+                                                        <Editable value={mode !== 'NO_FEES' && student.isRegistered && student.registrationDate ? moment(student.registrationDate).format('DD/MM/YY') : ""} />
                                                     </td>
                                                     <td className="text-center p-2 align-top">
                                                         {/* Show ONLY if Monthly payment plan is selected. Shows PAID amount. */}
                                                         <Editable 
                                                             value={
-                                                                student.paymentPlan === 'Monthly' 
-                                                                    ? (student.isAdmissionFeesPaid ? student.admissionFeeAmount : "") 
+                                                                localPaymentPlan === 'Monthly' && mode !== 'NO_FEES'
+                                                                    ? (student.isRegistered ? (student.emiDetails?.registrationFees || student.course?.registrationFees) : "") 
                                                                     : "" 
                                                             } 
                                                         />
@@ -331,11 +337,6 @@ const AdmissionFormPrint = () => {
                         </div>
 
                     </div>
-                ) : (
-                    <div className="h-40 border border-dashed border-gray-400 flex items-center justify-center text-gray-400 bg-gray-50 print:hidden">
-                        Fee Section Hidden (Pending Admission Mode)
-                    </div>
-                )}
 
 
                 <div className="mt-6 space-y-4 text-sm">
