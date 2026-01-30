@@ -10,6 +10,16 @@ import "./index.css";
 // Set global axios defaults
 axios.defaults.withCredentials = true;
 
+
+// Unregister any existing service workers to clean up PWA cache
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>

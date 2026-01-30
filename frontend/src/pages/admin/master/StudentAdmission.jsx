@@ -629,7 +629,7 @@ const StudentAdmission = () => {
                        </label>
                        <select 
                           {...register("branchId", { required: "Branch is required for Super Admin" })}
-                          className="input border-blue-300 w-full"
+                          className={`input border-blue-300 w-full ${errors.branchId ? "border-red-500" : ""}`}
                        >
                            <option value="">-- Select Branch --</option>
                            {branches.map(b => (
@@ -643,19 +643,25 @@ const StudentAdmission = () => {
                 <label className="label">1. Admission Date</label>
                 <input
                   type="date"
-                  {...register("admissionDate")}
-                  className="input"
+                  {...register("admissionDate", { required: "Admission Date is required" })}
+                  className={`input ${errors.admissionDate ? "border-red-500" : ""}`}
                 />
+                {errors.admissionDate && <p className="text-red-500 text-xs mt-1">{errors.admissionDate.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4">
                 <label className="label">1. Aadhar Card No *</label>
                 <input
-                  {...register("aadharCard", { required: true, minLength: 12 })}
+                  {...register("aadharCard", { 
+                    required: "Aadhar Card is required", 
+                    minLength: { value: 12, message: "Must be 12 digits" },
+                    pattern: { value: /^[0-9]*$/, message: "Only numbers allowed" }
+                  })}
                   placeholder="12 Digit Number"
-                  className="input"
+                  className={`input ${errors.aadharCard ? "border-red-500" : ""}`}
                   maxLength={12}
                   onInput={(e) => { if (e.target.value.length > 12) e.target.value = e.target.value.slice(0, 12); }}
                 />
+                {errors.aadharCard && <p className="text-red-500 text-xs mt-1">{errors.aadharCard.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4 flex justify-center">
                 <label className="relative cursor-pointer group">
@@ -684,13 +690,14 @@ const StudentAdmission = () => {
               <div className="col-span-12 md:col-span-3">
                 <label className="label">2. First Name *</label>
                 <input
-                  {...register("firstName", { required: true })}
-                  className="input"
+                  {...register("firstName", { required: "First Name is required" })}
+                  className={`input ${errors.firstName ? "border-red-500" : ""}`}
                   placeholder="Student Name"
                   onChange={(e) => {
                       setValue('firstName', formatInputText(e.target.value));
                   }}
                 />
+                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
               </div>
               <div className="col-span-6 md:col-span-2">
                 <label className="label">2. Relation</label>
@@ -716,13 +723,14 @@ const StudentAdmission = () => {
               <div className="col-span-12 md:col-span-4">
                 <label className="label">2. Last Name *</label>
                 <input
-                  {...register("lastName", { required: true })}
-                  className="input"
+                  {...register("lastName", { required: "Last Name is required" })}
+                  className={`input ${errors.lastName ? "border-red-500" : ""}`}
                   placeholder="Surname"
                   onChange={(e) => {
                       setValue('lastName', formatInputText(e.target.value));
                   }}
                 />
+                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}
               </div>
 
               <div className="col-span-6 md:col-span-3">
@@ -764,9 +772,10 @@ const StudentAdmission = () => {
                 <label className="label">4. Date of Birth *</label>
                 <input
                   type="date"
-                  {...register("dob", { required: true })}
-                  className="input"
+                  {...register("dob", { required: "Date of Birth is required" })}
+                  className={`input ${errors.dob ? "border-red-500" : ""}`}
                 />
+                {errors.dob && <p className="text-red-500 text-xs mt-1">{errors.dob.message}</p>}
               </div>
               <div className="col-span-6 md:col-span-4">
                 <label className="label">4. Gender *</label>
@@ -775,7 +784,7 @@ const StudentAdmission = () => {
                     <input
                       type="radio"
                       value="Male"
-                      {...register("gender", { required: true })}
+                      {...register("gender", { required: "Gender is required" })}
                       className="text-blue-600"
                     />{" "}
                     Male
@@ -784,12 +793,13 @@ const StudentAdmission = () => {
                     <input
                       type="radio"
                       value="Female"
-                      {...register("gender", { required: true })}
+                      {...register("gender", { required: "Gender is required" })}
                       className="text-pink-600"
                     />{" "}
                     Female
                   </label>
                 </div>
+                {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender.message}</p>}
               </div>
 
               <div className="col-span-12 md:col-span-4">
@@ -817,14 +827,14 @@ const StudentAdmission = () => {
                 </label>
                 <input
                   {...register("mobileParent", {
-                    required: true,
-                    maxLength: 10,
-                    minLength: 10,
+                    required: "Parent Contact is required",
+                    pattern: { value: /^[0-9]{10}$/, message: "Must be 10 digits" }
                   })}
-                  className="input border-blue-300 bg-blue-50"
+                  className={`input border-blue-300 bg-blue-50 ${errors.mobileParent ? "border-red-500" : ""}`}
                   maxLength={10}
                   onInput={(e) => { if (e.target.value.length > 10) e.target.value = e.target.value.slice(0, 10); }}
                 />
+                {errors.mobileParent && <p className="text-red-500 text-xs mt-1">{errors.mobileParent.message}</p>}
               </div>
 
               <div className="col-span-12">
@@ -857,18 +867,19 @@ const StudentAdmission = () => {
                   7. Address (House No, Building, Street) *
                 </label>
                 <textarea
-                  {...register("address", { required: true })}
+                  {...register("address", { required: "Address is required" })}
                   rows="2"
-                  className="input"
+                  className={`input ${errors.address ? "border-red-500" : ""}`}
                   onChange={(e) => setValue('address', formatInputText(e.target.value))}
                 ></textarea>
+                {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
               </div>
 
               <div className="col-span-12 md:col-span-4">
                 <label className="label">8. State *</label>
                 <select
-                  {...register("state", { required: true })}
-                  className="input"
+                  {...register("state", { required: "State is required" })}
+                  className={`input ${errors.state ? "border-red-500" : ""}`}
                 >
                   {Object.keys(LOCATION_DATA).map((s) => (
                     <option key={s} value={s}>
@@ -876,12 +887,13 @@ const StudentAdmission = () => {
                     </option>
                   ))}
                 </select>
+                {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4">
                 <label className="label">8. City *</label>
                 <select
-                  {...register("city", { required: true })}
-                  className="input"
+                  {...register("city", { required: "City is required" })}
+                  className={`input ${errors.city ? "border-red-500" : ""}`}
                 >
                   {LOCATION_DATA[watchState]?.map((c) => (
                     <option key={c} value={c}>
@@ -889,6 +901,7 @@ const StudentAdmission = () => {
                     </option>
                   ))}
                 </select>
+                {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4">
                 <label className="label">8. Pincode</label>
