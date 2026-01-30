@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Save, X, Camera, User, Phone, BookOpen, Calendar, Copy, Clipboard, RotateCcw, Plus, Check } from 'lucide-react';
 import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation } from '../../features/master/masterSlice';
 import { toast } from 'react-toastify';
+import { formatInputText } from '../../utils/textFormatter'; // Imported util
 
 const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     const dispatch = useDispatch();
@@ -206,7 +207,12 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                 {/* Row 1: First Name | Relation+Name | Last Name (All in one row) */}
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700">First Name *</label>
-                                    <input {...register('firstName', {required: true})} className="w-full border p-2 rounded text-sm" placeholder="First Name"/>
+                                    <input 
+                                        {...register('firstName', {required: true})} 
+                                        className="w-full border p-2 rounded text-sm" 
+                                        placeholder="First Name"
+                                        onChange={(e) => setValue('firstName', formatInputText(e.target.value))}
+                                    />
                                 </div>
                                 
                                 {/* Father/Husband Combined */}
@@ -219,14 +225,24 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                             </select>
                                         </div>
                                         <div className="w-2/3">
-                                            <input {...register('middleName')} className="w-full border p-2 rounded text-sm" placeholder="Name"/>
+                                            <input 
+                                                {...register('middleName')} 
+                                                className="w-full border p-2 rounded text-sm" 
+                                                placeholder="Name"
+                                                onChange={(e) => setValue('middleName', formatInputText(e.target.value))}
+                                            />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700">Last Name</label>
-                                    <input {...register('lastName')} className="w-full border p-2 rounded text-sm" placeholder="Surname"/>
+                                    <input 
+                                        {...register('lastName')} 
+                                        className="w-full border p-2 rounded text-sm" 
+                                        placeholder="Surname"
+                                        onChange={(e) => setValue('lastName', formatInputText(e.target.value))}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700">Email Address</label>
@@ -267,12 +283,22 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                             
                              <div className="md:col-span-1">
                                 <label className="block text-xs font-bold text-gray-700">City</label>
-                                <input {...register('city')} className="w-full border p-2 rounded text-sm"/>
+                                <input 
+                                    {...register('city')} 
+                                    className="w-full border p-2 rounded text-sm"
+                                    onChange={(e) => setValue('city', formatInputText(e.target.value))}
+                                />
                             </div>
 
                             <div className="md:col-span-3">
                                 <label className="block text-xs font-bold text-gray-700">Address</label>
-                                <textarea {...register('address')} rows="1" className="w-full border p-2 rounded text-sm" placeholder="Full Address"></textarea>
+                                <textarea 
+                                    {...register('address')} 
+                                    rows="1" 
+                                    className="w-full border p-2 rounded text-sm" 
+                                    placeholder="Full Address"
+                                    onChange={(e) => setValue('address', formatInputText(e.target.value))}
+                                ></textarea>
                             </div>
                             
                             <div>
@@ -358,7 +384,13 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-700">Details</label>
-                                <textarea {...register('followUpDetails')} rows="1" className="w-full border p-2 rounded text-sm" placeholder="Initial discussion notes..."/>
+                                <textarea 
+                                    {...register('followUpDetails')} 
+                                    rows="1" 
+                                    className="w-full border p-2 rounded text-sm" 
+                                    placeholder="Initial discussion notes..."
+                                    onChange={(e) => setValue('followUpDetails', formatInputText(e.target.value))}
+                                />
                             </div>
                         </div>
                         
@@ -388,7 +420,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                 <input 
                                     className="w-full border p-2 rounded text-sm" placeholder="Full Name"
                                     value={newRef.name}
-                                    onChange={e => setNewRef({...newRef, name: e.target.value})}
+                                    onChange={e => setNewRef({...newRef, name: formatInputText(e.target.value)})}
                                 />
                                 <input 
                                     className="w-full border p-2 rounded text-sm" placeholder="Mobile Number"
@@ -398,7 +430,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                 <input 
                                     className="w-full border p-2 rounded text-sm" placeholder="Address"
                                     value={newRef.address}
-                                    onChange={e => setNewRef({...newRef, address: e.target.value})}
+                                    onChange={e => setNewRef({...newRef, address: formatInputText(e.target.value)})}
                                 />
                                 <div className="flex justify-end gap-2 mt-2">
                                     <button type="button" onClick={() => setShowRefModal(false)} className="px-3 py-1 text-xs border rounded">Cancel</button>
@@ -432,7 +464,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                 <input 
                                     className="w-full border p-2 rounded text-sm" placeholder="Education Name (e.g. BCA)"
                                     value={newEdu}
-                                    onChange={e => setNewEdu(e.target.value)}
+                                    onChange={e => setNewEdu(formatInputText(e.target.value))}
                                 />
                                 <div className="flex justify-end gap-2 mt-2">
                                     <button type="button" onClick={() => setShowEduModal(false)} className="px-3 py-1 text-xs border rounded">Cancel</button>

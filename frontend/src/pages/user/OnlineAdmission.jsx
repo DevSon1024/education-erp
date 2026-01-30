@@ -8,6 +8,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { User, Phone, MapPin, BookOpen, Building, Image as ImageIcon, CheckCircle, Plus, X, Upload } from 'lucide-react';
 import axios from 'axios';
+import { formatInputText } from '../../utils/textFormatter'; // Import util
 
 const OnlineAdmission = () => {
   const dispatch = useDispatch();
@@ -150,7 +151,12 @@ const OnlineAdmission = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                    <label className="block text-sm font-semibold text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
-                   <input {...register("firstName", { required: "Required" })} className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Student First Name" />
+                   <input 
+                      {...register("firstName", { required: "Required" })} 
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
+                      placeholder="Student First Name" 
+                      onChange={(e) => setValue('firstName', formatInputText(e.target.value))}
+                   />
                    {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName.message}</span>}
                 </div>
                 <div>
@@ -161,11 +167,21 @@ const OnlineAdmission = () => {
                         </select>
                         <span className="text-red-500">*</span>
                     </div>
-                   <input {...register("middleName")} className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Father/Husband Name" />
+                   <input 
+                      {...register("middleName")} 
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
+                      placeholder="Father/Husband Name" 
+                      onChange={(e) => setValue('middleName', formatInputText(e.target.value))}
+                   />
                 </div>
                 <div>
                    <label className="block text-sm font-semibold text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></label>
-                   <input {...register("lastName", { required: "Required" })} className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Surname" />
+                   <input 
+                      {...register("lastName", { required: "Required" })} 
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
+                      placeholder="Surname" 
+                      onChange={(e) => setValue('lastName', formatInputText(e.target.value))}
+                   />
                     {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName.message}</span>}
                 </div>
             </div>
@@ -226,16 +242,30 @@ const OnlineAdmission = () => {
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                 <div className="md:col-span-3">
                    <label className="block text-sm font-semibold text-gray-700 mb-1">Address <span className="text-red-500">*</span></label>
-                   <textarea {...register("address", { required: "Required" })} className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" rows="2" placeholder="Full Postal Address"></textarea>
+                   <textarea 
+                      {...register("address", { required: "Required" })} 
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
+                      rows="2" 
+                      placeholder="Full Postal Address"
+                      onChange={(e) => setValue('address', formatInputText(e.target.value))}
+                   ></textarea>
                    {errors.address && <span className="text-red-500 text-xs">{errors.address.message}</span>}
                 </div>
                 <div>
                    <label className="block text-sm font-semibold text-gray-700 mb-1">City <span className="text-red-500">*</span></label>
-                   <input {...register("city", { required: "Required" })} className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" />
+                   <input 
+                      {...register("city", { required: "Required" })} 
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
+                      onChange={(e) => setValue('city', formatInputText(e.target.value))}
+                   />
                 </div>
                 <div>
                    <label className="block text-sm font-semibold text-gray-700 mb-1">State <span className="text-red-500">*</span></label>
-                   <input {...register("state", { required: "Required" })} className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" />
+                   <input 
+                      {...register("state", { required: "Required" })} 
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
+                      onChange={(e) => setValue('state', formatInputText(e.target.value))}
+                   />
                 </div>
             </div>
           </div>
@@ -274,7 +304,7 @@ const OnlineAdmission = () => {
                        ) : (
                            <input 
                                 value={newEduName} 
-                                onChange={(e) => setNewEduName(e.target.value)} 
+                                onChange={(e) => setNewEduName(formatInputText(e.target.value))} 
                                 className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none" 
                                 placeholder="Enter Education Name"
                            />
@@ -302,7 +332,7 @@ const OnlineAdmission = () => {
                        ) : (
                            <input 
                                 value={newRefName} 
-                                onChange={(e) => setNewRefName(e.target.value)} 
+                                onChange={(e) => setNewRefName(formatInputText(e.target.value))} 
                                 className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none" 
                                 placeholder="Enter Reference Name"
                            />

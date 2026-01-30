@@ -8,6 +8,7 @@ import {
   fetchStudentById,
   updateStudent,
 } from "../../../features/student/studentSlice";
+import { formatInputText } from "../../../utils/textFormatter"; // Added util import
 import {
   fetchCourses,
   fetchBatches,
@@ -443,13 +444,6 @@ const StudentAdmission = () => {
           }
         : null,
     };
-    
-    console.log("Submitting Student Data:", { 
-        payAdmissionFeeState: payAdmissionFee,
-        isPayingComputed: isPaying,
-        feeDetailsPayload: payload.feeDetails,
-        amountPaid: data.amountPaid
-    });
 
     // Check if we're in update mode
     if (isUpdateMode && updateId) {
@@ -526,7 +520,7 @@ const StudentAdmission = () => {
                         <input 
                             className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Full Name *"
                             value={newRef.name}
-                            onChange={e => setNewRef({...newRef, name: e.target.value})}
+                            onChange={e => setNewRef({...newRef, name: formatInputText(e.target.value)})}
                         />
                         <input 
                             className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Mobile Number *"
@@ -536,7 +530,7 @@ const StudentAdmission = () => {
                         <input 
                             className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="City / Address"
                             value={newRef.address}
-                            onChange={e => setNewRef({...newRef, address: e.target.value})}
+                            onChange={e => setNewRef({...newRef, address: formatInputText(e.target.value)})}
                         />
                         <button 
                             type="button" 
@@ -571,7 +565,7 @@ const StudentAdmission = () => {
                         <input 
                             className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Degree / Certificate Name *"
                             value={newEdu}
-                            onChange={e => setNewEdu(e.target.value)}
+                            onChange={e => setNewEdu(formatInputText(e.target.value))}
                         />
                         <button 
                             type="button" 
@@ -694,8 +688,7 @@ const StudentAdmission = () => {
                   className="input"
                   placeholder="Student Name"
                   onChange={(e) => {
-                      const val = e.target.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-                      setValue('firstName', val);
+                      setValue('firstName', formatInputText(e.target.value));
                   }}
                 />
               </div>
@@ -716,8 +709,7 @@ const StudentAdmission = () => {
                   className="input"
                   placeholder={`${watchRelation}'s Name`}
                   onChange={(e) => {
-                      const val = e.target.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-                      setValue('middleName', val);
+                      setValue('middleName', formatInputText(e.target.value));
                   }}
                 />
               </div>
@@ -728,8 +720,7 @@ const StudentAdmission = () => {
                   className="input"
                   placeholder="Surname"
                   onChange={(e) => {
-                      const val = e.target.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-                      setValue('lastName', val);
+                      setValue('lastName', formatInputText(e.target.value));
                   }}
                 />
               </div>
@@ -745,11 +736,19 @@ const StudentAdmission = () => {
               </div>
               <div className="col-span-6 md:col-span-3">
                 <label className="label">3. Occupation Name</label>
-                <input {...register("occupationName")} className="input" />
+                <input 
+                  {...register("occupationName")} 
+                  className="input" 
+                  onChange={(e) => setValue('occupationName', formatInputText(e.target.value))}
+                />
               </div>
               <div className="col-span-12 md:col-span-6">
                 <label className="label">3. Mother Name</label>
-                <input {...register("motherName")} className="input" />
+                <input 
+                  {...register("motherName")} 
+                  className="input" 
+                  onChange={(e) => setValue('motherName', formatInputText(e.target.value))}
+                />
               </div>
 
               <div className="col-span-12 md:col-span-5">
@@ -861,6 +860,7 @@ const StudentAdmission = () => {
                   {...register("address", { required: true })}
                   rows="2"
                   className="input"
+                  onChange={(e) => setValue('address', formatInputText(e.target.value))}
                 ></textarea>
               </div>
 
@@ -1451,7 +1451,12 @@ const StudentAdmission = () => {
                      <>
                         <div className="col-span-2 md:col-span-1">
                             <label className="label">Bank Name *</label>
-                            <input {...register("bankName", { required: true })} className="input" placeholder="Bank Name" />
+                            <input 
+                                {...register("bankName", { required: true })} 
+                                className="input" 
+                                placeholder="Bank Name" 
+                                onChange={(e) => setValue('bankName', formatInputText(e.target.value))}
+                            />
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="label">Cheque Number *</label>
@@ -1468,7 +1473,12 @@ const StudentAdmission = () => {
                      <>
                         <div className="col-span-2 md:col-span-1">
                             <label className="label">Bank Name *</label>
-                            <input {...register("bankName", { required: true })} className="input" placeholder="Bank Name" />
+                            <input 
+                                {...register("bankName", { required: true })} 
+                                className="input" 
+                                placeholder="Bank Name" 
+                                onChange={(e) => setValue('bankName', formatInputText(e.target.value))}
+                            />
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="label">Transaction Number *</label>
@@ -1486,6 +1496,7 @@ const StudentAdmission = () => {
                       {...register("remarks")}
                       className="input"
                       placeholder="e.g. Google Pay Trans ID..."
+                      onChange={(e) => setValue('remarks', formatInputText(e.target.value))}
                     />
                   </div>
                 </div>

@@ -394,7 +394,7 @@ const StudentRegistrationProcess = () => {
                     disabled={isLoading}
                     className={`bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700 flex items-center gap-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                  >
-                     <Save size={18} /> {isLoading ? 'Processing...' : 'Save & Register'}
+                     <Save size={18} /> {isLoading ? 'Processing...' : 'Register'}
                  </button>
                  <button onClick={handleBackFromFees} className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                      Back

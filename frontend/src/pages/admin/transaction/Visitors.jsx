@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import visitorService from '../../../services/visitorService';
 import { X } from 'lucide-react';
+import { formatInputText } from '../../../utils/textFormatter'; // Import util
 
 const Visitors = () => {
     const navigate = useNavigate();
@@ -185,7 +186,7 @@ const Visitors = () => {
                             type="text"
                             name="studentName"
                             value={formData.studentName}
-                            onChange={handleInputChange}
+                            onChange={(e) => setFormData(prev => ({ ...prev, studentName: formatInputText(e.target.value) }))}
                             required
                             className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
                         />
@@ -300,7 +301,7 @@ const Visitors = () => {
                         <textarea 
                             name="remarks"
                             value={formData.remarks}
-                            onChange={handleInputChange}
+                            onChange={(e) => setFormData(prev => ({ ...prev, remarks: formatInputText(e.target.value) }))}
                             rows="3"
                             className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
                         ></textarea>
@@ -357,7 +358,7 @@ const Visitors = () => {
                                 className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                                 placeholder="Full Name *"
                                 value={newRef.name}
-                                onChange={e => setNewRef({...newRef, name: e.target.value})}
+                                onChange={e => setNewRef({...newRef, name: formatInputText(e.target.value)})}
                             />
                             <input 
                                 className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
@@ -369,7 +370,7 @@ const Visitors = () => {
                                 className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                                 placeholder="City / Address"
                                 value={newRef.address}
-                                onChange={e => setNewRef({...newRef, address: e.target.value})}
+                                onChange={e => setNewRef({...newRef, address: formatInputText(e.target.value)})}
                             />
                             <button 
                                 type="button" 
