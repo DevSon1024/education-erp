@@ -3,14 +3,14 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
     fetchBatches, createBatch, updateBatch, deleteBatch, 
-    fetchCourses, fetchEmployees, resetMasterStatus 
+    fetchCourses, fetchEmployees, resetMasterStatus, fetchBranches 
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Clock, Users, Edit2, Trash2, CheckSquare, Square } from 'lucide-react';
 
 const BatchMaster = () => {
   const dispatch = useDispatch();
-  const { batches, courses, employees, isSuccess } = useSelector((state) => state.master);
+  const { batches, courses, employees, branches, isSuccess } = useSelector((state) => state.master);
   const { user } = useSelector((state) => state.auth);
   
   const [showForm, setShowForm] = useState(false);
@@ -28,8 +28,9 @@ const BatchMaster = () => {
   useEffect(() => {
     dispatch(fetchCourses());
     dispatch(fetchEmployees());
+    if (user?.role === 'Super Admin') dispatch(fetchBranches());
     dispatch(fetchBatches(filters));
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   const handleSearch = () => { dispatch(fetchBatches(filters)); };
   
@@ -71,7 +72,9 @@ const BatchMaster = () => {
       const sDate = new Date(batch.startDate).toISOString().split('T')[0];
       const eDate = new Date(batch.endDate).toISOString().split('T')[0];
       setValue('startDate', sDate);
+      setValue('startDate', sDate);
       setValue('endDate', eDate);
+      if (batch.branchId) setValue('branchId', batch.branchId._id); // Set branch if exists
 
       // Pre-select courses
       const courseIds = batch.courses ? batch.courses.map(c => c._id) : [];
@@ -239,6 +242,19 @@ const BatchMaster = () => {
                             <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Batch Name *</label>
                             <input {...register('name', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. Morning Batch A"/>
                         </div>
+
+                        {/* Branch Selection (Super Admin Only) */}
+                        {user?.role === 'Super Admin' && (
+                        <div className="md:col-span-2">
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Branch (Optional)</label>
+                            <select {...register('branchId')} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none">
+                                <option value="">Global / Head Office</option>
+                                {branches.map(b => (
+                                    <option key={b._id} value={b._id}>{b.name} ({b.city})</option>
+                                ))}
+                            </select>
+                        </div>
+                        )}
 
                         {/* Faculty */}
                         <div>

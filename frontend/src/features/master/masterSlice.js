@@ -225,6 +225,14 @@ export const fetchEducations = createAsyncThunk('master/fetchEducations', async 
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+// --- Branch Thunks ---
+export const fetchBranches = createAsyncThunk('master/fetchBranches', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/branches`); // Note: Not under /master/
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 export const createEducation = createAsyncThunk('master/createEducation', async (data, thunkAPI) => {
     try {
         const response = await axios.post(API_URL + 'education', data);
@@ -247,7 +255,9 @@ const masterSlice = createSlice({
         examResults: [],
         pendingExams: [],
         references: [],
+        references: [],
         educations: [],
+        branches: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -411,7 +421,10 @@ const masterSlice = createSlice({
                 state.educations.push(action.payload); // push to sort alphabetically usually handled by backend but good here
                 state.isSuccess = true;
                 state.message = 'Education Added Successfully';
-            });
+            })
+            
+            // --- Branches ---
+            .addCase(fetchBranches.fulfilled, (state, action) => { state.branches = action.payload; });
     }
 });
 
