@@ -145,74 +145,74 @@ const StudentList = () => {
 
       {/* --- Table Section --- */}
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
-        <table className="min-w-full divide-y divide-gray-200 text-xs">
-          <thead className="bg-gray-50 text-xs">
-            <tr>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Enroll No</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Reg No</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Admission Date</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Reg. Date</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Student Name</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Father/Husband</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Last Name</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Mobile</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Course</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Duration</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-500 uppercase whitespace-nowrap">Branch</th>
-              <th className="px-3 py-3 text-center font-medium text-gray-500 uppercase whitespace-nowrap">Status</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-500 uppercase whitespace-nowrap sticky right-0 bg-gray-50">Actions</th>
+        <table className="w-full border-collapse min-w-[1200px]">
+          <thead>
+            <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+              <th className="p-2 border font-semibold">Enroll No</th>
+              <th className="p-2 border font-semibold">Reg No</th>
+              <th className="p-2 border font-semibold">Admission Date</th>
+              <th className="p-2 border font-semibold">Reg. Date</th>
+              <th className="p-2 border font-semibold">Student Name</th>
+              <th className="p-2 border font-semibold">Father/Husband</th>
+              <th className="p-2 border font-semibold">Last Name</th>
+              <th className="p-2 border font-semibold">Mobile</th>
+              <th className="p-2 border font-semibold">Course</th>
+              <th className="p-2 border font-semibold">Duration</th>
+              <th className="p-2 border font-semibold">Branch</th>
+              <th className="p-2 border font-semibold text-center">Status</th>
+              <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-32">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white text-xs">
-            {students.length > 0 ? students.map((s) => (
-              <tr key={s._id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
-                <td className="px-3 py-2 text-blue-600 font-mono">{s.regNo || '-'}</td>
+          <tbody>
+            {students.length > 0 ? students.map((s, index) => (
+              <tr key={s._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                <td className="p-2 border font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
+                <td className="p-2 border text-blue-600 font-mono">{s.regNo || '-'}</td>
                 
-                <td className="px-3 py-2 whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{s.registrationDate ? moment(s.registrationDate).format('DD/MM/YYYY') : '-'}</td>
+                <td className="p-2 border whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
+                <td className="p-2 border whitespace-nowrap">{s.registrationDate ? moment(s.registrationDate).format('DD/MM/YYYY') : '-'}</td>
 
-                <td className="px-3 py-2 font-medium text-gray-900">{s.firstName}</td>
-                <td className="px-3 py-2">{s.middleName || '-'}</td>
-                <td className="px-3 py-2">{s.lastName}</td>
+                <td className="p-2 border font-medium text-gray-900">{s.firstName}</td>
+                <td className="p-2 border">{s.middleName || '-'}</td>
+                <td className="p-2 border">{s.lastName}</td>
 
-                <td className="px-3 py-2 text-gray-600">{s.mobileStudent}</td>
+                <td className="p-2 border text-gray-600">{s.mobileStudent}</td>
 
-                <td className="px-3 py-2 font-semibold text-blue-800">{s.course?.name || '-'}</td>
-                <td className="px-3 py-2">{s.course ? `${s.course.duration} ${s.course.durationType}` : '-'}</td>
+                <td className="p-2 border font-semibold text-blue-800">{s.course?.name || '-'}</td>
+                <td className="p-2 border">{s.course ? `${s.course.duration} ${s.course.durationType}` : '-'}</td>
 
-                <td className="px-3 py-2 text-gray-600">{s.branchName || 'Main Branch'}</td>
+                <td className="p-2 border text-gray-600">{s.branchName || 'Main Branch'}</td>
 
-                <td className="px-3 py-2 text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        s.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                <td className="p-2 border text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        s.isActive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'
                     }`}>
                         {s.isActive ? 'Active' : 'Inactive'}
                     </span>
                 </td>
 
-                <td className="px-3 py-2 text-right sticky right-0 bg-white">
-                   <div className="flex justify-end gap-1">
-                        <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1.5 rounded hover:bg-blue-100 transition" title="View">
-                            <Eye size={16}/>
+                <td className="p-2 border text-center sticky right-0 bg-white">
+                   <div className="flex justify-center gap-1">
+                        <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="View">
+                            <Eye size={14}/>
                         </Link>
-                        <button onClick={() => handleOpenResetModal(s)} className="bg-yellow-50 text-yellow-600 p-1.5 rounded hover:bg-yellow-100 transition" title="Reset Login">
-                            <Lock size={16}/>
+                        <button onClick={() => handleOpenResetModal(s)} className="bg-yellow-50 text-yellow-600 p-1 rounded border border-yellow-200 hover:bg-yellow-100 transition" title="Reset Login">
+                            <Lock size={14}/>
                         </button>
-                        <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded hover:bg-orange-100 transition" title="Update">
-                            <Edit size={16}/>
+                        <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1 rounded border border-orange-200 hover:bg-orange-100 transition" title="Update">
+                            <Edit size={14}/>
                         </Link>
-                        <button onClick={() => handleDelete(s._id)} className="bg-red-50 text-red-600 p-1.5 rounded hover:bg-red-100 transition" title="Delete">
-                            <Trash2 size={16}/>
+                        <button onClick={() => handleDelete(s._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                            <Trash2 size={14}/>
                         </button>
-                        <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded hover:bg-purple-100 transition" title="Print">
-                            <Printer size={16}/>
+                        <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1 rounded border border-purple-200 hover:bg-purple-100 transition" title="Print">
+                            <Printer size={14}/>
                         </Link>
                    </div>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="13" className="text-center py-8 text-gray-400">No students found</td></tr>
+              <tr><td colSpan="14" className="text-center py-8 text-gray-500">No students found</td></tr>
             )}
           </tbody>
         </table>

@@ -137,46 +137,40 @@ const SubjectMaster = () => {
       </div>
 
       {/* --- Data Table --- */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-                <tr>
-                    <th className="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Subject Name</th>
-                    <th className="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Duration</th>
-                    <th className="px-6 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
-                    <th className="px-6 py-3 text-center font-bold text-gray-600 uppercase text-xs">Edit</th>
-                    <th className="px-6 py-3 text-center font-bold text-gray-600 uppercase text-xs">Delete</th>
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1200px]">
+            <thead>
+                <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                    <th className="p-2 border font-semibold">Subject Name</th>
+                    <th className="p-2 border font-semibold">Printed Name</th>
+                    <th className="p-2 border font-semibold text-center">Duration</th>
+                    <th className="p-2 border font-semibold text-center">Status</th>
+                    <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-24">Actions</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
                 {subjects && subjects.length > 0 ? subjects.map((sub) => (
-                    <tr key={sub._id} className="hover:bg-blue-50 transition duration-150">
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                            {sub.name}
-                            <span className="block text-[10px] text-gray-400">Printed: {sub.printedName}</span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600 font-medium">
+                    <tr key={sub._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                        <td className="p-2 border font-medium text-gray-900">{sub.name}</td>
+                        <td className="p-2 border text-gray-600">{sub.printedName}</td>
+                        <td className="p-2 border text-gray-600 text-center">
                             {sub.duration} {sub.durationType}
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="p-2 border text-center">
                             {sub.isActive ? 
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Active
-                                </span> : 
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    Inactive
-                                </span>
+                                <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-green-200">ACTIVE</span> : 
+                                <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-red-200">INACTIVE</span>
                             }
                         </td>
-                        <td className="px-6 py-4 text-center">
-                            <button onClick={() => handleEdit(sub)} className="text-blue-600 hover:text-blue-900 hover:bg-blue-100 p-2 rounded-full transition">
-                                <Edit size={18}/>
-                            </button>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                            <button onClick={() => handleDelete(sub._id)} className="text-red-600 hover:text-red-900 hover:bg-red-100 p-2 rounded-full transition">
-                                <Trash2 size={18}/>
-                            </button>
+                        <td className="p-2 border text-center sticky right-0 bg-white">
+                            <div className="flex justify-center gap-1">
+                                <button onClick={() => handleEdit(sub)} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="Edit">
+                                    <Edit size={14}/>
+                                </button>
+                                <button onClick={() => handleDelete(sub._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                                    <Trash2 size={14}/>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 )) : (

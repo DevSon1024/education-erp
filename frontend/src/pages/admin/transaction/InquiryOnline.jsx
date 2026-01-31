@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchInquiries, updateInquiry, resetTransaction } from '../../../features/transaction/transactionSlice';
 import { fetchCourses } from '../../../features/master/masterSlice';
+import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import InquiryForm from '../../../components/transaction/InquiryForm';
+import InquiryViewModal from '../../../components/transaction/InquiryViewModal';
 import SmartTable from '../../../components/ui/SmartTable';
 import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye, Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -124,10 +126,12 @@ const FollowUpForm = ({ inquiry, onClose, onSave }) => {
 const InquiryOnline = () => {
   const dispatch = useDispatch();
   const { inquiries, isSuccess, message } = useSelector((state) => state.transaction);
+  const { employees } = useSelector((state) => state.employees);
   const { user } = useSelector((state) => state.auth);
   
   const [showFollowUpModal, setShowFollowUpModal] = useState(null);
   const [editModalData, setEditModalData] = useState(null);
+  const [viewInquiry, setViewInquiry] = useState(null);
   
   // Filter State
   const [filters, setFilters] = useState({
@@ -142,6 +146,7 @@ const InquiryOnline = () => {
   useEffect(() => {
     dispatch(fetchInquiries(filters));
     dispatch(fetchCourses()); // Required for InquiryForm dropdowns
+    dispatch(fetchEmployees());
   }, [dispatch, filters]);
 
   useEffect(() => {
@@ -276,11 +281,89 @@ const InquiryOnline = () => {
       </div>
 
       {/* --- TABLE --- */}
-      <SmartTable 
-        columns={columns}
-        data={inquiries}
-        // Removed onEdit and onDelete to prevent duplicate actions
-      />
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1400px]">
+            <thead>
+                <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                    <th className="p-2 border font-semibold w-12">Sr. No.</th>
+                    <th className="p-2 border font-semibold">Inquiry Date</th>
+                    {user?.role === 'Super Admin' && <th className="p-2 border font-semibold">Branch</th>}
+                    <th className="p-2 border font-semibold">Student Name</th>
+                    <th className="p-2 border font-semibold">Contact (Home)</th>
+                    <th className="p-2 border font-semibold">Contact (Student)</th>
+                    <th className="p-2 border font-semibold">Contact (Parent)</th>
+                    <th className="p-2 border font-semibold">Gender</th>
+                    <th className="p-2 border font-semibold text-center">Status</th>
+                    <th className="p-2 border font-semibold">Followup Date</th>
+                    <th className="p-2 border font-semibold">Followup Time</th>
+                    <th className="p-2 border font-semibold">Followup Details</th>
+                    <th className="p-2 border font-semibold w-48">Allocation To</th>
+                    <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-32">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {inquiries && inquiries.length > 0 ? inquiries.map((inquiry, index) => (
+                    <tr key={inquiry._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                        <td className="p-2 border text-center">{index + 1}</td>
+                        <td className="p-2 border text-gray-700">{formatDate(inquiry.inquiryDate)}</td>
+                        {user?.role === 'Super Admin' && <td className="p-2 border text-gray-600">{inquiry.branchId?.name || '-'}</td>}
+                        <td className="p-2 border font-bold text-gray-800">{inquiry.firstName} {inquiry.lastName}</td>
+                        <td className="p-2 border text-gray-600">{inquiry.contactHome || '-'}</td>
+                        <td className="p-2 border text-gray-600">{inquiry.contactStudent || '-'}</td>
+                        <td className="p-2 border text-gray-600">{inquiry.contactParent || '-'}</td>
+                        <td className="p-2 border text-gray-600">{inquiry.gender || '-'}</td>
+                        <td className="p-2 border text-center">
+                             <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${
+                                inquiry.status==='Open'?'bg-green-100 text-green-700 border-green-200': 
+                                inquiry.status==='Recall' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 
+                                'bg-gray-100 text-gray-600 border-gray-200'
+                            }`}>
+                                {inquiry.status}
+                            </span>
+                        </td>
+                        <td className="p-2 border text-gray-700">{inquiry.followUpDate ? formatDate(inquiry.followUpDate) : '-'}</td>
+                        <td className="p-2 border text-gray-700">
+                            {inquiry.followUpDate ? new Date(inquiry.followUpDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
+                        </td>
+                        <td className="p-2 border text-gray-600 truncate max-w-xs" title={inquiry.followUpDetails}>{inquiry.followUpDetails || '-'}</td>
+                        <td className="p-2 border">
+                            <select 
+                                className="w-full border p-1 rounded text-xs focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                                value={inquiry.allocatedTo?._id || inquiry.allocatedTo || ''}
+                                onChange={(e) => {
+                                    const empId = e.target.value;
+                                    dispatch(updateInquiry({ id: inquiry._id, data: { allocatedTo: empId } }));
+                                }}
+                            >
+                                <option value="">Unallocated</option>
+                                {employees?.filter(e => e.type !== 'Super Admin').map(emp => (
+                                    <option key={emp._id} value={emp._id}>{emp.name}</option>
+                                ))}
+                            </select>
+                        </td>
+                        <td className="p-2 border text-center sticky right-0 bg-white">
+                            <div className="flex justify-center gap-1">
+                                <button onClick={() => setShowFollowUpModal(inquiry)} className="bg-purple-50 text-purple-600 border border-purple-200 p-1 rounded hover:bg-purple-100 transition" title="Follow Up">
+                                    <PhoneCall size={14}/>
+                                </button>
+                                <button onClick={() => setViewInquiry(inquiry)} className="bg-teal-50 text-teal-600 border border-teal-200 p-1 rounded hover:bg-teal-100 transition" title="View Print">
+                                    <Eye size={14}/>
+                                </button>
+                                <button onClick={() => setEditModalData(inquiry)} className="bg-blue-50 text-blue-600 border border-blue-200 p-1 rounded hover:bg-blue-100 transition" title="Edit">
+                                    <Edit size={14}/>
+                                </button>
+                                <button onClick={() => handleDelete(inquiry._id)} className="bg-red-50 text-red-600 border border-red-200 p-1 rounded hover:bg-red-100 transition" title="Delete">
+                                    <Trash2 size={14}/>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                )) : (
+                    <tr><td colSpan="14" className="text-center py-8 text-gray-400">No inquiries found</td></tr>
+                )}
+            </tbody>
+        </table>
+      </div>
 
       {/* Follow Up Modal */}
       {showFollowUpModal && (
@@ -300,6 +383,9 @@ const InquiryOnline = () => {
             onSave={handleSaveInquiry}
         />
       )}
+
+      {/* View Modal */}
+      {viewInquiry && <InquiryViewModal inquiry={viewInquiry} onClose={() => setViewInquiry(null)} />}
     </div>
   );
 };

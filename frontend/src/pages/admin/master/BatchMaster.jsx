@@ -169,55 +169,57 @@ const BatchMaster = () => {
       </div>
 
       {/* --- SECTION 3: DATA TABLE --- */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-                <tr>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Batch Name</th>
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1200px]">
+            <thead>
+                <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                    <th className="p-2 border font-semibold">Batch Name</th>
                     {user?.role === 'Super Admin' && (
-                        <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Branch</th>
+                        <th className="p-2 border font-semibold">Branch</th>
                     )}
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Timing</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Employee</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Start Date</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">End Date</th>
-                    <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>
+                    <th className="p-2 border font-semibold">Timing</th>
+                    <th className="p-2 border font-semibold">Employee</th>
+                    <th className="p-2 border font-semibold text-center">Start Date</th>
+                    <th className="p-2 border font-semibold text-center">End Date</th>
+                    <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-24">Actions</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
                 {batches && batches.length > 0 ? batches.map((batch) => (
-                    <tr key={batch._id} className="hover:bg-blue-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-900">
+                    <tr key={batch._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                        <td className="p-2 border font-medium text-gray-900">
                             {batch.name}
                         </td>
                         {user?.role === 'Super Admin' && (
-                            <td className="px-4 py-3 text-gray-600">
+                            <td className="p-2 border text-gray-600">
                                 {batch.branchId?.name || <span className="text-gray-400 italic">Global/Main</span>}
                             </td>
                         )}
-                        <td className="px-4 py-3 text-gray-600">
-                            <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded w-fit">
+                        <td className="p-2 border text-gray-600">
+                            <div className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 w-fit">
                                 <Clock size={12} className="text-gray-500"/> {batch.startTime} - {batch.endTime}
                             </div>
                         </td>
-                        <td className="px-4 py-3">
-                            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs flex items-center gap-1 w-fit">
+                        <td className="p-2 border">
+                            <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100 text-[10px] flex items-center gap-1 w-fit font-semibold">
                                 <Users size={12}/> {batch.faculty?.name || 'Unassigned'}
                             </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{new Date(batch.startDate).toLocaleDateString('en-GB')}</td>
-                        <td className="px-4 py-3 text-gray-600">{new Date(batch.endDate).toLocaleDateString('en-GB')}</td>
-                        <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleEdit(batch)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Edit2 size={12}/> Edit
-                            </button>
-                            <button onClick={() => handleDelete(batch._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Trash2 size={12}/> Delete
-                            </button>
+                        <td className="p-2 border text-center text-gray-600">{new Date(batch.startDate).toLocaleDateString('en-GB')}</td>
+                        <td className="p-2 border text-center text-gray-600">{new Date(batch.endDate).toLocaleDateString('en-GB')}</td>
+                        <td className="p-2 border text-center sticky right-0 bg-white">
+                            <div className="flex justify-center gap-1">
+                                <button onClick={() => handleEdit(batch)} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="Edit">
+                                    <Edit2 size={14}/>
+                                </button>
+                                <button onClick={() => handleDelete(batch._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                                    <Trash2 size={14}/>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 )) : (
-                    <tr><td colSpan="6" className="text-center py-8 text-gray-400">No batches found. Create one!</td></tr>
+                    <tr><td colSpan="7" className="text-center py-8 text-gray-400">No batches found. Create one!</td></tr>
                 )}
             </tbody>
         </table>

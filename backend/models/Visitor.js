@@ -23,6 +23,8 @@ const visitorSchema = new mongoose.Schema({
     // Link to converted Inquiry
     inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Inquiry' },
 
+    branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch', required: false },
+
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 

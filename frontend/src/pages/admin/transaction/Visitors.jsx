@@ -14,6 +14,7 @@ const Visitors = () => {
     const location = useLocation();
     const dispatch = useDispatch();
     const { references } = useSelector((state) => state.master);
+    const { user } = useSelector((state) => state.auth);
     
     // State
     const [formData, setFormData] = useState({
@@ -27,12 +28,14 @@ const Visitors = () => {
         inTime: '',
         outTime: '',
         attendedBy: '',
-        remarks: ''
+        remarks: '',
+        branchId: ''
     });
 
     // Dropdown Data State
     const [courses, setCourses] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [branches, setBranches] = useState([]);
     
     // Modal State for Reference
     const [showRefModal, setShowRefModal] = useState(false);
@@ -42,7 +45,11 @@ const Visitors = () => {
     useEffect(() => {
         fetchDropdowns();
         dispatch(fetchReferences());
-    }, []);
+        
+        if (user && user.role === 'Super Admin') {
+            fetchBranches();
+        }
+    }, [user]);
 
     // Handle pre-filled data from navigation (e.g., from edit in report page)
     useEffect(() => {
@@ -59,7 +66,8 @@ const Visitors = () => {
                 inTime: visitor.inTime,
                 outTime: visitor.outTime,
                 attendedBy: visitor.attendedBy?._id || visitor.attendedBy,
-                remarks: visitor.remarks
+                remarks: visitor.remarks,
+                branchId: visitor.branchId?._id || visitor.branchId || ''
             });
         }
     }, [location.state]);
@@ -73,6 +81,15 @@ const Visitors = () => {
             setEmployees(empRes.data);
         } catch (error) {
             console.error("Error fetching dropdowns:", error);
+        }
+    };
+
+    const fetchBranches = async () => {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/branches`, { withCredentials: true });
+            setBranches(res.data);
+        } catch (error) {
+            console.error("Error fetching branches:", error);
         }
     };
 
@@ -93,7 +110,8 @@ const Visitors = () => {
             inTime: '',
             outTime: '',
             attendedBy: '',
-            remarks: ''
+            remarks: '',
+            branchId: ''
         });
         toast.info('Form reset successfully');
     };
@@ -180,6 +198,25 @@ const Visitors = () => {
                             className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
+                    
+                    {user?.role === 'Super Admin' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                            <select 
+                                name="branchId" 
+                                value={formData.branchId} 
+                                onChange={handleInputChange}
+                                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
+                                required={user?.role === 'Super Admin'}
+                            >
+                                <option value="">Select Branch</option>
+                                {branches.map(branch => (
+                                    <option key={branch._id} value={branch._id}>{branch.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Student Name *</label>
                         <input 

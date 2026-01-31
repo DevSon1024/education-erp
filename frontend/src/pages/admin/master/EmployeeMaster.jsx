@@ -231,58 +231,68 @@ const EmployeeMaster = () => {
       </div>
 
       {/* --- Data Table --- */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-                <tr>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Employee Name</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Mobile</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Email</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Role</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Login Name</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Branch</th>
-                    <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Joining Date</th>
-                    <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
-                    {(edit || canDelete) && <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>}
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1200px]">
+            <thead>
+                <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                    <th className="p-2 border font-semibold">Employee Name</th>
+                    <th className="p-2 border font-semibold">Mobile</th>
+                    <th className="p-2 border font-semibold">Email</th>
+                    <th className="p-2 border font-semibold">Role</th>
+                    <th className="p-2 border font-semibold">Login Name</th>
+                    <th className="p-2 border font-semibold">Branch</th>
+                    <th className="p-2 border font-semibold text-center">Joining Date</th>
+                    <th className="p-2 border font-semibold text-center">Status</th>
+                    {(edit || canDelete) && <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-24">Actions</th>}
                 </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
                 {employees.length > 0 ? employees.map((emp) => (
-                    <tr key={emp._id} className="hover:bg-gray-50 transition">
-                        <td className="px-4 py-3 font-medium text-gray-900">
+                    <tr key={emp._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                        <td className="p-2 border font-medium text-gray-900">
                             {emp.name}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{emp.mobile}</td>
-                        <td className="px-4 py-3 text-gray-600">{emp.email}</td>
-                        <td className="px-4 py-3 text-gray-600">{emp.type}</td>
-                        <td className="px-4 py-3 text-gray-600 font-mono text-xs">{emp.userAccount?.username || '-'}</td>
-                        <td className="px-4 py-3 text-gray-600">
+                        <td className="p-2 border text-gray-600">{emp.mobile}</td>
+                        <td className="p-2 border text-gray-600">{emp.email}</td>
+                        <td className="p-2 border text-gray-600">{emp.type}</td>
+                        <td className="p-2 border text-gray-600 font-mono text-xs">{emp.userAccount?.username || '-'}</td>
+                        <td className="p-2 border text-gray-600">
                              {emp.branchId ? (
-                                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">
+                                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-semibold">
                                      {emp.branchId.name || emp.branchName}
                                  </span>
                              ) : (
                                  <span className="text-gray-400 text-xs">Main Branch</span>
                              )}
                         </td>
-                        <td className="px-4 py-3 text-center text-gray-600">
+                        <td className="p-2 border text-center text-gray-600">
                             {emp.dateOfJoining ? new Date(emp.dateOfJoining).toLocaleDateString('en-GB') : '-'}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="p-2 border text-center">
                              {emp.isActive ? 
-                                <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold">ACTIVE</span> : 
-                                <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold">INACTIVE</span>
+                                <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-green-200">ACTIVE</span> : 
+                                <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-red-200">INACTIVE</span>
                             }
                         </td>
                         {(edit || canDelete) && (
-                            <td className="px-4 py-3 text-right flex justify-end gap-2">
-                                {edit && <button onClick={() => handleEdit(emp)} className="text-blue-600 hover:bg-blue-50 p-1 rounded"><Edit size={16}/></button>}
-                                {canDelete && <button onClick={() => handleDelete(emp._id)} className="text-red-600 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>}
+                            <td className="p-2 border text-center sticky right-0 bg-white">
+                                <div className="flex justify-center gap-1">
+                                    {edit && (
+                                        <button onClick={() => handleEdit(emp)} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="Edit">
+                                            <Edit size={14}/>
+                                        </button>
+                                    )}
+                                    {canDelete && (
+                                        <button onClick={() => handleDelete(emp._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                                            <Trash2 size={14}/>
+                                        </button>
+                                    )}
+                                </div>
                             </td>
                         )}
                     </tr>
                 )) : (
-                    <tr><td colSpan="7" className="text-center py-8 text-gray-400">No employees found matching criteria</td></tr>
+                    <tr><td colSpan="9" className="text-center py-8 text-gray-400">No employees found matching criteria</td></tr>
                 )}
             </tbody>
         </table>

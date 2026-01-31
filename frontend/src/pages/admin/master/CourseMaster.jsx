@@ -196,52 +196,55 @@ const CourseMaster = () => {
       </div>
 
       {/* --- Course Table --- */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-                <tr>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Course Name</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Fees</th>
-                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Duration</th>
-                    <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
-                    <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Subjects</th>
-                    <th className="px-4 py-3 text-right font-bold text-gray-600 uppercase text-xs">Actions</th>
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1200px]">
+            <thead>
+                <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                    <th className="p-2 border font-semibold w-24">Short Name</th>
+                    <th className="p-2 border font-semibold text-center">Course Name</th>
+                    <th className="p-2 border font-semibold text-center">Type</th>
+                    <th className="p-2 border font-semibold text-center">Fees</th>
+                    <th className="p-2 border font-semibold text-center">Duration</th>
+                    <th className="p-2 border font-semibold text-center">Status</th>
+                    <th className="p-2 border font-semibold text-center">Subjects</th>
+                    <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-24">Actions</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
                 {courses.length > 0 ? courses.map((course, index) => (
-                    <tr key={course._id || index} className="hover:bg-blue-50 transition-colors">
-                        <td className="px-4 py-3">
-                            <div className="font-medium text-gray-900">{course.name}</div>
-                            <div className="text-xs text-gray-500">({course.shortName})</div>
-                            <div className="text-xs text-blue-600 mt-0.5">{course.courseType}</div>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">₹{course.courseFees}</td>
-                        <td className="px-4 py-3 text-gray-600">{course.duration} {course.durationType}</td>
-                        <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${course.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <tr key={course._id || index} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                        <td className="p-2 border font-medium text-gray-700">{course.shortName}</td>
+                        <td className="p-2 border font-semibold text-gray-900">{course.name}</td>
+                        <td className="p-2 border text-gray-600">{course.courseType}</td>
+                        <td className="p-2 border text-gray-700">₹{course.courseFees}</td>
+                        <td className="p-2 border text-gray-600">{course.duration} {course.durationType}</td>
+                        <td className="p-2 border text-center">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${course.isActive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
                                 {course.isActive ? 'Active' : 'Inactive'}
                             </span>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="p-2 border text-center">
                             <button 
                                 onClick={() => setViewingSubjects(course.subjects)}
-                                className="text-primary hover:bg-blue-100 p-1 rounded transition"
+                                className="text-blue-600 hover:bg-blue-100 p-1 rounded transition border border-blue-200 bg-blue-50"
+                                title="View Subjects"
                             >
-                                <Eye size={16}/>
+                                <Eye size={14}/>
                             </button>
                         </td>
-                        <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleEdit(course)} className="text-blue-600 hover:text-blue-900 mr-3 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Edit2 size={12}/> Edit
-                            </button>
-                            <button onClick={() => handleDelete(course._id)} className="text-red-600 hover:text-red-900 text-xs font-bold uppercase hover:underline inline-flex items-center gap-1">
-                                <Trash2 size={12}/> Delete
-                            </button>
+                        <td className="p-2 border text-center sticky right-0 bg-white">
+                            <div className="flex justify-center gap-1">
+                                <button onClick={() => handleEdit(course)} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="Edit">
+                                    <Edit2 size={14}/>
+                                </button>
+                                <button onClick={() => handleDelete(course._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                                    <Trash2 size={14}/>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 )) : (
-                    <tr><td colSpan="6" className="text-center py-8 text-gray-400">No courses found.</td></tr>
+                    <tr><td colSpan="8" className="text-center py-8 text-gray-400">No courses found.</td></tr>
                 )}
             </tbody>
         </table>

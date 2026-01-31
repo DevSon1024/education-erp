@@ -156,8 +156,6 @@ const UserRights = () => {
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">User Rights Management</h2>
-
-      {/* Filter Section */}
       {/* Filter Section */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-6 border-t-4 border-primary">
         <div className="flex flex-wrap gap-4 items-end">
@@ -261,66 +259,66 @@ const UserRights = () => {
           </div>
 
           {/* Rights Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+          <div className="overflow-x-auto border-t">
+            <table className="w-full border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                  <th className="p-2 border font-semibold w-1/4">
                     Page Name
                   </th>
                   {['view', 'add', 'edit', 'delete'].map(action => (
-                    <th key={action} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex flex-col items-center gap-2 cursor-pointer group"
+                    <th key={action} className="p-2 border font-semibold text-center">
+                      <div className="flex flex-col items-center gap-1 cursor-pointer group"
                            onClick={() => {
                              // Check if all visible rows have this action checked
                              const allChecked = visiblePermissions.every(p => p[action]);
                              handleColumnSelectAll(action, !allChecked);
                            }}
                       >
-                        <span className="group-hover:text-primary transition-colors">{action}</span>
-                        {/* Visual indicator for Column Select All */}
+                         <span className="group-hover:text-blue-200 transition-colors uppercase">{action}</span>
+                         {/* Visual indicator for Column Select All */}
                          {visiblePermissions.length > 0 && visiblePermissions.every(p => p[action]) 
-                           ? <CheckSquare size={16} className="text-primary"/> 
-                           : <Square size={16} className="text-gray-400"/>
+                           ? <CheckSquare size={16} className="text-white"/> 
+                           : <Square size={16} className="text-blue-300"/>
                          }
                       </div>
                     </th>
                   ))}
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border font-semibold text-center">
                     Select All
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {visiblePermissions.length > 0 ? (
                   visiblePermissions.map((perm) => (
-                    <tr key={perm.page} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
+                    <tr key={perm.page} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                      <td className="p-2 border font-medium text-gray-900">
                         {perm.page}
                       </td>
                       {['view', 'add', 'edit', 'delete'].map(action => (
-                        <td key={action} className="px-6 py-4 whitespace-nowrap text-center">
+                        <td key={action} className="p-2 border text-center">
                           <input 
                             type="checkbox"
                             checked={perm[action]}
                             onChange={(e) => handleCheckboxChange(perm.page, action, e.target.checked)}
-                            className="h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer transition-all"
+                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer transition-all"
                           />
                         </td>
                       ))}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="p-2 border text-center">
                         <input 
                           type="checkbox"
                           checked={perm.view && perm.add && perm.edit && perm.delete}
                           onChange={(e) => handleRowSelectAll(perm.page, e.target.checked)}
-                          className="h-5 w-5 text-accent focus:ring-accent border-gray-300 rounded cursor-pointer"
+                          className="h-4 w-4 text-accent focus:ring-accent border-gray-300 rounded cursor-pointer"
                         />
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-10 text-center text-gray-500 italic">
+                    <td colSpan="6" className="p-4 text-center text-gray-400 italic">
                       No configurable pages found for this section.
                     </td>
                   </tr>

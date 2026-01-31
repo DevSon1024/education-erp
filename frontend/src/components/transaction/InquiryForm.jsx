@@ -94,7 +94,8 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                     visitorId: initialData._id, 
                     city: 'Surat',
                     state: 'Gujarat',
-                    relationType: 'Father'
+                    relationType: 'Father',
+                    branchId: initialData.branchId?._id || initialData.branchId
                 });
             } else {
                 // Normal Edit Mode

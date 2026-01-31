@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Search, User, Clock, FileText, Edit, Trash2, ArrowRightCircle } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import visitorService from '../../../services/visitorService';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +13,8 @@ const TodaysVisitorsList = () => {
     // Fixed filter for Today
     const today = new Date().toISOString().split('T')[0];
     const [search, setSearch] = useState('');
+    const [filterBranch, setFilterBranch] = useState('');
+    const { user } = useSelector((state) => state.auth);
     
     // Dropdown Data (for Add/Edit Modal if we include it here too)
     // For brevity, assuming this page might just list them, but user said "Add new Visitor" here too.
@@ -30,17 +33,22 @@ const TodaysVisitorsList = () => {
         inTime: '',
         outTime: '',
         attendedBy: '',
-        remarks: ''
+        remarks: '',
+        branchId: ''
     });
 
     const [courses, setCourses] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [branches, setBranches] = useState([]);
     const [isNewReference, setIsNewReference] = useState(false);
 
     useEffect(() => {
         fetchVisitors();
         fetchDropdowns();
-    }, []);
+        if (user?.role === 'Super Admin') {
+            fetchBranches();
+        }
+    }, [user]); // Re-run if user loads
 
     const fetchVisitors = async () => {
         setLoading(true);
@@ -49,7 +57,8 @@ const TodaysVisitorsList = () => {
             const data = await visitorService.getAllVisitors({
                 fromDate: today,
                 toDate: today,
-                search: search
+                search: search,
+                branchId: filterBranch
             });
             setVisitors(data);
         } catch (error) {
@@ -67,6 +76,15 @@ const TodaysVisitorsList = () => {
             setEmployees(empRes.data);
         } catch (error) {
             console.error("Error fetching dropdowns:", error);
+        }
+    };
+
+    const fetchBranches = async () => {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/branches`, { withCredentials: true });
+            setBranches(res.data);
+        } catch (error) {
+            console.error("Error fetching branches:", error);
         }
     };
 
@@ -105,7 +123,8 @@ const TodaysVisitorsList = () => {
             inTime: '',
             outTime: '',
             attendedBy: '',
-            remarks: ''
+            remarks: '',
+            branchId: ''
         });
         setShowModal(true);
     };
@@ -126,7 +145,8 @@ const TodaysVisitorsList = () => {
             inTime: visitor.inTime,
             outTime: visitor.outTime,
             attendedBy: visitor.attendedBy?._id || visitor.attendedBy,
-            remarks: visitor.remarks
+            remarks: visitor.remarks,
+            branchId: visitor.branchId?._id || visitor.branchId || ''
         });
         setShowModal(true);
     };
@@ -148,91 +168,108 @@ const TodaysVisitorsList = () => {
     };
 
     return (
-        <div className="container mx-auto p-4 max-w-7xl">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex justify-between items-center mb-6 border-b pb-4">
-                    <div className="flex items-center gap-3">
-                        <Calendar className="text-blue-500" size={28} />
+        <div className="w-full p-2 animate-fadeIn">
+            <div className="bg-white rounded-lg shadow-lg p-2">
+                <div className="flex justify-between items-center mb-3 border-b pb-2">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="text-blue-500" size={24} />
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-800">Today's Visitors</h2>
-                            <p className="text-sm text-gray-500">{new Date().toDateString()}</p>
+                            <h2 className="text-xl font-bold text-gray-800">Today's Visitors</h2>
+                            <p className="text-xs text-gray-500">{new Date().toDateString()}</p>
                         </div>
                     </div>
                     <button 
                         onClick={handleAddNew}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1 shadow-sm"
                     >
-                        <Plus size={20} /> Add New
+                        <Plus size={16} /> Add New
                     </button>
                 </div>
 
                 {/* Simple Search */}
-                <div className="flex gap-2 mb-6 max-w-md">
+                <div className="flex gap-2 mb-3 flex-wrap items-center bg-gray-50 p-2 rounded">
+                    {user?.role === 'Super Admin' && (
+                        <select 
+                            value={filterBranch} 
+                            onChange={(e) => { setFilterBranch(e.target.value); setTimeout(fetchVisitors, 100); }} 
+                            className="border rounded p-1.5 focus:ring-1 focus:ring-blue-500 text-sm h-9"
+                        >
+                            <option value="">All Branches</option>
+                            {branches.map(b => (
+                                <option key={b._id} value={b._id}>{b.name}</option>
+                            ))}
+                        </select>
+                    )}
+                    <div className="flex gap-2 flex-grow max-w-sm">
                     <input 
                         type="text" 
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search Name or Mobile..."
-                        className="flex-1 border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 border rounded p-1.5 focus:ring-1 focus:ring-blue-500 text-sm h-9"
                     />
                     <button onClick={handleSearch} className="bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-gray-600">
                         <Search size={20} />
                     </button>
+                    </div>
                 </div>
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                    <table className="w-full border-collapse min-w-[1200px]">
                         <thead>
-                            <tr className="bg-blue-50 text-left text-sm text-blue-800 uppercase tracking-wider">
-                                <th className="p-3 border-b border-blue-100">Name</th>
-                                <th className="p-3 border-b border-blue-100">Contact</th>
-                                <th className="p-3 border-b border-blue-100">Course</th>
-                                <th className="p-3 border-b border-blue-100">In/Out</th>
-                                <th className="p-3 border-b border-blue-100">Attended By</th>
-                                <th className="p-3 border-b border-blue-100">Actions</th>
+                            <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                                <th className="p-2 border font-semibold w-12">Sr No</th>
+                                <th className="p-2 border font-semibold">Visiting Date</th>
+                                {user?.role === 'Super Admin' && <th className="p-2 border font-semibold">Branch</th>}
+                                <th className="p-2 border font-semibold">Name</th>
+                                <th className="p-2 border font-semibold">Contact No</th>
+                                <th className="p-2 border font-semibold">Reference</th>
+                                <th className="p-2 border font-semibold">Attend By</th>
+                                <th className="p-2 border font-semibold">In Time</th>
+                                <th className="p-2 border font-semibold">Out Time</th>
+                                <th className="p-2 border font-semibold">Remarks</th>
+                                <th className="p-2 border font-semibold">Create Date</th>
+                                <th className="p-2 border font-semibold text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="6" className="text-center p-4">Loading...</td></tr>
+                                <tr><td colSpan="12" className="text-center p-4">Loading...</td></tr>
                             ) : visitors.length === 0 ? (
-                                <tr><td colSpan="6" className="text-center p-4 text-gray-500">No visitors today.</td></tr>
+                                <tr><td colSpan="12" className="text-center p-4 text-gray-500">No visitors today.</td></tr>
                             ) : (
-                                visitors.map((visitor) => (
-                                    <tr key={visitor._id} className="hover:bg-gray-50 text-sm border-b">
-                                        <td className="p-3 font-medium">{visitor.studentName}</td>
-                                        <td className="p-3 text-gray-600">{visitor.mobileNumber}</td>
-                                        <td className="p-3">{visitor.course?.name || '-'}</td>
-                                        <td className="p-3 text-xs">
-                                            <span className="text-green-600">{visitor.inTime}</span>
-                                            {visitor.outTime && <span className="text-red-500"> - {visitor.outTime}</span>}
+                                visitors.map((visitor, index) => (
+                                    <tr key={visitor._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                                        <td className="p-2 text-center">{index + 1}</td>
+                                        <td className="p-2">{visitor.visitingDate ? new Date(visitor.visitingDate).toLocaleDateString('en-GB') : '-'}</td>
+                                        {user?.role === 'Super Admin' && <td className="p-2 text-gray-600">{visitor.branchId?.name || '-'}</td>}
+                                        <td className="p-2 font-bold text-gray-800">{visitor.studentName}</td>
+                                        <td className="p-2 text-gray-600">{visitor.mobileNumber}</td>
+                                        <td className="p-2">{visitor.reference || '-'}</td>
+                                        <td className="p-2">{visitor.attendedBy?.name || visitor.attendedBy?.username || '-'}</td>
+                                        <td className="p-2">
+                                            <span className="text-green-700 font-semibold">{visitor.inTime}</span>
                                         </td>
-                                        <td className="p-3">{visitor.attendedBy?.name || visitor.attendedBy?.username || '-'}</td>
-                                        <td className="p-3">
-                                            <div className="flex gap-2">
-                                                 {visitor.inquiryId ? (
-                                                    <button 
-                                                        disabled
-                                                        className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 border border-green-200 cursor-not-allowed" 
-                                                        title="Already Converted"
-                                                    >
-                                                        <ArrowRightCircle size={14} /> Converted
-                                                    </button>
-                                                 ) : (
-                                                    <button 
-                                                        onClick={() => navigate('/transaction/inquiry/offline', { state: { visitorData: visitor } })} 
-                                                        className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold hover:bg-orange-200 flex items-center gap-1 border border-orange-200 transition-colors" 
-                                                        title="Convert to Inquiry"
-                                                    >
-                                                        <ArrowRightCircle size={14} /> Convert
-                                                    </button>
-                                                )}
-                                                <button onClick={() => handleEdit(visitor)} className="text-blue-500 hover:text-blue-700 p-1">
-                                                    <Edit size={16} />
+                                        <td className="p-2">
+                                            {visitor.outTime && <span className="text-red-500 font-semibold"> {visitor.outTime}</span>}
+                                        </td>
+                                        <td className="p-2 truncate max-w-xs" title={visitor.remarks}>{visitor.remarks || '-'}</td>
+                                        <td className="p-2 text-xs">
+                                            {visitor.createdAt ? (
+                                                <div className="flex flex-col">
+                                                    <span>{new Date(visitor.createdAt).toLocaleDateString('en-GB')}</span>
+                                                    <span className="text-gray-500">{new Date(visitor.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
+                                            ) : '-'}
+                                        </td>
+                                        <td className="p-2 text-center">
+                                            <div className="flex gap-2 justify-center">
+                                                <button onClick={() => handleEdit(visitor)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 p-1 rounded border border-blue-200" title="Edit">
+                                                    <Edit size={14} />
                                                 </button>
-                                            <button onClick={() => handleDelete(visitor._id)} className="text-red-500 hover:text-red-700 p-1">
-                                                <Trash2 size={16} />
+                                            <button onClick={() => handleDelete(visitor._id)} className="bg-red-50 text-red-600 hover:bg-red-100 p-1 rounded border border-red-200" title="Delete">
+                                                <Trash2 size={14} />
                                             </button>
                                             </div>
                                         </td>
@@ -257,6 +294,15 @@ const TodaysVisitorsList = () => {
                                     <label className="block text-sm font-medium mb-1">Name</label>
                                     <input type="text" name="studentName" value={formData.studentName} onChange={handleInputChange} required className="w-full border rounded p-2" />
                                 </div>
+                                {user?.role === 'Super Admin' && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Branch</label>
+                                        <select name="branchId" value={formData.branchId} onChange={handleInputChange} className="w-full border rounded p-2" required>
+                                            <option value="">Select Branch</option>
+                                            {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Mobile</label>
                                     <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} required className="w-full border rounded p-2" />

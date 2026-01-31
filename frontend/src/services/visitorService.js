@@ -23,6 +23,7 @@ const getAllVisitors = async (filters = {}) => {
     if (toDate) params.append('toDate', toDate);
     if (search) params.append('search', search);
     if (limit) params.append('limit', limit);
+    if (filters.branchId) params.append('branchId', filters.branchId);
 
     const response = await axios.get(`${API_URL}/all?${params.toString()}`);
     return response.data;
