@@ -42,6 +42,14 @@ const PendingAdmissionFees = () => {
     dispatch(fetchEmployees()); // Fetch Employees
   }, [dispatch]); // Initial load
 
+  // DEBUG LOGGING
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+       console.log("[DEV] PendingAdmissionFees - Filters:", filters);
+       console.log("[DEV] PendingAdmissionFees - Data Loaded:", students.length);
+    }
+  }, [filters, students]);
+
   // Handlers
   const handleSearch = () => {
     dispatch(fetchStudents({ ...filters, pageNumber: 1 }));

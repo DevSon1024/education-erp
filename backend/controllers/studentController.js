@@ -217,16 +217,16 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         feeType: typeof feeDetails?.amount
     });
 
-    let finalRegNo = regNo;
-    if (!finalRegNo) {
-        // --- New Logic: <GlobalSequence>-<BranchCode> ---
-        // Dynamically find the maximum existing Registration Number across ALL branches
-        
+    // Force server-side generation of RegNo to ensure sequence integrity
+    // We ignore req.body.regNo to prevent stale or manual overrides
+    
+        // 1. Find Max Registration Number
         const lastStudent = await Student.aggregate([
             { 
                $match: { 
                    regNo: { $exists: true, $ne: null, $ne: "" },
-                   isRegistered: true 
+                   isRegistered: true,
+                   isDeleted: { $ne: true } // CHANGED: Safer check (handles missing field)
                } 
             },
             {
@@ -260,21 +260,46 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
              }
         }
 
-        finalRegNo = `${nextSequence}-${branchCode}`;
-    }
+        const finalRegNo = `${nextSequence}-${branchCode}`;
+        
+        console.log(`Generated RegNo: ${finalRegNo} (Sequence: ${nextSequence})`);
 
-    const newUser = await User.create({
-        name: `${student.firstName} ${student.lastName}`,
-        email: student.email || `${finalRegNo}@institute.com`, 
-        username: username,
-        password: password,
-        role: 'Student',
-        branchId: student.branchId // Link user to the same branch
-    });
-    console.log("User Created for Student:", newUser._id);
+    let newUser;
+    try {
+        console.log("Attempting to create User with username:", username);
+        // Check if user already exists
+        const existingUser = await User.findOne({ 
+            $or: [{ username: username }, { email: student.email || `${finalRegNo}@institute.com` }] 
+        });
+
+        if (existingUser) {
+            console.log("User already exists. Linking to student.");
+            newUser = existingUser;
+        } else {
+            newUser = await User.create({
+                name: `${student.firstName} ${student.lastName}`,
+                email: student.email || `${finalRegNo}@institute.com`, 
+                username: username,
+                password: password,
+                role: 'Student',
+                branchId: student.branchId
+            });
+            console.log("User Created for Student:", newUser._id);
+        }
+    } catch (userError) {
+        console.error("User Creation Failed:", userError);
+        // Don't crash registration if user creation fails, but log it
+        // We might want to throw here, but for now let's proceed to save student status
+    }
 
 
     // FIXED: Allow receipt creation for ALL plans (including One Time) if amount > 0
+    console.log("Checking Fee Details for Receipt:", { 
+        hasFeeDetails: !!feeDetails, 
+        amount: feeDetails?.amount, 
+        isAmountValid: feeDetails && Number(feeDetails.amount) > 0 
+    });
+
     if (feeDetails && Number(feeDetails.amount) > 0) {
         // Fetch next receipt number if not provided or valid
         let receiptNo = feeDetails.receiptNo;
@@ -309,7 +334,9 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     student.regNo = finalRegNo;
     student.isRegistered = true;
     student.registrationDate = new Date();
-    student.userId = newUser._id;
+    if (newUser) {
+        student.userId = newUser._id;
+    }
     await student.save();
     console.log("Student Registration Updated Successfully. RegNo:", finalRegNo);
 
@@ -333,7 +360,8 @@ const getNextRegNo = asyncHandler(async (req, res) => {
         { 
            $match: { 
                regNo: { $exists: true, $ne: null, $ne: "" },
-               isRegistered: true 
+               isRegistered: true,
+               isDeleted: { $ne: true } // CHANGED: Safer check
            } 
         },
         {

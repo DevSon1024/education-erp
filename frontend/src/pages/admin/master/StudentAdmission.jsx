@@ -943,7 +943,41 @@ const StudentAdmission = () => {
                 <button
                   type="button"
                   onClick={async () => {
-                    if (await trigger()) setStep(2);
+                    const step1Fields = [
+                      "admissionDate", "aadharCard", "firstName", "middleName", "lastName",
+                      "relationType", "occupationType", "occupationName", "motherName",
+                      "email", "dob", "gender", "contactHome", "mobileStudent", "mobileParent",
+                      "education", "address", "state", "city", "pincode", "reference"
+                    ];
+                    
+                    // Conditionally add branchId if it's being rendered
+                    if (user?.role === 'Super Admin') {
+                        step1Fields.push("branchId");
+                    }
+
+                    const isValid = await trigger(step1Fields);
+                    
+                    // DEBUG: Log errors if validation fails
+                    if (!isValid) {
+                        if (import.meta.env.DEV) {
+                           console.log("[DEV] Validation Failed. Errors:", errors);
+                           console.log("[DEV] Current Form Values:", getValues());
+                        }
+                        // Also show the specific error in the toast for easier debugging
+                        const errorFields = Object.keys(errors).join(", ");
+                        toast.error(`Validation Failed. Check: ${errorFields}`);
+                    }
+                    
+                    if (import.meta.env.DEV) {
+                        console.log("[DEV] Fields Valid? ", isValid);
+                        console.log("[DEV] Proceeding to Step 2 with values:", getValues());
+                    }
+
+                    if (isValid) {
+                        setStep(2);
+                    } else {
+                        // Toast is now handled above for better detail
+                    }
                   }}
                   className="btn-primary"
                 >

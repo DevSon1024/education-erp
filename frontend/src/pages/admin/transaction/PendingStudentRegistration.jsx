@@ -27,6 +27,14 @@ const PendingStudentRegistration = () => {
     dispatch(fetchEmployees());
   }, [dispatch]); // Initial Load
 
+  // DEBUG LOGGING
+  useEffect(() => {
+     if (import.meta.env.DEV) {
+         console.log("[DEV] PendingStudentRegistration - Filters:", filters);
+         console.log("[DEV] PendingStudentRegistration - Students Loaded:", students.length);
+     }
+  }, [filters, students]);
+
   const handleSearch = () => {
     dispatch(fetchStudents({ ...filters, pageNumber: 1 }));
   };

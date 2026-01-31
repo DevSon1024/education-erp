@@ -142,6 +142,11 @@ const StudentRegistrationProcess = () => {
         return;
     }
 
+    // CONFIRMATION DIALOG (Added to prevent accidental registration)
+    if (!window.confirm("Are you sure you want to register this student?")) {
+        return;
+    }
+
     const payload = {
         id: student._id,
         data: {
