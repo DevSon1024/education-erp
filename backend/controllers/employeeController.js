@@ -42,7 +42,7 @@ const getEmployees = asyncHandler(async (req, res) => {
         }
     }
 
-    const employees = await Employee.find(query).populate('branchId', 'name shortCode').sort({ createdAt: -1 });
+    const employees = await Employee.find(query).populate('branchId', 'name shortCode').populate('userAccount', 'username').sort({ createdAt: -1 });
     res.json(employees);
 });
 
@@ -108,28 +108,15 @@ const createEmployee = asyncHandler(async (req, res) => {
     }
 
     try {
-        // Fix: Use last created employee to determine next sequence number instead of count
-        const lastEmployee = await Employee.findOne({ regNo: { $regex: `^EMP-${new Date().getFullYear()}` } }).sort({ createdAt: -1 });
-        
-        let nextNum = 1001;
-        if (lastEmployee && lastEmployee.regNo) {
-            const parts = lastEmployee.regNo.split('-');
-            const lastSeq = parseInt(parts[2]); // EMP-2025-1005 -> 1005
-            if (!isNaN(lastSeq)) {
-                nextNum = lastSeq + 1;
-            }
-        }
-        
-        const regNo = `EMP-${new Date().getFullYear()}-${nextNum}`;
-
+        // ID Generation Removed as per request
         const employee = await Employee.create({
             ...req.body,
-            regNo,
+            // regNo, // Removed
             userAccount: userId
         });
 
         if (userId && loginUsername) {
-             const message = `Dear, ${name}. Your Registration process has been successfully completed. Reg.No. ${regNo}, User ID-${loginUsername}, Password-${loginPassword}, smart institute.`;
+             const message = `Dear, ${name}. Your Registration process has been successfully completed. User ID-${loginUsername}, Password-${loginPassword}, smart institute.`;
              sendSMS(mobile, message);
         }
 

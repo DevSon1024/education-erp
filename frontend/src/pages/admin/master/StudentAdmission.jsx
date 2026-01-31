@@ -122,10 +122,10 @@ const StudentAdmission = () => {
     dispatch(fetchEmployees());
     dispatch(fetchReferences());
     dispatch(fetchEducations());
-    if(user?.role === 'Super Admin') {
+    if(user?.role === 'Super Admin' && branches.length === 0) {
         dispatch(getBranches());
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, branches.length]);
 
   // Fetch batches when Branch changes (For Super Admin)
   useEffect(() => {
@@ -160,6 +160,10 @@ const StudentAdmission = () => {
       if (inquiry.studentPhoto) {
         setPreviewImage(inquiry.studentPhoto);
         setValue("studentPhoto", inquiry.studentPhoto);
+      }
+
+      if (inquiry.branchId) {
+          setValue("branchId", inquiry.branchId._id || inquiry.branchId);
       }
 
       toast.success("Student data pre-filled from inquiry!");

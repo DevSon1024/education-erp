@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, resetEmployeeStatus } from '../../../features/employee/employeeSlice';
 import { getBranches } from '../../../features/master/branchSlice'; // Import API
+import { formatInputText } from '../../../utils/textFormatter';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw } from 'lucide-react';
 
@@ -20,6 +21,7 @@ const EmployeeMaster = () => {
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const watchName = watch('name');
+  const watchType = watch('type');
 
   // Permission Check
   const { view, add, edit, delete: canDelete } = useUserRights('Employee');
@@ -30,7 +32,7 @@ const EmployeeMaster = () => {
   // --- FILTERS STATE ---
   const initialFilters = {
     joiningFrom: '', 
-    joiningTo: new Date().toISOString().split('T')[0], 
+    joiningTo: new Date().toISOString().split('T')[0],
     gender: '', 
     searchBy: 'name', 
     searchValue: ''
@@ -237,6 +239,7 @@ const EmployeeMaster = () => {
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Mobile</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Email</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Role</th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Login Name</th>
                     <th className="px-4 py-3 text-left font-bold text-gray-600 uppercase text-xs">Branch</th>
                     <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Joining Date</th>
                     <th className="px-4 py-3 text-center font-bold text-gray-600 uppercase text-xs">Status</th>
@@ -248,11 +251,11 @@ const EmployeeMaster = () => {
                     <tr key={emp._id} className="hover:bg-gray-50 transition">
                         <td className="px-4 py-3 font-medium text-gray-900">
                             {emp.name}
-                            <span className="block text-xs text-gray-400">{emp.regNo}</span>
                         </td>
                         <td className="px-4 py-3 text-gray-600">{emp.mobile}</td>
                         <td className="px-4 py-3 text-gray-600">{emp.email}</td>
                         <td className="px-4 py-3 text-gray-600">{emp.type}</td>
+                        <td className="px-4 py-3 text-gray-600 font-mono text-xs">{emp.userAccount?.username || '-'}</td>
                         <td className="px-4 py-3 text-gray-600">
                              {emp.branchId ? (
                                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">
@@ -317,7 +320,11 @@ const EmployeeMaster = () => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-gray-700">Full Name *</label>
-                                <input {...register('name', {required:true})} className="w-full border p-2 rounded text-sm mt-1"/>
+                                <input 
+                                    {...register('name', {required:true})} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('name', formatInputText(e.target.value))}
+                                />
                             </div>
                              <div>
                                 <label className="block text-xs font-bold text-gray-700">Mobile Number *</label>
@@ -349,19 +356,35 @@ const EmployeeMaster = () => {
                             </div>
                              <div>
                                 <label className="block text-xs font-bold text-gray-700">Duration</label>
-                                <input {...register('duration')} className="w-full border p-2 rounded text-sm mt-1"/>
+                                <input 
+                                    {...register('duration')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('duration', formatInputText(e.target.value))}
+                                />
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-gray-700">Address</label>
-                                <input {...register('address')} className="w-full border p-2 rounded text-sm mt-1"/>
+                                <input 
+                                    {...register('address')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('address', formatInputText(e.target.value))}
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-700">Education</label>
-                                <input {...register('education')} className="w-full border p-2 rounded text-sm mt-1"/>
+                                <input 
+                                    {...register('education')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('education', formatInputText(e.target.value))}
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-700">Qualification</label>
-                                <input {...register('qualification')} className="w-full border p-2 rounded text-sm mt-1"/>
+                                <input 
+                                    {...register('qualification')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('qualification', formatInputText(e.target.value))}
+                                />
                             </div>
                             <div className="md:col-span-4 border-2 border-dashed border-gray-300 rounded p-4 flex flex-col items-center bg-gray-50">
                                 {previewImage ? (
@@ -384,24 +407,54 @@ const EmployeeMaster = () => {
                     <div>
                         <h3 className="text-sm font-bold text-gray-500 border-b pb-2 mb-4 uppercase flex items-center gap-2"><Briefcase size={16}/> Work Experience Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div><label className="block text-xs font-bold text-gray-700">Experience</label><input {...register('experience')} className="w-full border p-2 rounded text-sm mt-1"/></div>
-                            <div><label className="block text-xs font-bold text-gray-700">Working Time Period</label><input {...register('workingTimePeriod')} className="w-full border p-2 rounded text-sm mt-1"/></div>
-                            <div><label className="block text-xs font-bold text-gray-700">Company Name</label><input {...register('companyName')} className="w-full border p-2 rounded text-sm mt-1"/></div>
-                            <div><label className="block text-xs font-bold text-gray-700">Role</label><input {...register('role')} className="w-full border p-2 rounded text-sm mt-1"/></div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700">Experience</label>
+                                <input 
+                                    {...register('experience')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('experience', formatInputText(e.target.value))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700">Working Time Period</label>
+                                <input 
+                                    {...register('workingTimePeriod')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('workingTimePeriod', formatInputText(e.target.value))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700">Company Name</label>
+                                <input 
+                                    {...register('companyName')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('companyName', formatInputText(e.target.value))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700">Role</label>
+                                <input 
+                                    {...register('role')} 
+                                    className="w-full border p-2 rounded text-sm mt-1"
+                                    onChange={(e) => setValue('role', formatInputText(e.target.value))}
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
-                        <div className="flex justify-between items-center border-b border-yellow-300 pb-2 mb-4">
-                            <h3 className="text-sm font-bold text-yellow-800 uppercase flex items-center gap-2"><Lock size={16}/> Login Details</h3>
-                            {!editMode && <span className="text-[10px] bg-yellow-200 px-2 py-1 rounded text-yellow-800">Auto-Generated</span>}
+                    {!(editMode && watchType === 'Branch Director') && (
+                        <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
+                            <div className="flex justify-between items-center border-b border-yellow-300 pb-2 mb-4">
+                                <h3 className="text-sm font-bold text-yellow-800 uppercase flex items-center gap-2"><Lock size={16}/> Login Details</h3>
+                                {!editMode && <span className="text-[10px] bg-yellow-200 px-2 py-1 rounded text-yellow-800">Auto-Generated</span>}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div><label className="block text-xs font-bold text-gray-700">Login Username</label><input {...register('loginUsername')} readOnly={!editMode} className="w-full border p-2 rounded text-sm mt-1 bg-gray-100 cursor-not-allowed"/></div>
+                                <div><label className="block text-xs font-bold text-gray-700">Password</label><input type="text" {...register('loginPassword')} placeholder={editMode ? "Leave empty to keep current" : ""} className="w-full border p-2 rounded text-sm mt-1 bg-white"/></div>
+                                <div className="flex items-end pb-2"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" {...register('isLoginActive')} defaultChecked className="w-4 h-4 text-green-600"/><span className="text-sm font-bold text-gray-700">Login Active?</span></label></div>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div><label className="block text-xs font-bold text-gray-700">Login Username</label><input {...register('loginUsername')} readOnly={!editMode} className="w-full border p-2 rounded text-sm mt-1 bg-gray-100 cursor-not-allowed"/></div>
-                            <div><label className="block text-xs font-bold text-gray-700">Password</label><input type="text" {...register('loginPassword')} placeholder={editMode ? "Leave empty to keep current" : ""} className="w-full border p-2 rounded text-sm mt-1 bg-white"/></div>
-                            <div className="flex items-end pb-2"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" {...register('isLoginActive')} defaultChecked className="w-4 h-4 text-green-600"/><span className="text-sm font-bold text-gray-700">Login Active?</span></label></div>
-                        </div>
-                    </div>
+                    )}
 
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <button type="button" onClick={closeForm} className="px-6 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>

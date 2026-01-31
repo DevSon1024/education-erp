@@ -121,6 +121,7 @@ const FollowUpModal = ({ inquiry, onClose, onSave }) => {
 const InquiryDSR = () => {
   const dispatch = useDispatch();
   const { inquiries, isSuccess, message } = useSelector((state) => state.transaction);
+  const { user } = useSelector((state) => state.auth);
   
   // Filter defaults to DSR
   const [filters, setFilters] = useState({ startDate: '', endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', source: 'DSR' });
@@ -154,6 +155,7 @@ const InquiryDSR = () => {
 
   const columns = [
       { header: 'Sr', render: (_, i) => i + 1 },
+      ...(user?.role === 'Super Admin' ? [{ header: 'Branch', render: r => r.branchId?.name || '-' }] : []),
       { header: 'Date', render: r => new Date(r.inquiryDate).toLocaleDateString('en-GB') }, // dd/mm/yyyy format
       { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.lastName || ''}</span> },
       { header: 'Contact (Home)', render: r => r.contactHome || '-' },

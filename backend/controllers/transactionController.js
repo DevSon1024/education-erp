@@ -38,7 +38,8 @@ const getInquiries = asyncHandler(async (req, res) => {
   }
 
   // --- BRANCH SCOPING ---
-  if (req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin') && req.user.branchId) {
+  // --- BRANCH SCOPING ---
+  if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
       query.branchId = req.user.branchId;
   }
   if (req.query.branchId) {
@@ -60,6 +61,12 @@ const createInquiry = asyncHandler(async (req, res) => {
   if (req.file) {
     data.studentPhoto = req.file.path.replace(/\\/g, "/"); // Normalize path
   }
+
+  // Assign Branch automatically for non-Super Admin
+  if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
+    data.branchId = req.user.branchId;
+  }
+
 
   if (data.referenceDetail && typeof data.referenceDetail === "string") {
     try {
@@ -146,6 +153,7 @@ const updateInquiryStatus = asyncHandler(async (req, res) => {
     }
 
     await inquiry.save();
+    await inquiry.populate('branchId', 'name shortCode'); // Populate for frontend consistency
     res.json(inquiry);
   } else {
     res.status(404);

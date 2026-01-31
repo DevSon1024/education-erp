@@ -4,7 +4,7 @@ const studentSchema = new mongoose.Schema(
   {
     // --- System Fields ---
     enrollmentNo: { type: String }, // CHANGED: Removed unique: true for branch-wise sequence
-    regNo: { type: String, unique: true, sparse: true },
+    regNo: { type: String }, // CHANGED: Removed unique constraint
     isActive: { type: Boolean, default: true },
     isRegistered: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },

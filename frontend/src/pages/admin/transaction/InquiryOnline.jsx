@@ -124,6 +124,7 @@ const FollowUpForm = ({ inquiry, onClose, onSave }) => {
 const InquiryOnline = () => {
   const dispatch = useDispatch();
   const { inquiries, isSuccess, message } = useSelector((state) => state.transaction);
+  const { user } = useSelector((state) => state.auth);
   
   const [showFollowUpModal, setShowFollowUpModal] = useState(null);
   const [editModalData, setEditModalData] = useState(null);
@@ -187,6 +188,7 @@ const InquiryOnline = () => {
   // --- Table Columns ---
   const columns = [
       { header: 'Sr', render: (_, idx) => idx + 1 },
+      ...(user?.role === 'Super Admin' ? [{ header: 'Branch', render: r => r.branchId?.name || '-' }] : []),
       { header: 'Date', render: (row) => formatDate(row.inquiryDate) },
       { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.lastName || ''}</span> },
       { header: 'Contact (Home)', render: r => r.contactHome || '-' },

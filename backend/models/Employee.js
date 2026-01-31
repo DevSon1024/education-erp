@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const employeeSchema = new mongoose.Schema({
     // --- Personal Information ---
     name: { type: String, required: true },
-    regNo: { type: String, unique: true }, 
+    // regNo removed to allow multiple employees without ID
     mobile: { type: String, required: true },
     gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
     type: { 

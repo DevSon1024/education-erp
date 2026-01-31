@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSelector, useDispatch } from 'react-redux';
 import { Save, X, Camera, User, Phone, BookOpen, Calendar, Copy, Clipboard, RotateCcw, Plus, Check } from 'lucide-react';
-import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation } from '../../features/master/masterSlice';
+import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation, fetchBranches } from '../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { formatInputText } from '../../utils/textFormatter'; // Imported util
 
 const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     const dispatch = useDispatch();
-    const { courses, employees, references, educations } = useSelector((state) => state.master);
+    const { user } = useSelector((state) => state.auth);
+    const { courses, employees, references, educations, branches } = useSelector((state) => state.master);
     const [preview, setPreview] = useState(null);
     
     // UI States for Modals
@@ -23,7 +24,10 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
         dispatch(fetchEmployees());
         dispatch(fetchReferences());
         dispatch(fetchEducations());
-    }, [dispatch]);
+        if(user && user.role === 'Super Admin') {
+            dispatch(fetchBranches());
+        }
+    }, [dispatch, user]);
 
     // Determine source based on mode
     let fixedSource = 'Walk-in';
@@ -110,9 +114,12 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                      // If it's legacy data not in master, we might just set it.
                 }
                 
-                // If photo exists (and is string path), show preview logic could be added here if backend serves static files
                 if (initialData.studentPhoto) {
                     setPreview(initialData.studentPhoto);
+                }
+
+                if (initialData.branchId) {
+                     setValue('branchId', initialData.branchId._id || initialData.branchId);
                 }
 
                 reset(formattedData);
@@ -200,6 +207,18 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                     <label className="block text-xs font-bold text-gray-700">Inquiry Date</label>
                                     <input type="date" {...register('inquiryDate')} className="w-full border p-2 rounded text-sm"/>
                                 </div>
+
+                                {user && user.role === 'Super Admin' && (
+                                    <div className="mt-2">
+                                        <label className="block text-xs font-bold text-gray-700">Branch <span className="text-red-500">*</span></label>
+                                        <select {...register('branchId', { required: 'Branch is required' })} className="w-full border p-2 rounded text-sm bg-yellow-50">
+                                            <option value="">-- Select Branch --</option>
+                                            {branches.map(b => (
+                                                <option key={b._id} value={b._id}>{b.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Inputs Grid - Adjusted for Alignment */}
