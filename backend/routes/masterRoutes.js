@@ -50,12 +50,12 @@ router.route('/employee')
 
 // --- Reference Routes ---
 router.route('/reference')
-    .get(protect, getReferences)
+    .get(getReferences) // Public Access
     .post(protect, createReference);
 
 // --- Education Routes ---
 router.route('/education')
-    .get(protect, getEducations)
+    .get(getEducations) // Public Access
     .post(protect, createEducation);
     
 // --- Exam Request Routes ---

@@ -10,8 +10,7 @@ import moment from 'moment';
 const PendingStudentRegistration = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { students, pagination, isLoading, isSuccess, message } = useSelector((state) => state.students);
-  const { user } = useSelector((state) => state.auth);
+  const { students, pagination = {}, isLoading, isSuccess, message } = useSelector((state) => state.students);  const { user } = useSelector((state) => state.auth);
   const { employees } = useSelector((state) => state.employees) || { employees: [] };
 
   // Filters
@@ -85,10 +84,10 @@ const PendingStudentRegistration = () => {
             </div>
             <div>
                 <label className="text-xs text-gray-500">Reference</label>
-                <select name="reference" value={filters.reference} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm">
+                <select name="referenceId" value={filters.referenceId} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm">
                     <option value="">All References</option>
                     {employees?.map(emp => (
-                        <option key={emp._id} value={emp.name}>{emp.name}</option>
+                        <option key={emp._id} value={emp._id}>{emp.name}</option>
                     ))}
                 </select>
             </div>
@@ -165,8 +164,7 @@ const PendingStudentRegistration = () => {
 
                 <td className="p-2 border font-semibold text-blue-800">{s.course?.name || '-'}</td>
                 {user?.role === 'Super Admin' && (
-                    <td className="p-2 border text-gray-600">{s.branchName || 'Main Branch'}</td>
-                )}
+                    <td className="p-2 border text-gray-600">{s.branchName || '-'}</td>                )}
                 <td className="p-2 border">{s.reference || '-'}</td>
 
                 <td className="p-2 border text-center sticky right-0 bg-white group-hover:bg-blue-50">

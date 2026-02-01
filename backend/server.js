@@ -64,6 +64,7 @@ app.use("/api/visitors", require("./routes/visitorRoutes"));
 app.use("/api/news", require("./routes/newsRoutes"));
 app.use("/api/transaction/attendance", require("./routes/attendanceRoutes"));
 app.use("/api/branches", require("./routes/branchRoutes"));
+app.use("/api/cloudinary", require("./routes/cloudinaryRoutes"));
 
 // Error Handler
 app.use(errorHandler);

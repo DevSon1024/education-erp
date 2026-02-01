@@ -353,14 +353,15 @@ const OnlineAdmission = () => {
 
           {/* Section 4: Terms & Actions */}
           <div className="pt-4 border-t">
-              <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative flex items-center">
+              <div className="flex items-start gap-3">
+                  <label className="relative flex items-center cursor-pointer">
                      <input type="checkbox" {...register("agreeTerms", { required: true })} className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 shadow-sm transition-all checked:border-primary checked:bg-primary hover:shadow-md" />
-                  </div>
-                  <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                      I agree to the <Link to="/terms-and-conditions" target="_blank" className="text-primary font-bold hover:underline">Terms and Conditions</Link> for admission at Smart Institute.
+                     <CheckCircle className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                  </label>
+                  <span className="text-sm text-gray-600">
+                      I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline">Terms and Conditions</a> for admission at Smart Institute.
                   </span>
-              </label>
+              </div>
           </div>
 
           <button 

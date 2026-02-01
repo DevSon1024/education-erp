@@ -42,4 +42,15 @@ const admin = (req, res, next) => {
     }
 };
 
-module.exports = { protect, admin };
+const checkRole = (roles) => {
+    return (req, res, next) => {
+        if (req.user && roles.includes(req.user.role)) {
+            next();
+        } else {
+            res.status(401);
+            throw new Error('Not authorized');
+        }
+    };
+};
+
+module.exports = { protect, admin, checkRole };

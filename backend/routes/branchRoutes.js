@@ -14,21 +14,20 @@ const { protect, admin } = require('../middlewares/authMiddleware'); // Assuming
 // Public Routes
 router.get('/public', getPublicBranches);
 
-// Apply protect middleware to all routes
+// Allow public access to get all branches (for dropdowns)
+router.route('/')
+    .get(getBranches)
+    .post(protect, admin, createBranch);
+
+// Apply protect middleware to remaining routes
 router.use(protect);
 
 // Get All Employees for Director Selection
 router.get('/employees/list', getAllEmployees);
 
-// Apply admin middleware to all routes (Only Super Admin can manage branches)
-// If we want read access for others, we might need to adjust this
-router.route('/')
-    .get(getBranches) // Maybe allow read for others? For now, let's keep it robust.
-    .post(admin, createBranch);
-
 router.route('/:id')
     .get(getBranchById)
     .put(admin, updateBranch)
-    .delete(admin, deleteBranch);
+    .delete(admin, deleteBranch)
 
 module.exports = router;

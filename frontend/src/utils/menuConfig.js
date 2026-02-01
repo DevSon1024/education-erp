@@ -97,7 +97,8 @@ export const MENU_CONFIG = [
     type: 'dropdown',
     subItems: [
       { title: 'Downloads', path: '/utility/downloads' },
-      { title: 'Free Learning', path: '/utility/free-learning' }
+      { title: 'Free Learning', path: '/utility/free-learning' },
+      { title: 'Cloudinary Management', path: '/utility/cloudinary-manager' }
     ]
   }
 ];

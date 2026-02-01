@@ -57,6 +57,7 @@ const ExamResult = lazy(() => import("./pages/admin/master/ExamResult"));
 const ManageNews = lazy(() => import("./pages/admin/master/ManageNews"));
 const ManageTerms = lazy(() => import("./pages/admin/master/ManageTerms"));
 const BranchMaster = lazy(() => import("./pages/admin/master/BranchMaster"));
+const CloudinaryManager = lazy(() => import("./pages/admin/utility/CloudinaryManager"));
 
 // Transaction Pages
 const InquiryPage = lazy(() => import("./pages/admin/transaction/InquiryPage"));
@@ -398,6 +399,17 @@ function App() {
                     <Suspense fallback={<Loading />}>
                         {/* Lazy load inline or import at top if preferred, using existing lazy pattern */}
                         <AdmissionFormPrint />
+                    </Suspense>
+                  </PrivateRoute>
+                }
+              />
+              
+              <Route
+                path="/utility/cloudinary-manager"
+                element={
+                  <PrivateRoute>
+                    <Suspense fallback={<Loading />}>
+                        <CloudinaryManager />
                     </Suspense>
                   </PrivateRoute>
                 }
