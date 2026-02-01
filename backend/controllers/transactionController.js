@@ -194,15 +194,19 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     bankName, chequeNumber, chequeDate, transactionId, transactionDate 
   } = req.body;
 
-  // 1. Validation
-  const student = await Student.findById(studentId);
+  // 1. Parallel Data Fetching
+  const [student, lastReceipt, existingReceipts] = await Promise.all([
+    Student.findById(studentId),
+    FeeReceipt.findOne().sort({ createdAt: -1 }).lean(),
+    FeeReceipt.find({ student: studentId }).sort({ createdAt: 1 }).lean()
+  ]);
+
   if (!student) {
     res.status(404);
     throw new Error("Student not found");
   }
 
   // 2. Generate Receipt No
-  const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
   let nextNum = 1;
   if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
     nextNum = Number(lastReceipt.receiptNo) + 1;
@@ -211,7 +215,6 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
 
   // 2.5. Calculate Installment Number
   let installmentNumber = 1;
-  const existingReceipts = await FeeReceipt.find({ student: studentId }).sort({ createdAt: 1 });
   
   if (existingReceipts.length > 0) {
     installmentNumber = existingReceipts.length + 1;

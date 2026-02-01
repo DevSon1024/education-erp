@@ -99,6 +99,7 @@ studentSchema.index({ batch: 1 });
 studentSchema.index({ admissionDate: -1 });
 studentSchema.index({ email: 1 });
 studentSchema.index({ mobileParent: 1 });
+studentSchema.index({ createdAt: -1 }); // Optimized for "Latest Students" queries
 
 // Middleware for Enrollment No (REMOVED: Now handled imperatively on payment)
 // studentSchema.pre("save", async function () { ... });

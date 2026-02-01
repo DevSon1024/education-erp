@@ -110,20 +110,24 @@ const createStudent = asyncHandler(async (req, res) => {
     }
 
     try {
-        // 1. Create Student
-        // Resolve Branch ID and Name
+        // 1. Prepare Parallel Lookups
         let finalBranchId = req.body.branchId;
-        let finalBranchName = 'Main Branch'; // Default
-
         if (!finalBranchId && req.user && req.user.branchId) {
             finalBranchId = req.user.branchId;
         }
 
-        if (finalBranchId) {
-            const branchDoc = await Branch.findById(finalBranchId);
-            if (branchDoc) {
-                finalBranchName = branchDoc.name;
-            }
+        const branchPromise = finalBranchId ? Branch.findById(finalBranchId).lean() : Promise.resolve(null);
+        
+        // Check if we need to fetch last receipt (only if fee is paid)
+        const receiptPromise = (feeDetails && feeDetails.amount > 0) 
+            ? FeeReceipt.findOne().sort({ createdAt: -1 }).lean() 
+            : Promise.resolve(null);
+
+        const [branchDoc, lastReceipt] = await Promise.all([branchPromise, receiptPromise]);
+
+        let finalBranchName = 'Main Branch'; // Default
+        if (branchDoc) {
+            finalBranchName = branchDoc.name;
         }
 
         const studentData = {
@@ -146,7 +150,7 @@ const createStudent = asyncHandler(async (req, res) => {
 
         // 2. Create Receipt if paying now
         if (feeDetails && feeDetails.amount > 0) {
-            const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
+            // lastReceipt already fetched in parallel above
             let nextNum = 1;
             if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
                 nextNum = Number(lastReceipt.receiptNo) + 1;

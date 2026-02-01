@@ -324,8 +324,7 @@ const InquiryOffline = () => {
                         </td>
                     </tr>
                 )) : (
-                    <tr><td colSpan={user?.role === 'Super Admin' ? 14 : 13} className="text-center py-8 text-gray-400">No inquiries found</td></tr>
-                )}
+                    <tr><td colSpan={user?.role === 'Super Admin' ? 13 : 12} className="text-center py-8 text-gray-400">No inquiries found</td></tr>                )}
             </tbody>
         </table>
       </div>

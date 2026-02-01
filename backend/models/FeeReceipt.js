@@ -39,5 +39,6 @@ const feeReceiptSchema = new mongoose.Schema(
 feeReceiptSchema.index({ student: 1 });
 feeReceiptSchema.index({ receiptNo: 1 });
 feeReceiptSchema.index({ date: -1 });
+feeReceiptSchema.index({ createdAt: -1 }); // Optimized for sorting last Created
 
 module.exports = mongoose.model("FeeReceipt", feeReceiptSchema);
