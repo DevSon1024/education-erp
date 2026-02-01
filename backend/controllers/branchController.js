@@ -65,7 +65,8 @@ const createBranch = asyncHandler(async (req, res) => {
     });
 
     if (branch) {
-        res.status(201).json(branch);
+        const popBranch = await Branch.findById(branch._id).populate('branchDirector', 'name email mobile');
+        res.status(201).json(popBranch);
     } else {
         res.status(400);
         throw new Error('Invalid branch data');
@@ -76,7 +77,9 @@ const createBranch = asyncHandler(async (req, res) => {
 // @route   GET /api/branches
 // @access  Private/Super Admin (or authorized)
 const getBranches = asyncHandler(async (req, res) => {
-    const branches = await Branch.find({}).sort({ createdAt: -1 });
+    const branches = await Branch.find({})
+        .populate('branchDirector', 'name email mobile')
+        .sort({ createdAt: -1 });
     res.json(branches);
 });
 
@@ -164,6 +167,9 @@ const updateBranch = asyncHandler(async (req, res) => {
 
         const updatedBranch = await branch.save();
 
+        // Populate after save
+        const popUpdatedBranch = await Branch.findById(updatedBranch._id).populate('branchDirector', 'name email mobile');
+
         // Sync branchName updates to related collections (User, Student)
         // Employee does not hold branchName string, only branchId, so no sync needed there.
         if (req.body.name) {
@@ -177,7 +183,7 @@ const updateBranch = asyncHandler(async (req, res) => {
             );
         }
 
-        res.json(updatedBranch);
+        res.json(popUpdatedBranch);
     } else {
         res.status(404);
         throw new Error('Branch not found');

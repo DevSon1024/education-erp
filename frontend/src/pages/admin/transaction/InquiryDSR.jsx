@@ -224,7 +224,7 @@ const InquiryDSR = () => {
                     <th className="p-2 border font-semibold">Followup Date</th>
                     <th className="p-2 border font-semibold">Followup Time</th>
                     <th className="p-2 border font-semibold">Followup Details</th>
-                    <th className="p-2 border font-semibold w-48">Allocation To</th>
+                    {/* <th className="p-2 border font-semibold w-48">Allocation To</th> */}
                     <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-32">Actions</th>
                 </tr>
             </thead>
@@ -253,7 +253,7 @@ const InquiryDSR = () => {
                             {inquiry.followUpDate ? new Date(inquiry.followUpDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
                         </td>
                         <td className="p-2 border text-gray-600 truncate max-w-xs" title={inquiry.followUpDetails}>{inquiry.followUpDetails || '-'}</td>
-                        <td className="p-2 border">
+                        {/* <td className="p-2 border">
                             <select 
                                 className="w-full border p-1 rounded text-xs focus:ring-1 focus:ring-blue-500 outline-none bg-white"
                                 value={inquiry.allocatedTo?._id || inquiry.allocatedTo || ''}
@@ -267,7 +267,7 @@ const InquiryDSR = () => {
                                     <option key={emp._id} value={emp._id}>{emp.name}</option>
                                 ))}
                             </select>
-                        </td>
+                        </td> */}
                         <td className="p-2 border text-center sticky right-0 bg-white">
                             <div className="flex justify-center gap-1">
                                 <button onClick={() => setModal({type:'followup', data:inquiry})} className="bg-purple-50 text-purple-600 border border-purple-200 p-1 rounded hover:bg-purple-100 transition" title="Follow Up">

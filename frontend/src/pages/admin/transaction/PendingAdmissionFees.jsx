@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   fetchStudents,
   deleteStudent,
@@ -14,8 +14,10 @@ import {
   Eye,
   CreditCard,
   Trash2,
+  Edit,
 } from "lucide-react";
 import StudentSearch from "../../../components/StudentSearch";
+import moment from "moment";
 
 const PendingAdmissionFees = () => {
   const dispatch = useDispatch();
@@ -23,9 +25,9 @@ const PendingAdmissionFees = () => {
   const { students, pagination, isLoading } = useSelector(
     (state) => state.students
   );
-  const { employees } = useSelector((state) => state.employees) || {
-    employees: [],
-  }; // Select Employees
+  const { user } = useSelector((state) => state.auth);
+  // Optional: Fetch employees if dynamic reference dropdown is needed, 
+  // but for now we'll stick to basic standard fields or existing logic.
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -34,21 +36,14 @@ const PendingAdmissionFees = () => {
     startDate: "",
     endDate: "",
     isAdmissionFeesPaid: "false", // Show only those who haven't paid admission fees
+    pageNumber: 1,
+    pageSize: 10
   });
 
   // Load Data
   useEffect(() => {
-    dispatch(fetchStudents({ ...filters, pageNumber: 1 }));
-    dispatch(fetchEmployees()); // Fetch Employees
-  }, [dispatch]); // Initial load
-
-  // DEBUG LOGGING
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-       console.log("[DEV] PendingAdmissionFees - Filters:", filters);
-       console.log("[DEV] PendingAdmissionFees - Data Loaded:", students.length);
-    }
-  }, [filters, students]);
+    dispatch(fetchStudents(filters));
+  }, [dispatch, filters.pageNumber, filters.pageSize]); 
 
   // Handlers
   const handleSearch = () => {
@@ -62,25 +57,15 @@ const PendingAdmissionFees = () => {
       startDate: "",
       endDate: "",
       isAdmissionFeesPaid: "false",
+      pageNumber: 1,
+      pageSize: 10
     };
     setFilters(resetFilters);
-    dispatch(fetchStudents({ ...resetFilters, pageNumber: 1 }));
+    dispatch(fetchStudents(resetFilters));
   };
-
-  const handlePageChange = (newPage) => {
-    dispatch(fetchStudents({ ...filters, pageNumber: newPage }));
-  };
-
-  // Actions
-  const handleAdmissionPayment = (id) => {
-    navigate(`/transaction/admission-payment/${id}`);
-  };
-
-  const handleView = (student) => {
-    // Navigate to a student profile view (assuming one exists or reused)
-    // For now logging
-    console.log("View Student", student);
-    alert(`View Details for ${student.firstName}`);
+    
+  const handleFilterChange = (e) => {
+      setFilters({ ...filters, [e.target.name]: e.target.value, pageNumber: 1 });
   };
 
   const handleDelete = (id) => {
@@ -93,227 +78,169 @@ const PendingAdmissionFees = () => {
     }
   };
 
-  // Table Columns
-  const columns = [
-    { header: "Enrollment No", accessor: "enrollmentNo" },
-    {
-      header: "Admission Date",
-      accessor: "admissionDate",
-      render: (row) => new Date(row.admissionDate).toLocaleDateString('en-GB'),
-    },
-    {
-      header: "Student Name",
-      accessor: "firstName",
-      render: (row) => `${row.firstName} ${row.lastName}`,
-    },
-    { header: "Father/Husband", accessor: "middleName" },
-    { header: "Last Name", accessor: "lastName" },
-    { header: "Contact (Parent)", accessor: "mobileParent" },
-    {
-      header: "Course",
-      accessor: "course",
-      render: (row) => row.course?.name || "-",
-    },
-    {
-      header: "Pending Fees",
-      accessor: "pendingFees",
-      render: (row) => `₹${row.pendingFees}`,
-    },
-    { header: "Reference", accessor: "reference" },
-  ];
-
-  // Custom Action Buttons for SmartTable (if supported) or override render in SmartTable
-  // Since SmartTable currently has hardcoded Edit/Delete, we will modify SmartTable conceptually
-  // OR we can pass a custom render to the last column if we modify SmartTable.
-  // Assuming SmartTable usage is standard, I will create a specific Action Column render.
-
-  const actionColumn = {
-    header: "Actions",
-    accessor: "_id",
-    render: (row) => (
-      <div className="flex gap-2 justify-end">
-        <button
-          onClick={() => handleView(row)}
-          title="View Details"
-          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-        >
-          <Eye size={18} />
-        </button>
-        <button
-          onClick={() => handleAdmissionPayment(row._id)}
-          title="Pay Admission Fee"
-          className="p-1 text-green-600 hover:bg-green-50 rounded flex items-center gap-1"
-        >
-          <CreditCard size={18} />
-        </button>
-        <button
-          onClick={() => navigate(`/print/admission-form/${row._id}?mode=NO_FEES`)}
-          title="Print Admission Form"
-          className="p-1 text-gray-600 hover:bg-gray-50 rounded"
-        >
-          <Printer size={18} />
-        </button>
-        <button
-          onClick={() => handleDelete(row._id)}
-          title="Delete Record"
-          className="p-1 text-red-600 hover:bg-red-50 rounded"
-        >
-          <Trash2 size={18} />
-        </button>
-      </div>
-    ),
-  };
-
-  // Merge columns avoiding duplicate Actions if SmartTable adds one automatically.
-  // To strictly follow the "Table" requirements in prompt:
-  const tableColumns = [...columns, actionColumn];
+  const isSuperAdmin = user?.role === 'Super Admin';
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <CreditCard className="text-green-600" /> Pending Admission Fees
-          </h2>
-        </div>
+    <div className="container mx-auto p-4">
+      {/* --- Filter Section (Matching StudentList Style) --- */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Search Criteria
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+             <div>
+                <label className="text-xs text-gray-500">Student Name</label>
+                <StudentSearch 
+                    placeholder="Search Student..."
+                    additionalFilters={{ isAdmissionFeesPaid: 'false' }}
+                    onSelect={(id, student) => {
+                    if (student) {
+                        setFilters(prev => ({ ...prev, studentName: student.firstName }));
+                    } else {
+                        setFilters(prev => ({ ...prev, studentName: '' }));
+                    }
+                    }}
+                    className="w-full"
+                />
+            </div>
+            
+            <div>
+                 <label className="text-xs text-gray-500">Reference</label>
+                 <select
+                    name="reference"
+                    className="w-full border p-1 rounded text-sm"
+                    value={filters.reference}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="">All References</option>
+                    <option value="Faculty A">Faculty A</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Direct">Direct</option>
+                  </select>
+            </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <StudentSearch 
-            placeholder="Search Student..."
-            additionalFilters={{ isAdmissionFeesPaid: 'false' }}
-            onSelect={(id, student) => {
-              if (student) {
-                setFilters(prev => ({ ...prev, studentName: student.firstName }));
-              } else {
-                setFilters(prev => ({ ...prev, studentName: '' }));
-              }
-            }}
-          />
-
-          <select
-            className="border p-2 rounded"
-            value={filters.reference}
-            onChange={(e) =>
-              setFilters({ ...filters, reference: e.target.value })
-            }
-          >
-            <option value="">-- Select Reference --</option>
-            <option value="Faculty A">Faculty A</option>
-            <option value="Admin">Admin</option>
-            {/* Populate dynamically if Employee API exists */}
-          </select>
-
-          <input
-            type="date"
-            className="border p-2 rounded"
-            value={filters.startDate}
-            onChange={(e) =>
-              setFilters({ ...filters, startDate: e.target.value })
-            }
-            placeholder="From Date"
-          />
-          <input
-            type="date"
-            className="border p-2 rounded"
-            value={filters.endDate}
-            onChange={(e) =>
-              setFilters({ ...filters, endDate: e.target.value })
-            }
-            placeholder="To Date"
-          />
-        </div>
-
-        {/* Buttons */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
-          >
-            <Search size={18} /> Search
-          </button>
-          <button
-            onClick={handleReset}
-            className="bg-gray-500 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-gray-600"
-          >
-            <RotateCcw size={18} /> Reset
-          </button>
-          
-          {/* Note: Global report or selected print logic can be here. For row specific print, see the table actions below. */}
-          <button className="bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-purple-700">
-            <Printer size={18} /> Report
-          </button>
-        </div>
-
-        {/* Table */}
-        {isLoading ? (
-          <p className="text-center py-4">Loading students...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 border">
-              <thead className="bg-gray-50">
-                <tr>
-                  {tableColumns.map((col, idx) => (
-                    <th
-                      key={idx}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {col.header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {students.map((student) => (
-                  <tr key={student._id}>
-                    {tableColumns.map((col, idx) => (
-                      <td
-                        key={idx}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                      >
-                        {col.render
-                          ? col.render(student)
-                          : student[col.accessor]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-                {students.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={tableColumns.length}
-                      className="text-center py-4"
-                    >
-                      No pending admission fees found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination Controls - Simple Implementation */}
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            disabled={pagination.page === 1}
-            onClick={() => handlePageChange(pagination.page - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="px-3 py-1">
-            Page {pagination.page} of {pagination.pages}
-          </span>
-          <button
-            disabled={pagination.page === pagination.pages}
-            onClick={() => handlePageChange(pagination.page + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
+            <div>
+                <label className="text-xs text-gray-500">From Date</label>
+                <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm"/>
+            </div>
+            <div>
+                <label className="text-xs text-gray-500">To Date</label>
+                <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm"/>
+            </div>
+            
+            <div className="flex items-end gap-2">
+                <button onClick={handleReset} className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-gray-700 w-full flex justify-center"><RotateCcw size={18}/></button>
+                <button onClick={handleSearch} className="bg-primary text-white p-2 rounded hover:bg-blue-800 w-full flex justify-center">Search</button>
+            </div>
         </div>
       </div>
+
+      {/* --- Action Bar --- */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Show</label>
+            <select name="pageSize" value={filters.pageSize} onChange={handleFilterChange} className="border p-1 rounded text-sm">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <label className="text-sm text-gray-600">entries</label>
+        </div>
+      </div>
+
+      {/* --- Table Section --- */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1200px]">
+          <thead>
+            <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+              <th className="p-2 border font-semibold">Enrl No.</th>
+              <th className="p-2 border font-semibold">Admission Date</th>
+              <th className="p-2 border font-semibold">Student</th>
+              <th className="p-2 border font-semibold">Father/Husband</th>
+              <th className="p-2 border font-semibold">Last Name</th>
+              {isSuperAdmin && <th className="p-2 border font-semibold">Branch Name</th>}
+              <th className="p-2 border font-semibold">Contact(Home)</th>
+              <th className="p-2 border font-semibold">Contact(Student)</th>
+              <th className="p-2 border font-semibold">Contact(Guardian)</th>
+              <th className="p-2 border font-semibold">Course Name</th>
+              <th className="p-2 border font-semibold">Reference</th>
+              <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-40">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {students && students.length > 0 ? students.map((s, index) => (
+              <tr key={s._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                <td className="p-2 border font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
+                <td className="p-2 border whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
+                <td className="p-2 border font-medium text-gray-900">{s.firstName}</td>
+                <td className="p-2 border">{s.middleName || '-'}</td>
+                <td className="p-2 border">{s.lastName}</td>
+                
+                {isSuperAdmin && <td className="p-2 border text-gray-600">{s.branchName || 'Main Branch'}</td>}
+
+                <td className="p-2 border text-gray-600">{s.contactHome || '-'}</td>
+                <td className="p-2 border text-gray-600">{s.mobileStudent || '-'}</td>
+                <td className="p-2 border text-gray-600">{s.mobileParent || '-'}</td>
+
+                <td className="p-2 border font-semibold text-blue-800">{s.course?.name || '-'}</td>
+                <td className="p-2 border">{s.reference || 'Direct'}</td>
+
+                <td className="p-2 border text-center sticky right-0 bg-white">
+                   <div className="flex justify-center gap-1">
+                        <button 
+                            onClick={() => navigate(`/transaction/admission-payment/${s._id}`)} 
+                            className="bg-green-50 text-green-600 p-1 rounded border border-green-200 hover:bg-green-100 transition" 
+                            title="Pay Admission Fee"
+                        >
+                            <CreditCard size={14}/>
+                        </button>
+                        
+                        <Link 
+                            to={`/print/admission-form/${s._id}?mode=NO_FEES`} 
+                            target="_blank" 
+                            className="bg-purple-50 text-purple-600 p-1 rounded border border-purple-200 hover:bg-purple-100 transition" 
+                            title="Print"
+                        >
+                            <Printer size={14}/>
+                        </Link>
+
+                        <Link 
+                            to={`/master/student/new?updateId=${s._id}`} 
+                            className="bg-orange-50 text-orange-600 p-1 rounded border border-orange-200 hover:bg-orange-100 transition" 
+                            title="Edit"
+                        >
+                            <Edit size={14}/>
+                        </Link>
+
+                        <button 
+                            onClick={() => handleDelete(s._id)} 
+                            className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" 
+                            title="Delete"
+                        >
+                            <Trash2 size={14}/>
+                        </button>
+                   </div>
+                </td>
+              </tr>
+            )) : (
+              <tr><td colSpan={isSuperAdmin ? "12" : "11"} className="text-center py-8 text-gray-500">No pending admission fees found</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Pagination Footer */}
+      {pagination && (
+          <div className="bg-gray-50 px-4 py-3 border-t flex justify-between items-center mt-2 rounded-lg">
+              <span className="text-xs text-gray-500">Page {pagination.page} of {pagination.pages} ({pagination.count} records)</span>
+              <div className="flex gap-1">
+                  <button disabled={pagination.page === 1} onClick={() => setFilters({...filters, pageNumber: pagination.page - 1})} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Prev</button>
+                  <button disabled={pagination.page === pagination.pages} onClick={() => setFilters({...filters, pageNumber: pagination.page + 1})} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Next</button>
+              </div>
+          </div>
+      )}
+
     </div>
   );
 };

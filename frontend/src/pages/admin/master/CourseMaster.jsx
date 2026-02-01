@@ -216,8 +216,7 @@ const CourseMaster = () => {
                         <td className="p-2 border font-medium text-gray-700">{course.shortName}</td>
                         <td className="p-2 border font-semibold text-gray-900">{course.name}</td>
                         <td className="p-2 border text-gray-600">{course.courseType}</td>
-                        <td className="p-2 border text-gray-700">₹{course.courseFees}</td>
-                        <td className="p-2 border text-gray-600">{course.duration} {course.durationType}</td>
+                        <td className="p-2 border text-gray-700">₹{course.courseFees ?? 0}</td>                        <td className="p-2 border text-gray-600">{course.duration} {course.durationType}</td>
                         <td className="p-2 border text-center">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${course.isActive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
                                 {course.isActive ? 'Active' : 'Inactive'}
@@ -232,8 +231,7 @@ const CourseMaster = () => {
                                 <Eye size={14}/>
                             </button>
                         </td>
-                        <td className="p-2 border text-center sticky right-0 bg-white">
-                            <div className="flex justify-center gap-1">
+                        <td className="p-2 border text-center sticky right-0 bg-white z-[5]">                            <div className="flex justify-center gap-1">
                                 <button onClick={() => handleEdit(course)} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="Edit">
                                     <Edit2 size={14}/>
                                 </button>

@@ -165,7 +165,7 @@ const StudentList = () => {
           </thead>
           <tbody>
             {students.length > 0 ? students.map((s, index) => (
-              <tr key={s._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+              <tr key={s._id} className="group hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
                 <td className="p-2 border font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
                 <td className="p-2 border text-blue-600 font-mono">{s.regNo || '-'}</td>
                 
@@ -191,7 +191,7 @@ const StudentList = () => {
                     </span>
                 </td>
 
-                <td className="p-2 border text-center sticky right-0 bg-white">
+                <td className="p-2 border text-center sticky right-0 bg-white group-hover:bg-blue-50">
                    <div className="flex justify-center gap-1">
                         <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="View">
                             <Eye size={14}/>
@@ -212,8 +212,7 @@ const StudentList = () => {
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="14" className="text-center py-8 text-gray-500">No students found</td></tr>
-            )}
+              <tr><td colSpan="13" className="text-center py-8 text-gray-500">No students found</td></tr>            )}
           </tbody>
         </table>
       </div>

@@ -167,54 +167,60 @@ const BranchMaster = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-lg shadow overflow-x-auto border">
                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full border-collapse min-w-[1200px]">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="p-4 font-semibold text-gray-600 text-sm">Branch Name</th>
-                                <th className="p-4 font-semibold text-gray-600 text-sm">Code</th>
-                                <th className="p-4 font-semibold text-gray-600 text-sm">Contact</th>
-                                <th className="p-4 font-semibold text-gray-600 text-sm">Location</th>
-                                <th className="p-4 font-semibold text-gray-600 text-sm text-center">Status</th>
-                                <th className="p-4 font-semibold text-gray-600 text-sm text-right">Actions</th>
+                            <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                                <th className="p-2 border font-semibold w-12 text-center">Sr No</th>
+                                <th className="p-2 border font-semibold">Branch Name</th>
+                                <th className="p-2 border font-semibold">Branch Code</th>
+                                <th className="p-2 border font-semibold">Branch Director</th>
+                                <th className="p-2 border font-semibold">Contact</th>
+                                <th className="p-2 border font-semibold">Email</th>
+                                <th className="p-2 border font-semibold">Location</th>
+                                <th className="p-2 border font-semibold text-center">Status</th>
+                                <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-24">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredBranches.length > 0 ? (
                                 filteredBranches.map((branch, index) => (
-                                    <tr key={branch._id || index} className="hover:bg-gray-50 transition-colors">
-                                        <td className="p-4 text-sm font-medium text-gray-900">{branch.name}</td>
-                                        <td className="p-4 text-sm text-gray-600 font-mono bg-gray-50 rounded px-2 py-1 w-min whitespace-nowrap">{branch.shortCode}</td>
-                                        <td className="p-4 text-sm text-gray-600">
+                                    <tr key={branch._id || index} className="hover:bg-blue-50 text-xs text-gray-700 transition-colors">
+                                        <td className="p-2 border text-center">{index + 1}</td>
+                                        <td className="p-2 border font-medium text-gray-900">{branch.name}</td>
+                                        <td className="p-2 border font-mono bg-gray-50 text-blue-600 rounded px-1 text-center">{branch.shortCode}</td>
+                                        <td className="p-2 border">{branch.branchDirector?.name || '-'}</td>
+                                        <td className="p-2 border">
                                             <div className="flex flex-col">
-                                                <span>{branch.mobile}</span>
-                                                <span className="text-xs text-gray-400">{branch.email}</span>
+                                                <span className="font-semibold">Mo - {branch.mobile}</span>
+                                                {branch.phone && <span className="text-[10px] text-gray-500">Ph - {branch.phone}</span>}
                                             </div>
                                         </td>
-                                        <td className="p-4 text-sm text-gray-600">
+                                        <td className="p-2 border text-gray-600">{branch.email}</td>
+                                        <td className="p-2 border text-gray-600">
                                             {branch.city}, {branch.state}
                                         </td>
-                                        <td className="p-4 text-center">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${branch.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <td className="p-2 border text-center">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${branch.isActive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
                                                 {branch.isActive ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex justify-end gap-2">
+                                        <td className="p-2 border text-center sticky right-0 bg-white">
+                                            <div className="flex justify-center gap-2">
                                                 <button 
                                                     onClick={() => handleEdit(branch)} 
-                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                    className="bg-blue-50 text-blue-600 border border-blue-200 p-1.5 rounded hover:bg-blue-100 transition" 
                                                     title="Edit"
                                                 >
-                                                    <Edit size={16} />
+                                                    <Edit size={14} />
                                                 </button>
                                                 <button 
                                                     onClick={() => handleDelete(branch._id)} 
-                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                    className="bg-red-50 text-red-600 border border-red-200 p-1.5 rounded hover:bg-red-100 transition" 
                                                     title="Delete"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         </td>
@@ -222,7 +228,7 @@ const BranchMaster = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="p-8 text-center text-gray-500">
+                                    <td colSpan="9" className="p-8 text-center text-gray-500">
                                         No branches found.
                                     </td>
                                 </tr>
