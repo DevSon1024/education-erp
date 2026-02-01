@@ -359,7 +359,7 @@ const OnlineAdmission = () => {
                      <CheckCircle className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                   </label>
                   <span className="text-sm text-gray-600">
-                      I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline">Terms and Conditions</a> for admission at Smart Institute.
+                    I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline" onClick={(e) => e.stopPropagation()}>Terms and Conditions</a> for admission at Smart Institute.
                   </span>
               </div>
           </div>

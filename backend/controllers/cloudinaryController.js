@@ -45,23 +45,18 @@ exports.getCloudinaryImages = async (req, res) => {
 
     const extractPublicId = (url) => {
         if (!url) return null;
-        try {
-            // Regex to match the part after /upload/v<version>/ or just /upload/
-            // and remove extension
-            const regex = /\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/;
-            const match = url.match(regex);
-            return match ? match[1] : null;
-        } catch (error) {
-            return null;
-        }
+        // Remove query parameters first
+        const urlWithoutQuery = url.split('?')[0];
+        // Regex to match the part after /upload/v<version>/ or just /upload/
+        // and remove extension
+        const regex = /\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/;
+        const match = urlWithoutQuery.match(regex);
+        return match ? match[1] : null;
     };
-
     students.forEach(s => {
         if (s.studentPhoto) {
             const pid = extractPublicId(s.studentPhoto);
             if (pid) usedPublicIds.add(pid);
-             // Also add exact match just in case logic differs, though unlikely
-             usedPublicIds.add(s.studentPhoto);
         }
     });
 
@@ -71,7 +66,6 @@ exports.getCloudinaryImages = async (req, res) => {
             if (pid) usedPublicIds.add(pid);
         }
     });
-
     // 4. Map resources to add 'status'
     const processedImages = resources.map(img => {
         const isUsed = usedPublicIds.has(img.public_id);
@@ -100,8 +94,8 @@ exports.getCloudinaryImages = async (req, res) => {
 exports.deleteCloudinaryImage = async (req, res) => {
     const { public_id } = req.body;
 
-    if (!public_id) {
-        return res.status(400).json({ success: false, message: "Public ID is required" });
+    if (!public_id.startsWith('students_uploads/')) {
+        return res.status(403).json({ success: false, message: "Cannot delete images outside allowed folder" });    
     }
 
     try {

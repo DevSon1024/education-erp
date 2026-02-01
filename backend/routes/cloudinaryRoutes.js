@@ -5,8 +5,7 @@ const { protect, checkRole } = require('../middlewares/authMiddleware'); // Assu
 
 // Route to get all images with status
 // Protected route for Admins/SuperAdmins
-router.get('/', protect, cloudinaryController.getCloudinaryImages);
-
+router.get('/', protect, checkRole(['Super Admin', 'Admin']), cloudinaryController.getCloudinaryImages);
 // Route to delete an image
 router.post('/delete', protect, checkRole(['Super Admin', 'Admin']), cloudinaryController.deleteCloudinaryImage);
 
