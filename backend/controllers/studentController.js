@@ -431,12 +431,20 @@ const getNextRegNo = asyncHandler(async (req, res) => {
 
 // @desc    Permanent Delete Student
 const deleteStudent = asyncHandler(async (req, res) => {
-    const student = await Student.findByIdAndDelete(req.params.id);
+    const student = await Student.findById(req.params.id);
     if (student) {
+        // 1. Delete associated Fee Receipts
+        await FeeReceipt.deleteMany({ student: student._id });
+
+        // 2. Delete associated User account if exists
         if(student.userId) {
             await User.findByIdAndDelete(student.userId);
         }
-        res.json({ message: 'Student removed permanently' });
+
+        // 3. Delete Student
+        await Student.findByIdAndDelete(req.params.id);
+        
+        res.json({ message: 'Student and all associated data (receipts, user login) removed permanently' });
     } else {
         res.status(404); throw new Error('Student not found');
     }

@@ -1,42 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { fetchStudents } from '../../../features/student/studentSlice';
+import { fetchStudents, deleteStudent, resetStatus } from '../../../features/student/studentSlice';
 import { fetchEmployees } from '../../../features/employee/employeeSlice';
-import { Search, RotateCcw, Printer, UserPlus, Eye, Edit } from 'lucide-react';
-import StudentSearch from '../../../components/StudentSearch';
+import { useNavigate, Link } from 'react-router-dom';
+import { Eye, Edit, Printer, Trash2, Search, RefreshCw, UserPlus, CheckCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
+import moment from 'moment';
 
 const PendingStudentRegistration = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { students, pagination, isLoading } = useSelector((state) => state.students);
+  const { students, pagination, isLoading, isSuccess, message } = useSelector((state) => state.students);
+  const { user } = useSelector((state) => state.auth);
   const { employees } = useSelector((state) => state.employees) || { employees: [] };
 
   // Filters
   const [filters, setFilters] = useState({
     studentName: '',
     reference: '',
-    startDate: '', // Default Today
+    startDate: '', 
     endDate: new Date().toISOString().split('T')[0],
     isRegistered: 'false', // Only unregistered
-    isAdmissionFeesPaid: 'true' // Only those who paid admission fees
+    isAdmissionFeesPaid: 'true', // Only those who paid admission fees
+    pageNumber: 1,
+    pageSize: 10
   });
 
   useEffect(() => {
-    dispatch(fetchStudents({ ...filters, pageNumber: 1 }));
     dispatch(fetchEmployees());
-  }, [dispatch]); // Initial Load
+  }, [dispatch]);
 
-  // DEBUG LOGGING
   useEffect(() => {
-     if (import.meta.env.DEV) {
-         console.log("[DEV] PendingStudentRegistration - Filters:", filters);
-         console.log("[DEV] PendingStudentRegistration - Students Loaded:", students.length);
-     }
-  }, [filters, students]);
+    dispatch(fetchStudents(filters));
+  }, [dispatch, filters]);
 
-  const handleSearch = () => {
-    dispatch(fetchStudents({ ...filters, pageNumber: 1 }));
+  useEffect(() => {
+      if(isSuccess && message) {
+          toast.success(message);
+          dispatch(resetStatus());
+          // Refresh list after successful deletion
+          dispatch(fetchStudents(filters));
+      }
+  }, [isSuccess, message, dispatch, filters]);
+
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value, pageNumber: 1 });
   };
 
   const handleReset = () => {
@@ -44,130 +52,163 @@ const PendingStudentRegistration = () => {
       studentName: '',
       reference: '',
       startDate: '',
-      endDate: '',
+      endDate: new Date().toISOString().split('T')[0],
       isRegistered: 'false',
-      isAdmissionFeesPaid: 'true'
+      isAdmissionFeesPaid: 'true',
+      pageNumber: 1,
+      pageSize: 10
     });
-    dispatch(fetchStudents({ isRegistered: 'false', isAdmissionFeesPaid: 'true', pageNumber: 1 }));
+  };
+
+  const handleDelete = (id) => {
+      if (window.confirm("Are you sure you want to permanently delete this student? This action cannot be undone and will delete all associated receipts.")) {
+          dispatch(deleteStudent(id));
+      }
   };
 
   const handleRegister = (id) => {
     navigate(`/transaction/student-registration-process/${id}`);
   };
 
-  const handleView = (student) => {
-    alert(`View Details for ${student.firstName}`);
-  };
-
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <div className="flex items-center gap-3 mb-6 border-b pb-4">
-          <UserPlus className="text-blue-600" size={28} />
-          <h2 className="text-2xl font-bold text-gray-800">Pending Student Registration</h2>
+    <div className="container mx-auto p-4">
+      
+      {/* --- Filter Section --- */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Search Criteria
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <div>
+                <label className="text-xs text-gray-500">Student Name</label>
+                <input type="text" name="studentName" value={filters.studentName} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm" placeholder="Search name..."/>
+            </div>
+            <div>
+                <label className="text-xs text-gray-500">Reference</label>
+                <select name="reference" value={filters.reference} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm">
+                    <option value="">All References</option>
+                    {employees?.map(emp => (
+                        <option key={emp._id} value={emp.name}>{emp.name}</option>
+                    ))}
+                </select>
+            </div>
+            <div>
+                <label className="text-xs text-gray-500">From Date</label>
+                <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm"/>
+            </div>
+            <div>
+                <label className="text-xs text-gray-500">To Date</label>
+                <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm"/>
+            </div>
+            
+            <div className="flex items-end gap-2 col-span-2 md:col-span-2">
+                <button onClick={handleReset} className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-gray-700 w-full flex justify-center items-center gap-2"><RefreshCw size={18}/> Reset</button>
+                <button onClick={() => dispatch(fetchStudents(filters))} className="bg-primary text-white p-2 rounded hover:bg-blue-800 w-full flex justify-center items-center gap-2"><Search size={18}/> Search</button>
+            </div>
         </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <StudentSearch 
-            placeholder="Search Student..."
-            additionalFilters={{ isRegistered: 'false', isAdmissionFeesPaid: 'true' }} 
-            onSelect={(id, student) => {
-              // When selected via search, we can directly update list or just set the name filter
-              if (student) {
-                setFilters(prev => ({ ...prev, studentName: student.firstName }));
-              } else {
-                setFilters(prev => ({ ...prev, studentName: '' }));
-              }
-            }}
-          />
-          
-          <select 
-            className="border p-2 rounded"
-            value={filters.reference}
-            onChange={(e) => setFilters({...filters, reference: e.target.value})}
-          >
-            <option value="">-- Reference --</option>
-            {employees?.map(emp => (
-                <option key={emp._id} value={emp.name}>{emp.name}</option>
-            ))}
-          </select>
-          <input 
-            type="date" 
-            className="border p-2 rounded"
-            value={filters.startDate}
-            onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-          />
-          <input 
-            type="date" 
-            className="border p-2 rounded"
-            value={filters.endDate}
-            onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-          />
-          <div className="flex gap-2">
-            <button onClick={handleSearch} className="bg-blue-600 text-white p-2 rounded"><Search size={20}/></button>
-            <button onClick={handleReset} className="bg-gray-500 text-white p-2 rounded"><RotateCcw size={20}/></button>
-            <button className="bg-purple-600 text-white p-2 rounded"><Printer size={20}/></button>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Enrollment No</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Adm Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                  <tr><td colSpan="6" className="text-center py-4">Loading...</td></tr>
-              ) : students.length > 0 ? (
-                  students.map((student) => (
-                    <tr key={student._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm">{student.enrollmentNo}</td>
-                      <td className="px-6 py-4 text-sm">{new Date(student.admissionDate).toLocaleDateString('en-GB')}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {student.firstName} {student.lastName}
-                        <div className="text-xs text-gray-500">Father: {student.middleName}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <div>S: {student.mobileStudent || '-'}</div>
-                        <div className="text-xs text-gray-500">P: {student.mobileParent}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm">{student.course?.name}</td>
-                      <td className="px-6 py-4 text-right flex justify-end gap-2">
-                        <button onClick={() => handleView(student)} className="text-blue-600" title="View"><Eye size={18}/></button>
-                        <button onClick={() => handleRegister(student._id)} className="text-green-600 font-bold border border-green-600 px-2 py-1 rounded text-xs hover:bg-green-50">
-                            Register
-                        </button>
-                        <button onClick={() => navigate(`/print/admission-form/${student._id}?mode=REGISTRATION`)} className="text-purple-600" title="Print Form"><Printer size={18}/></button>
-                        <button className="text-gray-600" title="Edit"><Edit size={18}/></button>
-                      </td>
-                    </tr>
-                  ))
-              ) : (
-                  <tr><td colSpan="6" className="text-center py-4">No pending registrations found.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination (Simplified) */}
-        <div className="mt-4 flex justify-between text-sm text-gray-600">
-             <span>Showing {students.length} of {pagination.count} records</span>
-             <div className="flex gap-2">
-                <button disabled={pagination.page===1} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-                <button disabled={pagination.page===pagination.pages} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
-             </div>
-        </div>
-
       </div>
+
+      {/* --- Action Bar --- */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <UserPlus className="text-blue-600"/> Pending Student Registration
+            </h2>
+        </div>
+        <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Show</label>
+            <select name="pageSize" value={filters.pageSize} onChange={handleFilterChange} className="border p-1 rounded text-sm">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+            <label className="text-sm text-gray-600">entries</label>
+        </div>
+      </div>
+
+      {/* --- Table Section --- */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        <table className="w-full border-collapse min-w-[1200px]">
+          <thead>
+            <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+              <th className="p-2 border font-semibold">Enroll No</th>
+              <th className="p-2 border font-semibold">Adm Date</th>
+              <th className="p-2 border font-semibold">Student Name</th>
+              <th className="p-2 border font-semibold">Father/Husband</th>
+              <th className="p-2 border font-semibold">Last Name</th>
+              <th className="p-2 border font-semibold">Contact (Home)</th>
+              <th className="p-2 border font-semibold">Contact (Student)</th>
+              <th className="p-2 border font-semibold">Contact (Parent)</th>
+                <th className="p-2 border font-semibold">Course Name</th>
+              {user?.role === 'Super Admin' && (
+                <th className="p-2 border font-semibold">Branch</th>
+              )}
+              <th className="p-2 border font-semibold">Reference</th>
+              <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-40">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+                <tr><td colSpan={user?.role === 'Super Admin' ? "12" : "11"} className="p-4 text-center">Loading...</td></tr>
+            ) : students.length > 0 ? students.map((s) => (
+              <tr key={s._id} className="group hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                <td className="p-2 border font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
+                <td className="p-2 border whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
+                
+                <td className="p-2 border font-medium text-gray-900">{s.firstName}</td>
+                <td className="p-2 border">{s.middleName || '-'}</td>
+                <td className="p-2 border">{s.lastName}</td>
+
+                <td className="p-2 border text-gray-600">{s.contactHome || '-'}</td>
+                <td className="p-2 border text-gray-600">{s.mobileStudent || '-'}</td>
+                <td className="p-2 border text-gray-600">{s.mobileParent || '-'}</td>
+
+                <td className="p-2 border font-semibold text-blue-800">{s.course?.name || '-'}</td>
+                {user?.role === 'Super Admin' && (
+                    <td className="p-2 border text-gray-600">{s.branchName || 'Main Branch'}</td>
+                )}
+                <td className="p-2 border">{s.reference || '-'}</td>
+
+                <td className="p-2 border text-center sticky right-0 bg-white group-hover:bg-blue-50">
+                   <div className="flex justify-center gap-1">
+                        <Link to={`/master/student/view/${s._id}`} className="bg-blue-50 text-blue-600 p-1.5 rounded border border-blue-200 hover:bg-blue-100 transition" title="View">
+                            <Eye size={14}/>
+                        </Link>
+                        
+                        <button onClick={() => handleRegister(s._id)} className="bg-green-50 text-green-600 p-1.5 rounded border border-green-200 hover:bg-green-100 transition font-bold flex items-center gap-1" title="Register">
+                            <CheckCircle size={14}/> 
+                        </button>
+
+                        <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded border border-orange-200 hover:bg-orange-100 transition" title="Edit">
+                            <Edit size={14}/>
+                        </Link>
+
+                        <Link to={`/print/admission-form/${s._id}?mode=REGISTRATION`} target="_blank" className="bg-purple-50 text-purple-600 p-1.5 rounded border border-purple-200 hover:bg-purple-100 transition" title="Print">
+                            <Printer size={14}/>
+                        </Link>
+
+                        <button onClick={() => handleDelete(s._id)} className="bg-red-50 text-red-600 p-1.5 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                            <Trash2 size={14}/>
+                        </button>
+                   </div>
+                </td>
+              </tr>
+            )) : (
+              <tr><td colSpan={user?.role === 'Super Admin' ? "12" : "11"} className="text-center py-8 text-gray-500">No pending registrations found</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Pagination Footer */}
+      <div className="bg-gray-50 px-4 py-3 border-t flex justify-between items-center mt-2 rounded-lg">
+          <span className="text-xs text-gray-500">Page {pagination.page} of {pagination.pages} ({pagination.count} records)</span>
+          <div className="flex gap-1">
+              <button disabled={pagination.page === 1} onClick={() => setFilters({...filters, pageNumber: pagination.page - 1})} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Prev</button>
+              <button disabled={pagination.page === pagination.pages} onClick={() => setFilters({...filters, pageNumber: pagination.page + 1})} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Next</button>
+          </div>
+      </div>
+
     </div>
   );
 };
