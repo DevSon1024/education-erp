@@ -71,8 +71,33 @@ const getStudentById = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id)
         .populate('course', 'name courseFees monthlyFees totalInstallment registrationFees admissionFees') // Explicitly select fee fields
         .populate('userId', 'username email');
-    if (student) res.json(student);
-    else { res.status(404); throw new Error('Student not found'); }
+    
+    if (student) {
+        // Fetch receipts to calculate paid registration fee
+        const receipts = await FeeReceipt.find({ student: student._id });
+        
+        // Calculate paid registration fee
+        // Logic: 1. Look for receipts with 'registration' in remarks
+        //        2. Or if 'One Time' payment and isRegistered, maybe the first payment?
+        //        But safe bet is remarks based or checking dates.
+        
+        const regReceipts = receipts.filter(r => {
+            const rem = (r.remarks || "").toLowerCase();
+            return rem.includes("registration");
+        });
+
+        // Use reduce to sum, because maybe they paid in parts? 
+        // Although usually registration is one-time.
+        let paidRegistrationFee = regReceipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
+        
+        // Convert to mutable object to add field
+        const studentObj = student.toObject();
+        studentObj.paidRegistrationFee = paidRegistrationFee;
+
+        res.json(studentObj);
+    } else { 
+        res.status(404); throw new Error('Student not found'); 
+    }
 });
 
 // @desc    Create Student (Admission Phase)

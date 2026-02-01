@@ -303,11 +303,12 @@ const AdmissionFormPrint = () => {
                                                         <Editable value={mode !== 'NO_FEES' && student.isRegistered && student.registrationDate ? moment(student.registrationDate).format('DD/MM/YY') : ""} />
                                                     </td>
                                                     <td className="text-center p-2 align-top">
-                                                        {/* Show ONLY if Monthly payment plan is selected. Shows PAID amount. */}
+                                                        {/* Show Registration Fee for ALL plans if registered (User Request) */}
+                                                        {/* Prioritize actual paid fee calculated from receipts */}
                                                         <Editable 
                                                             value={
-                                                                localPaymentPlan === 'Monthly' && mode !== 'NO_FEES'
-                                                                    ? (student.isRegistered ? (student.emiDetails?.registrationFees || student.course?.registrationFees) : "") 
+                                                                mode !== 'NO_FEES' && student.isRegistered
+                                                                    ? (student.paidRegistrationFee || student.emiDetails?.registrationFees || "") 
                                                                     : "" 
                                                             } 
                                                         />
