@@ -6,8 +6,8 @@ const generateToken = (res, userId) => {
     const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '30d' });
     res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production', // Only true in production
+        sameSite: 'Lax', // Relaxed CSRF for better compatibility
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
 };
@@ -29,7 +29,18 @@ const registerUser = asyncHandler(async (req, res) => {
     if (user) {
         generateToken(res, user._id);
         res.status(201).json({
-            _id: user._id, name: user.name, username: user.username, role: user.role
+            _id: user._id, 
+            name: user.name, 
+            username: user.username, 
+            email: user.email,
+            role: user.role,
+            branchId: user.branchId,
+            branchName: user.branchName,
+            mobile: user.mobile,
+            gender: user.gender,
+            education: user.education,
+            address: user.address,
+            photo: user.photo
         });
     } else {
         res.status(400); throw new Error('Invalid user data');
@@ -90,6 +101,7 @@ const loginUser = asyncHandler(async (req, res) => {
         res.json({
             _id: user._id, 
             name: user.name, 
+            username: user.username,
             email: user.email, 
             role: user.role,
             branchId: user.branchId,
@@ -120,11 +132,22 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     if (user) {
         user.name = req.body.name || user.name;
-        user.email = req.body.email || user.email;
         user.mobile = req.body.mobile || user.mobile;
+        
+        // Handle Email Update
+        user.email = req.body.email || user.email;
+
+        // Handle Username Update (New Feature)
+        if (req.body.username && req.body.username !== user.username) {
+            const usernameExists = await User.findOne({ username: req.body.username });
+            if (usernameExists) {
+                res.status(400);
+                throw new Error('Username already taken');
+            }
+            user.username = req.body.username;
+        }
+
         user.gender = req.body.gender || user.gender;
-        user.education = req.body.education || user.education;
-        user.address = req.body.address || user.address;
         user.education = req.body.education || user.education;
         user.address = req.body.address || user.address;
         user.branchName = req.body.branchName || user.branchName;
@@ -141,14 +164,12 @@ const updateProfile = asyncHandler(async (req, res) => {
         const employee = await require('../models/Employee').findOne({ userAccount: user._id });
         if (employee) {
             employee.name = user.name;
-            employee.email = user.email; // <--- Added email sync
+            employee.email = user.email; 
             employee.mobile = user.mobile;
             employee.gender = user.gender;
-            employee.gender = user.gender;
             employee.address = user.address;
-            employee.branchId = user.branchId; // Sync branchId
-            employee.qualification = user.education; // Sync education back to qualification
-            // Also sync education field if it exists and is used
+            employee.branchId = user.branchId; 
+            employee.qualification = user.education;
             employee.education = user.education; 
             
             if (req.file) {
@@ -161,6 +182,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         res.json({
             _id: updatedUser._id,
             name: updatedUser.name,
+            username: updatedUser.username, // Include updated username
             email: updatedUser.email,
             role: updatedUser.role,
             mobile: updatedUser.mobile,

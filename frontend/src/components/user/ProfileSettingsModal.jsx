@@ -14,6 +14,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState('profile');
     const [profileData, setProfileData] = useState({
         name: user?.name || '',
+        username: user?.username || '',
         mobile: user?.mobile || '',
         email: user?.email || '',
         gender: user?.gender || '',
@@ -62,6 +63,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
         if (user) {
             setProfileData({
                 name: user.name || '',
+                username: user.username || '',
                 mobile: user.mobile || '',
                 email: user.email || '',
                 gender: user.gender || '',
@@ -241,6 +243,10 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                                             <input type="text" name="name" value={profileData.name} onChange={handleProfileChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none" />
                                         </div>
                                         <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">Username</label>
+                                            <input type="text" name="username" value={profileData.username} onChange={handleProfileChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none" />
+                                        </div>
+                                        <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
                                             <input type="email" name="email" value={profileData.email} onChange={handleProfileChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none" />
                                         </div>
@@ -306,7 +312,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1">Username</label>
                                         <input type="text" value={user?.username || user?.email} readOnly className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed outline-none" />
-                                        <p className="text-xs text-gray-500 mt-1">Username cannot be changed</p>
+                                        {/* Username can be changed in Profile tab */}
                                     </div>
                                     <div className="relative">
                                         <label className="block text-sm font-semibold text-gray-700 mb-1">Old Password</label>

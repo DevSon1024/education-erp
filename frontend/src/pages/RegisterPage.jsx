@@ -136,15 +136,7 @@ const RegisterPage = () => {
                     {...register('username', { 
                     required: 'Username is required',
                     minLength: { value: 3, message: 'Minimum 3 characters required' },
-                    validate: {
-                        hasLetterAndNumber: (value) => {
-                            const hasLetter = /[a-zA-Z]/.test(value);
-                            const hasNumber = /[0-9]/.test(value);
-                            if (!hasLetter || !hasNumber) {
-                                return 'Username must contain both letters and numbers';
-                            }
-                            return true;
-                        },
+                        validate: {
                         availability: () => {
                             if (checkingUsername) {
                                 return 'Please wait while we check username availability';
