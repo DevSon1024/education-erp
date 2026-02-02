@@ -93,6 +93,19 @@ export const fetchQuizReport = createAsyncThunk(
     }
 );
 
+// Fetch Student Fees
+export const fetchStudentFees = createAsyncThunk(
+    'studentPortal/fetchStudentFees',
+    async (_, thunkAPI) => {
+        try {
+            const response = await axios.get(`${API_URL}fees`);
+            return response.data;
+        } catch (error) {
+            return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
 const studentPortalSlice = createSlice({
     name: 'studentPortal',
     initialState: {
@@ -102,6 +115,7 @@ const studentPortalSlice = createSlice({
         quizQuestions: [],
         quizResult: null,
         quizReports: [],
+        fees: [], // Added fees state
         isLoading: false,
         isError: false,
         message: '',
@@ -181,6 +195,17 @@ const studentPortalSlice = createSlice({
                 state.quizReports = action.payload;
             })
             .addCase(fetchQuizReport.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Student Fees
+            .addCase(fetchStudentFees.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchStudentFees.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.fees = action.payload;
+            })
+            .addCase(fetchStudentFees.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

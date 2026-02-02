@@ -41,6 +41,7 @@ const StudentCourseFeedback = lazy(() => import("./pages/student/CourseFeedback"
 const StudentFreeStudyMaterial = lazy(() => import("./pages/student/FreeStudyMaterial"));
 const StudentFreeLearning = lazy(() => import("./pages/student/FreeLearning"));
 const StudentFreeLearningReport = lazy(() => import("./pages/student/FreeLearningReport"));
+const StudentFees = lazy(() => import("./pages/student/StudentFees"));
 
 
 // Master Pages
@@ -152,6 +153,8 @@ function App() {
                  <Route path="study/materials" element={<StudentFreeStudyMaterial />} />
                  <Route path="study/free-learning" element={<StudentFreeLearning />} />
                  <Route path="study/free-learning-report" element={<StudentFreeLearningReport />} />
+                 
+                 <Route path="fees" element={<StudentFees />} />
 
                  <Route path="*" element={<Navigate to="home" replace />} />
               </Route>

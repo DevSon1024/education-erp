@@ -42,7 +42,7 @@ const StudentNavbar = () => {
             ] 
         },
         { title: 'Blogs', path: '#' },
-        { title: 'Fees', path: '#' },
+        { title: 'Fees', path: '/student/fees' },
         { title: 'Exam', path: '#' },
         { title: 'Complain', path: '#' },
         { title: 'Connect', path: '#' },
@@ -105,7 +105,7 @@ const StudentNavbar = () => {
                                         </>
                                     ) : (
                                         <Link to={item.path} className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-bold transition-all duration-200 
-                                            ${location.pathname === item.path ? 'text-primary bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}>
+                                            ${location.pathname.startsWith(item.path) && item.path !== '#' ? 'text-primary bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}>
                                             {item.title}
                                         </Link>
                                     )}

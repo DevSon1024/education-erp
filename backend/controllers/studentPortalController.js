@@ -265,6 +265,38 @@ const getFreeLearningReport = async (req, res) => {
     }
 };
 
+// @desc    Get Student Fees (Receipts)
+// @route   GET /api/student-portal/fees
+// @access  Private (Student)
+const getStudentFees = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const Student = require('../models/Student');
+        const FeeReceipt = require('../models/FeeReceipt');
+
+        const student = await Student.findOne({ userId });
+        if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        const receipts = await FeeReceipt.find({ student: student._id })
+            .populate({
+                 path: 'student',
+                 select: 'firstName lastName regNo enrollmentNo middleName mobileStudent mobileParent batch totalFees pendingFees branchName emiDetails branchId',
+                 populate: {
+                     path: 'branchId',
+                     select: 'name address city state phone mobile email type'
+                 }
+            })
+            .populate('course', 'name')
+            .sort({ date: -1 });
+
+        res.json(receipts);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getCourseDetails,
@@ -272,5 +304,6 @@ module.exports = {
     getStudyMaterials,
     getFreeLearningQuestions,
     submitFreeLearning,
-    getFreeLearningReport
+    getFreeLearningReport,
+    getStudentFees
 };

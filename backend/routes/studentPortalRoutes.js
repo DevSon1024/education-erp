@@ -8,12 +8,14 @@ const {
     getStudyMaterials,
     getFreeLearningQuestions,
     submitFreeLearning,
-    getFreeLearningReport
+    getFreeLearningReport,
+    getStudentFees
 } = require('../controllers/studentPortalController');
 
 router.get('/dashboard', protect, getDashboardStats);
 router.get('/course', protect, getCourseDetails);
 router.post('/feedback', protect, submitFeedback);
+router.get('/fees', protect, getStudentFees);
 
 // Study Section Routes
 router.get('/materials', protect, getStudyMaterials);
