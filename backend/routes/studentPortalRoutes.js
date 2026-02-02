@@ -4,11 +4,21 @@ const { protect } = require('../middlewares/authMiddleware');
 const { 
     getDashboardStats, 
     getCourseDetails, 
-    submitFeedback 
+    submitFeedback,
+    getStudyMaterials,
+    getFreeLearningQuestions,
+    submitFreeLearning,
+    getFreeLearningReport
 } = require('../controllers/studentPortalController');
 
 router.get('/dashboard', protect, getDashboardStats);
 router.get('/course', protect, getCourseDetails);
 router.post('/feedback', protect, submitFeedback);
+
+// Study Section Routes
+router.get('/materials', protect, getStudyMaterials);
+router.get('/learning/questions', protect, getFreeLearningQuestions);
+router.post('/learning/submit', protect, submitFreeLearning);
+router.get('/learning/report', protect, getFreeLearningReport);
 
 module.exports = router;

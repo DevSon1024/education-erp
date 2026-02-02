@@ -127,6 +127,15 @@ const getCourseDetails = async (req, res) => {
 const submitFeedback = async (req, res) => {
     try {
         const { courseName, title, email, mobile, feedback } = req.body;
+        
+        // Basic validation
+        if (!feedback || !feedback.trim()) {
+            return res.status(400).json({ message: 'Feedback is required' });
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
+        
         const userId = req.user._id;
         
         // Find Student to link properly (optional but good for checking validity)
@@ -142,7 +151,6 @@ const submitFeedback = async (req, res) => {
             feedback,
             date: new Date()
         });
-
         res.status(201).json(newFeedback);
 
     } catch (error) {
@@ -151,8 +159,118 @@ const submitFeedback = async (req, res) => {
     }
 };
 
+// @desc    Get Free Study Materials
+// @route   GET /api/student-portal/materials
+// @access  Private (Student)
+const getStudyMaterials = async (req, res) => {
+    try {
+        const StudyMaterial = require('../models/StudyMaterial');
+        const materials = await StudyMaterial.find({ isFree: true }).sort({ createdAt: -1 });
+        res.json(materials);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Get Free Learning Questions (MCQ)
+// @route   GET /api/student-portal/learning/questions
+// @access  Private (Student)
+const getFreeLearningQuestions = async (req, res) => {
+    try {
+        const FreeLearning = require('../models/FreeLearning');
+        // Fetch all questions - in a real app might want to paginate or limit
+        const questions = await FreeLearning.find().select('-correctOption -explanation'); // Hide answers
+        res.json(questions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Submit Free Learning Quiz
+// @route   POST /api/student-portal/learning/submit
+// @access  Private (Student)
+const submitFreeLearning = async (req, res) => {
+    try {
+        const { answers } = req.body; // Array of { questionId, selectedOption }
+        const userId = req.user._id;
+        const Student = require('../models/Student');
+        const FreeLearning = require('../models/FreeLearning');
+        const FreeLearningProgress = require('../models/FreeLearningProgress');
+
+        const student = await Student.findOne({ userId });
+        if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        let totalScore = 0;
+        const processedQuestions = [];
+
+        // Validate answers
+        for (const ans of answers) {
+            const question = await FreeLearning.findById(ans.questionId);
+            if (question) {
+                const isCorrect = question.correctOption === parseInt(ans.selectedOption);
+                if (isCorrect) totalScore++;
+                
+                processedQuestions.push({
+                    questionId: question._id,
+                    selectedOption: ans.selectedOption,
+                    isCorrect
+                });
+            }
+        }
+
+        // Save Progress
+        const progress = await FreeLearningProgress.create({
+            studentId: student._id,
+            questions: processedQuestions,
+            totalScore,
+            date: new Date()
+        });
+
+        res.status(201).json({
+            score: totalScore,
+            totalQuestions: answers.length,
+            progressId: progress._id,
+            message: 'Quiz Submitted Successfully'
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Get Free Learning Reports
+// @route   GET /api/student-portal/learning/report
+// @access  Private (Student)
+const getFreeLearningReport = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const Student = require('../models/Student');
+        const FreeLearningProgress = require('../models/FreeLearningProgress');
+
+        const student = await Student.findOne({ userId });
+        if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        const reports = await FreeLearningProgress.find({ studentId: student._id })
+            .populate('questions.questionId')
+            .sort({ date: -1 });
+
+        res.json(reports);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getCourseDetails,
-    submitFeedback
+    submitFeedback,
+    getStudyMaterials,
+    getFreeLearningQuestions,
+    submitFreeLearning,
+    getFreeLearningReport
 };

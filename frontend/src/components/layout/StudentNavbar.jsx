@@ -32,7 +32,15 @@ const StudentNavbar = () => {
                 { title: 'Course Feedback', path: '/student/course-feedback' }
             ]
         },
-        { title: 'Study', path: '#' },
+        { 
+            title: 'Study', 
+            path: '#',
+            subItems: [
+                { title: 'Free Study Material', path: '/student/study/materials' },
+                { title: 'Free Learning', path: '/student/study/free-learning' },
+                { title: 'Free Learning Progress Report', path: '/student/study/free-learning-report' },
+            ] 
+        },
         { title: 'Blogs', path: '#' },
         { title: 'Fees', path: '#' },
         { title: 'Exam', path: '#' },
@@ -60,8 +68,17 @@ const StudentNavbar = () => {
                                 >
                                     {item.subItems ? (
                                         <>
-                                            <button className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-bold transition-all duration-200 
-                                                ${hoveredMenu === index ? 'text-primary bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}>
+                                            <button 
+                                                aria-expanded={hoveredMenu === index}
+                                                aria-haspopup="menu"
+                                                onFocus={() => setHoveredMenu(index)}
+                                                onBlur={(e) => {
+                                                    if (!e.currentTarget.parentElement?.contains(e.relatedTarget)) {
+                                                        setHoveredMenu(null);
+                                                    }
+                                                }}
+                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-bold transition-all duration-200 
+                                                    ${hoveredMenu === index ? 'text-primary bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}>
                                                 {item.title}
                                                 <ChevronDown size={14} className={`transition-transform duration-200 ${hoveredMenu === index ? 'rotate-180 text-primary' : 'text-gray-400'}`}/>
                                             </button>

@@ -36,12 +36,14 @@ const CourseFeedback = () => {
     }, [stats]);
 
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        if (name === 'mobile' && value.length > 10) return; // Limit to 10 digits
-        setFormData({ ...formData, [name]: value });
-    };
-
+const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'mobile') {
+        // Allow only digits and limit to 10 characters
+        if (!/^\d*$/.test(value) || value.length > 10) return;
+    }
+    setFormData({ ...formData, [name]: value });
+};
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -132,8 +134,7 @@ const CourseFeedback = () => {
                                     onChange={handleChange} 
                                     required 
                                     readOnly={!!user?.mobile}
-                                    placeholder="Enter You Mobile Number..."
-                                    className={`w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all ${user?.mobile ? 'bg-gray-50 text-gray-500' : ''}`}
+                                    placeholder="Enter Your Mobile Number.."         className={`w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all ${user?.mobile ? 'bg-gray-50 text-gray-500' : ''}`}
                                 />
                             </div>
                         </div>

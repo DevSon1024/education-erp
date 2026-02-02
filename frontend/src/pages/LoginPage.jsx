@@ -22,14 +22,14 @@ const LoginPage = () => {
       toast.error(message);
     }
     if (isSuccess || user) {
+        if (!user) return; // Wait for user to be populated
         if (user?.role === 'Student') {
             navigate('/student/home');
         } else {
             navigate('/');
         }
     }
-    dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+    dispatch(reset());  }, [user, isError, isSuccess, message, navigate, dispatch]);
 
   const onSubmit = (data) => {
     dispatch(login(data));

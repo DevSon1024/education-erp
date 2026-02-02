@@ -101,14 +101,32 @@ const loginUser = asyncHandler(async (req, res) => {
         if (user.role === 'Student') {
              const studentProfile = await require('../models/Student').findOne({ userId: user._id }).populate('course');
              if (studentProfile) {
+                 let userNeedsUpdate = false;
                  // Prioritize Student Profile data if User data is empty
-                 if (!user.mobile) user.mobile = studentProfile.mobileStudent || studentProfile.mobileParent;
-                 if (!user.gender) user.gender = studentProfile.gender;
-                 if (!user.address) user.address = `${studentProfile.address}, ${studentProfile.city}, ${studentProfile.state}`;
-                 if (!user.education) user.education = studentProfile.education || (studentProfile.course ? studentProfile.course.name : '');
+                 if (!user.mobile && (studentProfile.mobileStudent || studentProfile.mobileParent)) {
+                     user.mobile = studentProfile.mobileStudent || studentProfile.mobileParent;
+                     userNeedsUpdate = true;
+                 }
+                 if (!user.gender && studentProfile.gender) {
+                     user.gender = studentProfile.gender;
+                     userNeedsUpdate = true;
+                 }
+                 if (!user.address && studentProfile.address) {
+                     user.address = [studentProfile.address, studentProfile.city, studentProfile.state].filter(Boolean).join(', ');
+                     userNeedsUpdate = true;
+                 }
+                 if (!user.education) {
+                     const education = studentProfile.education || (studentProfile.course ? studentProfile.course.name : '');
+                     if (education) {
+                         user.education = education;
+                         userNeedsUpdate = true;
+                     }
+                 }
+                 if (userNeedsUpdate) {
+                     await user.save();
+                 }
              }
-        }
-        // ----------------------------------
+        }        // ----------------------------------
 
         res.json({
             _id: user._id, 
