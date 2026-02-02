@@ -67,6 +67,7 @@ const ExamResult = lazy(() => import("./pages/admin/master/ExamResult"));
 const ManageNews = lazy(() => import("./pages/admin/master/ManageNews"));
 const ManageTerms = lazy(() => import("./pages/admin/master/ManageTerms"));
 const BranchMaster = lazy(() => import("./pages/admin/master/BranchMaster"));
+const Material = lazy(() => import("./pages/admin/master/Material"));
 const CloudinaryManager = lazy(() => import("./pages/admin/utility/CloudinaryManager"));
 
 // Transaction Pages
@@ -283,6 +284,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <BranchMaster />
+                  </PrivateRoute>
+                }
+              />
+               <Route
+                path="/master/material"
+                element={
+                  <PrivateRoute>
+                    <Material />
                   </PrivateRoute>
                 }
               />

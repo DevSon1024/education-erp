@@ -120,7 +120,7 @@ const studentPortalSlice = createSlice({
     extraReducers: (builder) => {
         builder
             // Dashboard Stats
-            .addCase(fetchDashboardStats.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchDashboardStats.pending, (state) => { state.isLoading = true; state.isError = false; })            
             .addCase(fetchDashboardStats.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.stats = action.payload;
