@@ -22,7 +22,8 @@ export const MENU_CONFIG = [
       { title: 'Manage Terms', path: '/master/manage-terms' },
       { title: 'User Rights', path: '/master/user-rights' },
       { title: 'Material', path: '/master/material' },
-      { title: 'Branch', path: '/master/branch', restricted: true } // Super Admin only
+      { title: 'Branch', path: '/master/branch', restricted: true }, // Super Admin only
+      { title: 'Free Learning', path: '/master/free-learning'}
     ]
   },
   {

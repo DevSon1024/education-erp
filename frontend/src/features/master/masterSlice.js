@@ -240,6 +240,35 @@ export const createEducation = createAsyncThunk('master/createEducation', async 
     } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
 });
 
+// --- Free Learning Thunks ---
+export const fetchFreeLearningQuestions = createAsyncThunk('master/fetchFreeLearningQuestions', async (params, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL + 'free-learning', { params });
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createFreeLearningQuestion = createAsyncThunk('master/createFreeLearningQuestion', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(API_URL + 'free-learning', data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
+export const updateFreeLearningQuestion = createAsyncThunk('master/updateFreeLearningQuestion', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}free-learning/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response.data.message); }
+});
+
+export const deleteFreeLearningQuestion = createAsyncThunk('master/deleteFreeLearningQuestion', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(`${API_URL}free-learning/${id}`);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 const masterSlice = createSlice({
     name: 'master',
     initialState: {
@@ -251,13 +280,11 @@ const masterSlice = createSlice({
         studentsList: [],
         examSchedules: [],
         examResults: [],
-        examSchedules: [],
-        examResults: [],
         pendingExams: [],
-        references: [],
         references: [],
         educations: [],
         branches: [],
+        freeLearningQuestions: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -424,7 +451,34 @@ const masterSlice = createSlice({
             })
             
             // --- Branches ---
-            .addCase(fetchBranches.fulfilled, (state, action) => { state.branches = action.payload; });
+            .addCase(fetchBranches.fulfilled, (state, action) => { state.branches = action.payload; })
+
+            // --- Free Learning ---
+            .addCase(fetchFreeLearningQuestions.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchFreeLearningQuestions.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.freeLearningQuestions = action.payload;
+            })
+            .addCase(fetchFreeLearningQuestions.rejected, (state, action) => {
+                state.isLoading = false;
+                console.error(action.payload);
+            })
+            .addCase(createFreeLearningQuestion.fulfilled, (state, action) => {
+                state.freeLearningQuestions.unshift(action.payload);
+                state.isSuccess = true;
+                state.message = 'Question Added Successfully';
+            })
+            .addCase(updateFreeLearningQuestion.fulfilled, (state, action) => {
+                const index = state.freeLearningQuestions.findIndex(q => q._id === action.payload._id);
+                if (index !== -1) state.freeLearningQuestions[index] = action.payload;
+                state.isSuccess = true;
+                state.message = 'Question Updated Successfully';
+            })
+            .addCase(deleteFreeLearningQuestion.fulfilled, (state, action) => {
+                state.freeLearningQuestions = state.freeLearningQuestions.filter(q => q._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'Question Deleted Successfully';
+            });
     }
 });
 

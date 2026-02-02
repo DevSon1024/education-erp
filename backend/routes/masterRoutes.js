@@ -13,6 +13,7 @@ const {
 const { getExamRequests, cancelExamRequest, createExamRequest, getPendingExams } = require('../controllers/examController');
 const { getExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, getExamScheduleDetails } = require('../controllers/examScheduleController');
 const { getExamResults, createExamResult, updateExamResult } = require('../controllers/examResultController');
+const { createQuestion, getQuestions, updateQuestion, deleteQuestion } = require('../controllers/freeLearningController');
 
 const upload = require('../middlewares/uploadMiddleware');
 
@@ -81,5 +82,14 @@ router.get('/exam-schedule/:id/details', protect, getExamScheduleDetails);
 router.route('/exam-result')
     .get(protect, getExamResults) 
     .post(protect, createExamResult); 
+
+// --- Free Learning Routes ---
+router.route('/free-learning')
+    .get(protect, getQuestions)
+    .post(protect, createQuestion);
+
+router.route('/free-learning/:id')
+    .put(protect, updateQuestion)
+    .delete(protect, deleteQuestion);
 
 module.exports = router;

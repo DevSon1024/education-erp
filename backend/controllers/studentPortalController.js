@@ -180,7 +180,7 @@ const getFreeLearningQuestions = async (req, res) => {
     try {
         const FreeLearning = require('../models/FreeLearning');
         // Fetch all questions - in a real app might want to paginate or limit
-        const questions = await FreeLearning.find().select('-correctOption -explanation'); // Hide answers
+        const questions = await FreeLearning.find({ isActive: true }).select('-correctOption -explanation'); // Hide answers
         res.json(questions);
     } catch (error) {
         console.error(error);

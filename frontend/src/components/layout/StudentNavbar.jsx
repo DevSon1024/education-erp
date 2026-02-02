@@ -121,7 +121,11 @@ const StudentNavbar = () => {
                                     <span className="text-sm font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">
                                         {user?.name || 'Student'}
                                     </span>
-                                    <span className="text-xs text-gray-500 font-medium">Student</span>
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">
+                                        {user?.branchName || 'Main Branch'}
+                                    </span>
+                                    <span className="text-xs text-gray-500 font-medium">{user?.role || 'Student'}</span>
+                                    
                                 </div>
                                 <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all flex items-center justify-center">
                                      {user?.photo ? (
