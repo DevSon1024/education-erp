@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudents, toggleActiveStatus, resetStudentLogin, resetStatus, deleteStudent } from '../../../features/student/studentSlice';
 import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 
@@ -28,6 +28,7 @@ const StudentList = () => {
   // Modal State for Reset Login
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetData, setResetData] = useState({ id: null, username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     dispatch(fetchCourses());
@@ -39,10 +40,14 @@ const StudentList = () => {
   }, [dispatch, filters]); 
 
   useEffect(() => {
-      if(isSuccess && message) {
-          toast.success(message);
+      if(message) {
+          if(isSuccess) {
+              toast.success(message);
+              if(showResetModal) setShowResetModal(false);
+          } else {
+              toast.error(message);
+          }
           dispatch(resetStatus());
-          if(showResetModal) setShowResetModal(false);
       }
   }, [isSuccess, message, dispatch, showResetModal]);
 
@@ -59,13 +64,12 @@ const StudentList = () => {
   };
 
   const handleOpenResetModal = (student) => {
-      // Pre-fill username if available in student data (needs populate in backend if we want to show current username, 
-      // but usually we just allow setting new one. For now empty or student regNo as default)
       setResetData({ 
           id: student._id, 
-          username: student.userId?.username || student.regNo || '', 
+          username: student.userId?.username || '', 
           password: '' 
       });
+      setShowPassword(false);
       setShowResetModal(true);
   };
 
@@ -248,14 +252,23 @@ const StudentList = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                        <input 
-                            type="text" 
-                            placeholder="Leave empty to keep unchanged"
-                            className="w-full border rounded p-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                            value={resetData.password}
-                            onChange={(e) => setResetData({...resetData, password: e.target.value})}
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Leave empty if you only want to change username.</p>
+                        <div className="relative">
+                            <input 
+                                type={showPassword ? "text" : "password"} 
+                                placeholder="Leave empty to keep unchanged"
+                                className="w-full border rounded p-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none pr-10"
+                                value={resetData.password}
+                                onChange={(e) => setResetData({...resetData, password: e.target.value})}
+                            />
+                            <button 
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-2 top-2.5 text-gray-500 hover:text-gray-700"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Existing password is encrypted. Enter new to reset.</p>
                     </div>
 
                     <div className="flex justify-end gap-2 mt-6">

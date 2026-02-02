@@ -59,6 +59,7 @@ const getStudents = asyncHandler(async (req, res) => {
 
     const students = await Student.find(query)
         .populate('course', 'name duration shortName durationType')
+        .populate('userId', 'username')
         .limit(limit)
         .skip(limit * (pageNum - 1))
         .sort({ createdAt: -1 });
