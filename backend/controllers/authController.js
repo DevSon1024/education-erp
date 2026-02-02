@@ -96,7 +96,19 @@ const loginUser = asyncHandler(async (req, res) => {
                  await user.save();
              }
         }
-        // -------------------------------------------------------------
+        // --- Student Specific Data Sync ---
+        // If role is Student, fetch details from Student model to ensure we have the latest profile info
+        if (user.role === 'Student') {
+             const studentProfile = await require('../models/Student').findOne({ userId: user._id }).populate('course');
+             if (studentProfile) {
+                 // Prioritize Student Profile data if User data is empty
+                 if (!user.mobile) user.mobile = studentProfile.mobileStudent || studentProfile.mobileParent;
+                 if (!user.gender) user.gender = studentProfile.gender;
+                 if (!user.address) user.address = `${studentProfile.address}, ${studentProfile.city}, ${studentProfile.state}`;
+                 if (!user.education) user.education = studentProfile.education || (studentProfile.course ? studentProfile.course.name : '');
+             }
+        }
+        // ----------------------------------
 
         res.json({
             _id: user._id, 

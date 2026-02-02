@@ -7,6 +7,7 @@ import employeeReducer from '../features/employee/employeeSlice';
 import userRightsReducer from '../features/userRights/userRightsSlice';
 import attendanceReducer from '../features/transaction/attendanceSlice';
 import branchReducer from '../features/master/branchSlice';
+import studentPortalReducer from '../features/student/studentPortalSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,5 +19,6 @@ export const store = configureStore({
     employees: employeeReducer,
     userRights: userRightsReducer,
     branch: branchReducer,
+    studentPortal: studentPortalReducer,
   },
 });

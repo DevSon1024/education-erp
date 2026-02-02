@@ -12,6 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Layout
 import Navbar from "./components/layout/Navbar";
 import PublicLayout from "./components/layout/PublicLayout";
+import StudentLayout from "./components/layout/StudentLayout";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import Loading from "./components/Loading"; // Import Loading Component
 
@@ -32,6 +33,12 @@ const BlogPage = lazy(() => import("./pages/user/BlogPage"));
 const FeedbackPage = lazy(() => import("./pages/user/FeedbackPage"));
 const OnlineAdmission = lazy(() => import("./pages/user/OnlineAdmission"));
 const TermsAndConditions = lazy(() => import("./pages/user/TermsAndConditions"));
+
+// Student Pages
+const StudentHome = lazy(() => import("./pages/student/StudentHome"));
+const StudentCourseDetail = lazy(() => import("./pages/student/CourseDetail"));
+const StudentCourseFeedback = lazy(() => import("./pages/student/CourseFeedback"));
+
 
 // Master Pages
 const StudentList = lazy(() => import("./pages/admin/master/StudentList"));
@@ -108,6 +115,12 @@ const PrivateRoute = ({ children }) => {
 function App() {
   const { user } = useSelector((state) => state.auth);
 
+  const getHomeRoute = () => {
+    if (!user) return "/";
+    if (user.role === 'Student') return "/student/home";
+    return "/home";
+  };
+
   return (
     <>
       <Router>
@@ -117,15 +130,28 @@ function App() {
             user ? "pt-20 print:pt-0" : ""
           }`}
         >
-          <div className="print:hidden">{user && <Navbar />}</div>
+          {/* Admin Navbar - Show only if user is logged in AND NOT A STUDENT */}
+          <div className="print:hidden">{user && user.role !== 'Student' && <Navbar />}</div>
+          
           <Suspense fallback={<Loading />}>
             <Routes>
+              
+              {/* STUDENT ROUTES */}
+              <Route path="/student" element={<PrivateRoute><StudentLayout /></PrivateRoute>}>
+                 <Route index element={<Navigate to="home" replace />} />
+                 <Route path="home" element={<StudentHome />} />
+                 <Route path="course-detail" element={<StudentCourseDetail />} />
+                 <Route path="course-feedback" element={<StudentCourseFeedback />} />
+                 <Route path="*" element={<Navigate to="home" replace />} />
+              </Route>
+
+
               {/* PRIVATE ADMIN ROUTES */}
               <Route
                 path="/home"
                 element={
                   <PrivateRoute>
-                    <AdminHome />
+                     {user?.role === 'Student' ? <Navigate to="/student/home" /> : <AdminHome />}
                   </PrivateRoute>
                 }
               />
@@ -428,12 +454,12 @@ function App() {
               {/* PUBLIC PAGES */}
               <Route
                 path="/login"
-                element={user ? <Navigate to="/home" replace /> : <LoginPage />}
+                element={user ? <Navigate to={getHomeRoute()} replace /> : <LoginPage />}
               />
               <Route
                 path="/register-admin-zyx"
                 element={
-                  user ? <Navigate to="/home" replace /> : <RegisterPage />
+                  user ? <Navigate to={getHomeRoute()} replace /> : <RegisterPage />
                 }
               />
 
@@ -441,7 +467,7 @@ function App() {
                 <Route
                   path="/"
                   element={
-                    user ? <Navigate to="/home" replace /> : <HomePage />
+                    user ? <Navigate to={getHomeRoute()} replace /> : <HomePage />
                   }
                 />
                 <Route path="/about-us" element={<AboutUsPage />} />

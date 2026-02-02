@@ -22,7 +22,11 @@ const LoginPage = () => {
       toast.error(message);
     }
     if (isSuccess || user) {
-      navigate('/');
+        if (user?.role === 'Student') {
+            navigate('/student/home');
+        } else {
+            navigate('/');
+        }
     }
     dispatch(reset());
   }, [user, isError, isSuccess, message, navigate, dispatch]);
