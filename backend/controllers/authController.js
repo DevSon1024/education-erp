@@ -14,6 +14,8 @@ const generateToken = (res, userId) => {
 
 // @desc Register (Seed Initial Admin)
 // @route POST /api/auth/register
+// @desc Register (Seed Initial Admin)
+// @route POST /api/auth/register
 const registerUser = asyncHandler(async (req, res) => {
     const { name, username, password, role, branchId } = req.body;
     
@@ -24,8 +26,21 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('Username already taken');
     }
 
+    // Prepare user data - explicitly exclude email if not provided to avoid null/unique index issues
+    const userData = { name, username, password, role, branchId };
+    
+    // Remove undefined fields to prevent Mongoose from trying to set them to null/defaults if not intended
+    Object.keys(userData).forEach(key => userData[key] === undefined && delete userData[key]);
+
+    // FIX: Generate a unique placeholder email if not provided to avoid "duplicate key: email: null" error
+    // This happens if the 'email' index is unique but not treating 'null' as distinct/sparse correctly in the DB.
+    if (!userData.email) {
+        userData.email = `${username.toLowerCase().replace(/\s+/g, '')}@admin.local`;
+    }
+
     // Create user with username (email can be updated later via profile)
-    const user = await User.create({ name, username, password, role, branchId });
+    const user = await User.create(userData);
+    
     if (user) {
         generateToken(res, user._id);
         res.status(201).json({

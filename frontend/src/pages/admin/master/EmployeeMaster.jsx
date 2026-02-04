@@ -101,6 +101,7 @@ const EmployeeMaster = () => {
       setPreviewImage(emp.photo || null);
       reset({
           ...emp,
+          branchId: emp.branchId ? (typeof emp.branchId === 'object' ? emp.branchId._id : emp.branchId) : '',
           dob: emp.dob ? emp.dob.split('T')[0] : '',
           dateOfJoining: emp.dateOfJoining ? emp.dateOfJoining.split('T')[0] : '',
           loginPassword: '' 

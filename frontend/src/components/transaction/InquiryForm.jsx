@@ -123,10 +123,15 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                 }
 
                 if (initialData.branchId) {
-                     setValue('branchId', initialData.branchId._id || initialData.branchId);
+                     // Check if branchId is an object and extract _id, otherwise use it as is
+                     setValue('branchId', (typeof initialData.branchId === 'object' ? initialData.branchId._id : initialData.branchId));
                 }
 
-                reset(formattedData);
+                reset({
+                    ...formattedData,
+                    // If branchId was part of initialData and populated, we need to ensure the form gets the ID string
+                    branchId: initialData.branchId ? (typeof initialData.branchId === 'object' ? initialData.branchId._id : initialData.branchId) : ''
+                });
             }
         } else {
             // Reset for New Entry
