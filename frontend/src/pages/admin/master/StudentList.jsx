@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import moment from 'moment';
+import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 
 const StudentList = () => {
   const dispatch = useDispatch();
@@ -149,6 +150,11 @@ const StudentList = () => {
 
       {/* --- Table Section --- */}
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        {isLoading ? (
+             <div className="p-4">
+                 <TableSkeleton rows={10} cols={13} />
+             </div>
+        ) : (
         <table className="w-full border-collapse min-w-[1200px]">
           <thead>
             <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
@@ -219,6 +225,7 @@ const StudentList = () => {
               <tr><td colSpan="13" className="text-center py-8 text-gray-500">No students found</td></tr>            )}
           </tbody>
         </table>
+        )}
       </div>
       
       {/* Pagination Footer */}
@@ -273,8 +280,12 @@ const StudentList = () => {
 
                     <div className="flex justify-end gap-2 mt-6">
                         <button type="button" onClick={() => setShowResetModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                        <button type="submit" className="bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                            <Save size={16}/> Update Login
+                        <button 
+                            type="submit" 
+                            disabled={isLoading}
+                            className={`bg-primary text-white px-4 py-2 rounded flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+                        >
+                            <Save size={16}/> {isLoading ? 'Updating...' : 'Update Login'}
                         </button>
                     </div>
                 </form>

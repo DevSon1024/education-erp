@@ -8,7 +8,7 @@ import { Plus, Search, RefreshCw, Edit, Printer, Award, Save } from 'lucide-reac
 
 const ExamResult = () => {
   const dispatch = useDispatch();
-  const { examSchedules, batches, examResults, isSuccess, message } = useSelector((state) => state.master);
+  const { examSchedules, batches, examResults, isSuccess, message, isLoading } = useSelector((state) => state.master);
   const { students } = useSelector((state) => state.students); // Use for dropdown in form
 
   // Local State
@@ -143,8 +143,9 @@ const ExamResult = () => {
 
                 <div className="md:col-span-4 flex justify-end gap-2 mt-4 border-t pt-4">
                     <button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 rounded hover:bg-gray-100">Cancel</button>
-                    <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded flex items-center gap-2 hover:bg-green-700">
-                        <Save size={18} /> Save Result
+                    <button type="submit" disabled={isLoading} className="bg-green-600 text-white px-6 py-2 rounded flex items-center gap-2 hover:bg-green-700 disabled:opacity-70 disabled:cursor-not-allowed">
+                        {isLoading ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />} 
+                        {isLoading ? 'Saving...' : 'Save Result'}
                     </button>
                 </div>
             </form>

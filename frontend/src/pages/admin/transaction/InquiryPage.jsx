@@ -26,6 +26,7 @@ const ConvertToOnlineModal = ({ inquiry, onClose, onConvert }) => {
         }
     });
 
+    const { isLoading } = useSelector((state) => state.transaction);
     const { courses } = useSelector((state) => state.master); // Need courses for dropdown if needed
 
     const onSubmit = (data) => {
@@ -104,8 +105,10 @@ const ConvertToOnlineModal = ({ inquiry, onClose, onConvert }) => {
                     </div>
 
                     <div className="flex justify-end pt-4 gap-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded text-gray-700 hover:bg-gray-300">Cancel</button>
-                        <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Convert to Online</button>
+                        <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 bg-gray-200 rounded text-gray-700 hover:bg-gray-300 disabled:opacity-70">Cancel</button>
+                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
+                            {isLoading ? 'Converting...' : 'Convert to Online'}
+                        </button>
                     </div>
                 </form>
             </div>

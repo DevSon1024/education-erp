@@ -40,6 +40,8 @@ const Visitors = () => {
     // Modal State for Reference
     const [showRefModal, setShowRefModal] = useState(false);
     const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isRefLoading, setIsRefLoading] = useState(false);
 
     // Fetch Initial Data
     useEffect(() => {
@@ -149,6 +151,7 @@ const Visitors = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             if (location.state?.visitorData?._id) {
                 // Update existing visitor
@@ -168,6 +171,8 @@ const Visitors = () => {
         } catch (error) {
             console.error("Error saving visitor:", error);
             toast.error("Failed to save visitor");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -372,9 +377,11 @@ const Visitors = () => {
                         </button>
                         <button 
                             type="submit" 
-                            className="px-6 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                            disabled={isSubmitting}
+                            className="px-6 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                            {location.state?.visitorData?._id ? 'Update Visitor' : 'Save Visitor'}
+                            {isSubmitting && <RotateCcw className="animate-spin" size={16} />}
+                            {isSubmitting ? 'Saving...' : (location.state?.visitorData?._id ? 'Update Visitor' : 'Save Visitor')}
                         </button>
                     </div>
                 </form>
@@ -411,9 +418,12 @@ const Visitors = () => {
                             />
                             <button 
                                 type="button" 
+                                disabled={isRefLoading}
                                 onClick={() => {
                                     if(!newRef.name || !newRef.mobile) return toast.error('Name & Mobile required');
+                                    setIsRefLoading(true);
                                     dispatch(createReference(newRef)).then((res) => {
+                                        setIsRefLoading(false);
                                         if(!res.error) {
                                             setFormData(prev => ({ 
                                                 ...prev, 
@@ -427,9 +437,10 @@ const Visitors = () => {
                                         }
                                     });
                                 }}
-                                className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+                                className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                Save Reference
+                                {isRefLoading && <RotateCcw className="animate-spin" size={16} />}
+                                {isRefLoading ? 'Saving...' : 'Save Reference'}
                             </button>
                         </div>
                     </div>

@@ -10,6 +10,7 @@ const TodaysVisitorsList = () => {
     // State
     const [visitors, setVisitors] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     // Fixed filter for Today
     const today = new Date().toISOString().split('T')[0];
     const [search, setSearch] = useState('');
@@ -153,6 +154,7 @@ const TodaysVisitorsList = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             if (editMode) {
                 await visitorService.updateVisitor(currentId, formData);
@@ -164,6 +166,8 @@ const TodaysVisitorsList = () => {
         } catch (error) {
             console.error("Error saving visitor:", error);
             alert("Failed to save visitor");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -365,7 +369,10 @@ const TodaysVisitorsList = () => {
                                 </div>
                                 <div className="md:col-span-2 flex justify-end gap-2 mt-4">
                                     <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded">Cancel</button>
-                                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                                    <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                                        {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                                        Save
+                                    </button>
                                 </div>
                             </form>
                         </div>

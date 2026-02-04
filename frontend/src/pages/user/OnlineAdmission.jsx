@@ -369,6 +369,7 @@ const OnlineAdmission = () => {
             disabled={isLoading}
             className="w-full bg-accent hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-1 mb-4 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
+             {isLoading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
              {isLoading ? 'Registering...' : 'Register Now'}
           </button>
         </form>

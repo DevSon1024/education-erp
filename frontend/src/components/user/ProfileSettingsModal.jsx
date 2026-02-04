@@ -38,6 +38,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     // Education Modal States
     const [showEduModal, setShowEduModal] = useState(false);
     const [newEdu, setNewEdu] = useState('');
+    const [isEduLoading, setIsEduLoading] = useState(false);
 
     const [localMessage, setLocalMessage] = useState('');
     const isSubmitting = React.useRef(false); // Ref to track form submission
@@ -126,7 +127,9 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
     const handleAddEducation = () => {
         if (!newEdu) return toast.error('Education Name required');
+        setIsEduLoading(true);
         dispatch(createEducation({ name: newEdu })).then((res) => {
+            setIsEduLoading(false);
             if (!res.error) {
                 setProfileData({ ...profileData, education: newEdu });
                 setShowEduModal(false);
@@ -170,9 +173,10 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                                         <button 
                                             type="button" 
                                             onClick={handleAddEducation}
-                                            className="w-full py-2 bg-primary text-white rounded-lg font-bold hover:bg-blue-700 transition shadow-md"
+                                            disabled={isEduLoading}
+                                            className="w-full py-2 bg-primary text-white rounded-lg font-bold hover:bg-blue-700 transition shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                                         >
-                                            Save Education
+                                            {isEduLoading ? 'Saving...' : 'Save Education'}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -299,8 +303,15 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
                                     <div className="flex items-center gap-4 mt-8">
                                         <button type="submit" disabled={isLoading} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed font-medium">
-                                            {isLoading ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-                                            Update Profile
+                                            {isLoading ? (
+                                                <>
+                                                    <RefreshCw size={18} className="animate-spin" /> Updating Profile...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save size={18} /> Update Profile
+                                                </>
+                                            )}
                                         </button>
                                         <button type="button" onClick={onClose} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-medium">
                                             Cancel
@@ -377,8 +388,15 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
                                     <div className="flex items-center gap-4 mt-8">
                                         <button type="submit" disabled={isLoading} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed font-medium">
-                                            {isLoading ? <RefreshCw size={18} className="animate-spin" /> : <Lock size={18} />}
-                                            Reset Password
+                                            {isLoading ? (
+                                                <>
+                                                    <RefreshCw size={18} className="animate-spin" /> Resetting...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Lock size={18} /> Reset Password
+                                                </>
+                                            )}
                                         </button>
                                         <button type="button" onClick={onClose} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-medium">
                                             Cancel

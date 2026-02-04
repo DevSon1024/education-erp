@@ -136,7 +136,8 @@ const ExamRequestList = () => {
                         <td className="px-6 py-4 text-center">
                             <button 
                                 onClick={() => handleCancel(req._id)}
-                                className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded text-xs font-bold border border-red-200 flex items-center gap-1 mx-auto"
+                                disabled={isLoading}
+                                className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded text-xs font-bold border border-red-200 flex items-center gap-1 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <XCircle size={14} /> Cancel
                             </button>

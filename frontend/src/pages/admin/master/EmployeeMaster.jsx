@@ -5,13 +5,13 @@ import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, resetEm
 import { getBranches } from '../../../features/master/branchSlice'; // Import API
 import { formatInputText } from '../../../utils/textFormatter';
 import { toast } from 'react-toastify';
-import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw } from 'lucide-react';
+import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw, Loader } from 'lucide-react';
 
 import { useUserRights } from '../../../hooks/useUserRights';
 
 const EmployeeMaster = () => {
   const dispatch = useDispatch();
-  const { employees, isSuccess, isError, message } = useSelector((state) => state.employees);
+  const { employees, isSuccess, isError, message, isLoading } = useSelector((state) => state.employees);
   const { branches } = useSelector((state) => state.branch);
   const { user } = useSelector((state) => state.auth); // Get Auth User
   const [showForm, setShowForm] = useState(false);
@@ -467,8 +467,11 @@ const EmployeeMaster = () => {
                     )}
 
                     <div className="flex justify-end gap-3 pt-4 border-t">
-                        <button type="button" onClick={closeForm} className="px-6 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
-                        <button type="submit" className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold">{editMode ? "Update Employee" : "Save Employee"}</button>
+                        <button type="button" onClick={closeForm} disabled={isLoading} className="px-6 py-2 border rounded hover:bg-gray-100 text-sm font-medium disabled:opacity-70">Cancel</button>
+                        <button type="submit" disabled={isLoading} className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                             {isLoading ? <Loader className="animate-spin" size={16}/> : null}
+                             {isLoading ? 'Saving...' : (editMode ? "Update Employee" : "Save Employee")}
+                        </button>
                     </div>
                 </form>
             </div>

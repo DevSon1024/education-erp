@@ -133,7 +133,11 @@ const LoginPage = () => {
                     disabled={isLoading}
                     className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-500/20 text-sm font-bold text-white bg-primary hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-70 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
                 >
-                    {isLoading ? <Loader className="animate-spin" size={20} /> : 'Sign In to Dashboard'}
+                    {isLoading ? (
+                        <span className="flex items-center gap-2">
+                            <Loader className="animate-spin" size={20} /> Signing In...
+                        </span>
+                    ) : 'Sign In to Dashboard'}
                 </button>
             </form>
             

@@ -299,7 +299,15 @@ const masterSlice = createSlice({
     extraReducers: (builder) => {
         builder
             // --- Courses ---
-            .addCase(fetchCourses.fulfilled, (state, action) => { state.courses = action.payload; })
+            .addCase(fetchCourses.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchCourses.fulfilled, (state, action) => { 
+                state.isLoading = false;
+                state.courses = action.payload; 
+            })
+            .addCase(fetchCourses.rejected, (state, action) => {
+                state.isLoading = false;
+                console.error(action.payload);
+            })
             .addCase(createCourse.fulfilled, (state, action) => {
                 state.courses.push(action.payload);
                 state.isSuccess = true;
@@ -318,8 +326,14 @@ const masterSlice = createSlice({
             })
             
             // --- Batches ---
+            .addCase(fetchBatches.pending, (state) => { state.isLoading = true; })
             .addCase(fetchBatches.fulfilled, (state, action) => { 
+                state.isLoading = false;
                 state.batches = action.payload; 
+            })
+            .addCase(fetchBatches.rejected, (state, action) => {
+                state.isLoading = false;
+                console.error(action.payload);
             })
             .addCase(createBatch.fulfilled, (state, action) => {
                 state.batches.unshift(action.payload);
@@ -339,8 +353,14 @@ const masterSlice = createSlice({
             })
             
             // --- Employees ---
+            .addCase(fetchEmployees.pending, (state) => { state.isLoading = true; })
             .addCase(fetchEmployees.fulfilled, (state, action) => {
+                state.isLoading = false;
                 state.employees = action.payload;
+            })
+            .addCase(fetchEmployees.rejected, (state, action) => {
+                state.isLoading = false;
+                console.error(action.payload);
             })
             
             // --- Subjects (Consolidated) ---

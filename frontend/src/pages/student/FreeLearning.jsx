@@ -99,10 +99,10 @@ const FreeLearning = () => {
                         <button 
                             onClick={handleSubmit} 
                             disabled={isLoading}
-                            className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all flex items-center gap-2"
+                            className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            <CheckCircle size={20} />
-                            Submit Answers
+                            {isLoading ? <Loading className="animate-spin" size={20} /> : <CheckCircle size={20} />}
+                            {isLoading ? 'Submitting...' : 'Submit Answers'}
                         </button>
                     </div>
                 </div>

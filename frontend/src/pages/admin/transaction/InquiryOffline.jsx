@@ -82,6 +82,8 @@ const FollowUpModal = ({ inquiry, onClose, onSave }) => {
 
     const showNextVisit = selectedStatus !== 'Close' && selectedStatus !== 'Complete';
 
+    const { isLoading } = useSelector((state) => state.transaction);
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl animate-fadeIn">
@@ -117,7 +119,9 @@ const FollowUpModal = ({ inquiry, onClose, onSave }) => {
                             <input {...register('visitReason')} placeholder="Reason for visit..." className="border p-2 rounded w-full text-sm"/>
                         </div>
                     )}
-                    <button className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm">Update Status</button>
+                    <button disabled={isLoading} className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                        {isLoading ? 'Updating...' : 'Update Status'}
+                    </button>
                 </form>
             </div>
         </div>

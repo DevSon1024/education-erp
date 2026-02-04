@@ -279,10 +279,10 @@ const SubjectMaster = () => {
                         <button 
                             type="submit" 
                             disabled={isLoading}
-                            className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold transition flex items-center gap-2 disabled:opacity-70"
+                            className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? <Loader className="animate-spin" size={16}/> : <Plus size={16}/>}
-                            {editMode ? 'Update Subject' : 'Add Subject'}
+                            {isLoading ? 'Saving...' : (editMode ? 'Update Subject' : 'Add Subject')}
                         </button>
                     </div>
 

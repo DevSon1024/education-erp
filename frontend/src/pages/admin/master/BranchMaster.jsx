@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createBranch, getBranches, updateBranch, deleteBranch, getBranchEmployees, reset } from '../../../features/master/branchSlice';
 import { toast } from 'react-toastify';
 import { Edit, Trash2, Plus, Search, X, Eye, EyeOff } from 'lucide-react';
+import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 
 const BranchMaster = () => {
     const dispatch = useDispatch();
@@ -169,6 +170,9 @@ const BranchMaster = () => {
             {/* Table */}
             <div className="bg-white rounded-lg shadow overflow-x-auto border">
                  <div className="overflow-x-auto">
+                    {isLoading ? (
+                        <div className="p-4"><TableSkeleton rows={8} cols={9} /></div>
+                    ) : (
                     <table className="w-full border-collapse min-w-[1200px]">
                         <thead>
                             <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
@@ -235,6 +239,7 @@ const BranchMaster = () => {
                             )}
                         </tbody>
                     </table>
+                    )}
                 </div>
             </div>
 

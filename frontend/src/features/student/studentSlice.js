@@ -193,7 +193,11 @@ const studentSlice = createSlice({
         state.isLoading = false;
         state.students = [];
       })
+      .addCase(fetchStudentById.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(fetchStudentById.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.currentStudent = action.payload;
       })
       .addCase(registerStudent.fulfilled, (state) => {

@@ -44,6 +44,8 @@ const LOCATION_DATA = {
   Delhi: ["New Delhi", "Noida", "Gurgaon"],
 };
 
+import { FormSkeleton } from "../../../components/common/SkeletonLoader"; // Corrected Import Location
+
 // getUniqueEducation removed - using centralized master list instead
 
 const StudentAdmission = () => {
@@ -81,6 +83,8 @@ const StudentAdmission = () => {
   const [showEduModal, setShowEduModal] = useState(false);
   const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
   const [newEdu, setNewEdu] = useState('');
+  const [isRefLoading, setIsRefLoading] = useState(false);
+  const [isEduLoading, setIsEduLoading] = useState(false);
 
   const {
     register,
@@ -495,6 +499,17 @@ const StudentAdmission = () => {
     </div>
   );
 
+  // Skeleton Loading Check
+  if (isLoading && ((isUpdateMode && !currentStudent) || (!isUpdateMode && courses.length === 0))) {
+      return (
+          <div className="bg-gray-100 min-h-screen p-6 font-sans">
+              <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden p-8">
+                  <FormSkeleton rows={5} cols={3} />
+              </div>
+          </div>
+      );
+  }
+
   return (
     <div className="bg-gray-100 min-h-screen p-6 font-sans">
       <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
@@ -540,7 +555,9 @@ const StudentAdmission = () => {
                             type="button" 
                             onClick={() => {
                                 if(!newRef.name || !newRef.mobile) return toast.error('Name & Mobile required');
+                                setIsRefLoading(true);
                                 dispatch(createReference(newRef)).then((res) => {
+                                    setIsRefLoading(false);
                                     if(!res.error) {
                                         setValue('reference', newRef.name);
                                         setShowRefModal(false);
@@ -549,9 +566,10 @@ const StudentAdmission = () => {
                                     }
                                 });
                             }}
-                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+                            disabled={isRefLoading}
+                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition flex justify-center items-center gap-2"
                         >
-                            Save Reference
+                            {isRefLoading ? 'Saving...' : 'Save Reference'}
                         </button>
                     </div>
                 </div>
@@ -575,7 +593,9 @@ const StudentAdmission = () => {
                             type="button" 
                             onClick={() => {
                                 if(!newEdu) return toast.error('Education Name required');
+                                setIsEduLoading(true);
                                 dispatch(createEducation({ name: newEdu })).then((res) => {
+                                    setIsEduLoading(false);
                                      if(!res.error) {
                                         setValue('education', newEdu);
                                         setShowEduModal(false);
@@ -584,9 +604,10 @@ const StudentAdmission = () => {
                                      }
                                 });
                             }}
-                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+                            disabled={isEduLoading}
+                            className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition flex justify-center items-center gap-2"
                         >
-                            Save Education
+                            {isEduLoading ? 'Saving...' : 'Save Education'}
                         </button>
                      </div>
                 </div>
@@ -1394,22 +1415,20 @@ const StudentAdmission = () => {
                   </button>
                 )}
 
-                {payAdmissionFee === false && (
-                  <button
-                    type="submit"
-                    disabled={isLoading || isSubmitting}
-                    className={`bg-orange-600 text-white px-6 py-2 rounded font-bold hover:bg-orange-700 flex items-center gap-2 shadow opacity-90 hover:opacity-100 ${
-                      isLoading || isSubmitting
-                        ? "cursor-not-allowed opacity-50"
-                        : ""
-                    }`}
-                  >
-                    <Save size={18} />{" "}
-                    {isLoading || isSubmitting
-                      ? "Saving..."
-                      : "Save & Admit (Pay Later)"}
-                  </button>
-                )}
+                  {payAdmissionFee === false && (
+                    <button
+                        type="submit"
+                        disabled={isLoading || isSubmitting}
+                        className={`bg-orange-600 text-white px-6 py-2 rounded font-bold flex items-center gap-2 shadow opacity-90 transition ${
+                        isLoading || isSubmitting
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-orange-700 hover:opacity-100"
+                        }`}
+                    >
+                        <Save size={18} />
+                        {isLoading || isSubmitting ? "Saving..." : "Save & Admit (Pay Later)"}
+                    </button>
+                    )}
               </div>
             </div>
           )}
@@ -1434,11 +1453,11 @@ const StudentAdmission = () => {
                     {previewCourses[0]?.paymentType === "One Time" && (
                       <>
                         <br />
-                        <strong className="text-orange-700">
+                        {/* <strong className="text-orange-700">
                           Pay Admission Now:
                         </strong>{" "}
                         ₹{previewCourses[0]?.admissionFees}
-                        <br />
+                        <br /> */}
                         <span className="text-xs">
                           Remaining Fees (₹{previewCourses[0]?.fees}) will be pending.
                         </span>
@@ -1447,11 +1466,11 @@ const StudentAdmission = () => {
                     {previewCourses[0]?.paymentType === "Monthly" && (
                       <>
                         <br />
-                        <strong className="text-orange-700">
+                        {/* <strong className="text-orange-700">
                           Pay Admission Now:
                         </strong>{" "}
                         ₹{previewCourses[0]?.admissionFees}
-                        <br />
+                        <br /> */}
                         <span className="text-xs">
                           Registration fees (₹
                           {previewCourses[0]?.emiConfig?.registrationFees}) will
@@ -1556,19 +1575,20 @@ const StudentAdmission = () => {
                     type="button"
                     onClick={() => setStep(2)}
                     className="btn-secondary"
+                    disabled={isLoading || isSubmitting}
                   >
                     Back to Course
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading || isSubmitting}
-                    className={`bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700 flex gap-2 shadow items-center ${
+                    className={`bg-green-600 text-white px-6 py-2 rounded font-bold flex gap-2 shadow items-center transition ${
                       isLoading || isSubmitting
                         ? "cursor-not-allowed opacity-50"
-                        : ""
+                        : "hover:bg-green-700"
                     }`}
                   >
-                    <Save size={18} />{" "}
+                    <Save size={18} />
                     {isLoading || isSubmitting
                       ? "Processing..."
                       : "Confirm Admission & Pay"}

@@ -7,10 +7,11 @@ import {
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye, Upload } from 'lucide-react';
+import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 
 const CourseMaster = () => {
   const dispatch = useDispatch();
-  const { courses, subjects, isSuccess } = useSelector((state) => state.master);
+  const { courses, subjects, isSuccess, isLoading } = useSelector((state) => state.master);
   
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -197,6 +198,9 @@ const CourseMaster = () => {
 
       {/* --- Course Table --- */}
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        {isLoading ? (
+             <div className="p-4"><TableSkeleton rows={8} cols={8} /></div>
+        ) : (
         <table className="w-full border-collapse min-w-[1200px]">
             <thead>
                 <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
@@ -246,6 +250,7 @@ const CourseMaster = () => {
                 )}
             </tbody>
         </table>
+        )}
       </div>
 
       {/* --- Subject Viewer Modal --- */}
@@ -452,9 +457,13 @@ const CourseMaster = () => {
                 <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 shrink-0">
                     <button type="button" onClick={closeForm} className="px-4 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
                     <button type="button" onClick={() => {reset(); setSelectedSubjectMap({}); setPreviewImage(null);}} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium">Reset</button>
-                    <button onClick={handleSubmit(onSubmit)} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 shadow text-sm font-bold transition">
-                        {isEditing ? 'Update Course' : 'Save Course'}
-                    </button>
+                    <button 
+        onClick={handleSubmit(onSubmit)} 
+        disabled={isLoading}
+        className={`bg-green-600 text-white px-6 py-2 rounded shadow text-sm font-bold transition flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-green-700'}`}
+    >
+        {isLoading ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update Course' : 'Save Course')}
+    </button>
                 </div>
             </div>
         </div>

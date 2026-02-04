@@ -501,7 +501,8 @@ const HomePage = () => {
                       </div>
                   </div>
 
-                  <button disabled={formLoading} className="w-full bg-accent text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-600/40 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed mt-6 text-lg tracking-wide">
+                  <button disabled={formLoading} className="w-full bg-accent text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-600/40 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed mt-6 text-lg tracking-wide flex items-center justify-center gap-2">
+                    {formLoading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                     {formLoading ? 'Submitting Application...' : 'Submit Inquiry Now'}
                   </button>
                 </form>

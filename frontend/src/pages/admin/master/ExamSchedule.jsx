@@ -8,7 +8,7 @@ import axios from 'axios'; // For direct detail fetch
 
 const ExamSchedule = () => {
   const dispatch = useDispatch();
-  const { courses, examSchedules, isSuccess, message } = useSelector((state) => state.master);
+  const { courses, examSchedules, isSuccess, message, isLoading } = useSelector((state) => state.master);
   
   // Local State
   const [showForm, setShowForm] = useState(false);
@@ -120,8 +120,9 @@ const ExamSchedule = () => {
                 
                 <div className="md:col-span-2 flex gap-2 justify-end mt-2">
                     <button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 rounded hover:bg-gray-100">Cancel</button>
-                    <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded flex items-center gap-2 hover:bg-green-700">
-                        <Save size={18} /> Save
+                    <button type="submit" disabled={isLoading} className="bg-green-600 text-white px-6 py-2 rounded flex items-center gap-2 hover:bg-green-700 disabled:opacity-70 disabled:cursor-not-allowed">
+                        {isLoading ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />} 
+                        {isLoading ? 'Saving...' : 'Save'}
                     </button>
                 </div>
             </form>

@@ -8,6 +8,7 @@ const ManageNews = () => {
     // --- State ---
     const [newsList, setNewsList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     
     // Filters
     const [filters, setFilters] = useState({
@@ -122,6 +123,7 @@ const ManageNews = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             if (editMode) {
                 await newsService.updateNews(currentId, formData);
@@ -135,6 +137,8 @@ const ManageNews = () => {
         } catch (error) {
             console.error("Error saving news:", error);
             toast.error("Failed to save news");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -387,9 +391,10 @@ const ManageNews = () => {
                                     </button>
                                     <button 
                                         type="submit" 
-                                        className="px-6 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors font-medium shadow-lg shadow-indigo-200"
+                                        disabled={submitting}
+                                        className="px-6 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors font-medium shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
-                                        {editMode ? 'Update News' : 'Save News'}
+                                        {submitting ? 'Saving...' : (editMode ? 'Update News' : 'Save News')}
                                     </button>
                                 </div>
                             </form>

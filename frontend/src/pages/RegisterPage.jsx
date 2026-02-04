@@ -207,7 +207,11 @@ const RegisterPage = () => {
                 disabled={isLoading}
                 className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-green-500/20 text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
             >
-                {isLoading ? <Loader className="animate-spin" size={20} /> : 'Create Account'}
+                {isLoading ? (
+                    <span className="flex items-center gap-2">
+                        <Loader className="animate-spin" size={20} /> Creating Account...
+                    </span>
+                ) : 'Create Account'}
             </button>
             </form>
 

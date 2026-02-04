@@ -7,10 +7,11 @@ import {
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Clock, Users, Edit2, Trash2, CheckSquare, Square } from 'lucide-react';
+import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 
 const BatchMaster = () => {
   const dispatch = useDispatch();
-  const { batches, courses, employees, branches, isSuccess } = useSelector((state) => state.master);
+  const { batches, courses, employees, branches, isSuccess, isLoading } = useSelector((state) => state.master);
   const { user } = useSelector((state) => state.auth);
   
   const [showForm, setShowForm] = useState(false);
@@ -170,6 +171,9 @@ const BatchMaster = () => {
 
       {/* --- SECTION 3: DATA TABLE --- */}
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
+        {isLoading ? (
+             <div className="p-4"><TableSkeleton rows={8} cols={7} /></div>
+        ) : (
         <table className="w-full border-collapse min-w-[1200px]">
             <thead>
                 <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
@@ -223,6 +227,7 @@ const BatchMaster = () => {
                 )}
             </tbody>
         </table>
+        )}
       </div>
 
       {/* --- ADD/EDIT BATCH MODAL --- */}
@@ -332,10 +337,11 @@ const BatchMaster = () => {
                 </div>
 
                 <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 shrink-0">
-                    <button type="button" onClick={closeForm} className="px-4 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
-                    <button type="button" onClick={() => {reset(); setSelectedCourses([])}} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium">Reset</button>
-                    <button onClick={handleSubmit(onSubmit)} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 shadow text-sm font-bold transition">
-                        {isEditing ? 'Update Batch' : 'Save Batch'}
+                    <button type="button" onClick={closeForm} disabled={isLoading} className="px-4 py-2 border rounded hover:bg-gray-100 text-sm font-medium disabled:opacity-70">Cancel</button>
+                    <button type="button" onClick={() => {reset(); setSelectedCourses([])}} disabled={isLoading} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium disabled:opacity-70">Reset</button>
+                    <button onClick={handleSubmit(onSubmit)} disabled={isLoading} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 shadow text-sm font-bold transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                        {isLoading ? <Clock className="animate-spin" size={16}/> : null}
+                        {isLoading ? 'Saving...' : (isEditing ? 'Update Batch' : 'Save Batch')}
                     </button>
                 </div>
             </div>

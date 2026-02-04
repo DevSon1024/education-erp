@@ -10,11 +10,14 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { courses, employees, references, educations, branches } = useSelector((state) => state.master);
+    const { isLoading } = useSelector((state) => state.transaction);
     const [preview, setPreview] = useState(null);
     
     // UI States for Modals
     const [showRefModal, setShowRefModal] = useState(false);
+    const [isRefLoading, setIsRefLoading] = useState(false);
     const [showEduModal, setShowEduModal] = useState(false);
+    const [isEduLoading, setIsEduLoading] = useState(false);
     
     // New Entry States
     const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
@@ -458,7 +461,9 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                         type="button" 
                                         onClick={() => {
                                             if(!newRef.name || !newRef.mobile) return toast.error('Name & Mobile required');
+                                            setIsRefLoading(true);
                                             dispatch(createReference(newRef)).then((res) => {
+                                                setIsRefLoading(false);
                                                 if(!res.error) {
                                                     setValue('referenceBy', newRef.name);
                                                     setShowRefModal(false);
@@ -466,9 +471,10 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                                 }
                                             });
                                         }}
-                                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        disabled={isRefLoading}
+                                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-1"
                                     >
-                                        Save Reference
+                                        {isRefLoading ? 'Saving...' : 'Save Reference'}
                                     </button>
                                 </div>
                             </div>
@@ -492,7 +498,9 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                         type="button" 
                                         onClick={() => {
                                             if(!newEdu) return toast.error('Education Name required');
+                                            setIsEduLoading(true);
                                             dispatch(createEducation({ name: newEdu })).then((res) => {
+                                                setIsEduLoading(false);
                                                  if(!res.error) {
                                                     setValue('education', newEdu);
                                                     setShowEduModal(false);
@@ -500,9 +508,10 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                                  }
                                             });
                                         }}
-                                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        disabled={isEduLoading}
+                                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-1"
                                     >
-                                        Save Education
+                                        {isEduLoading ? 'Saving...' : 'Save Education'}
                                     </button>
                                 </div>
                              </div>
@@ -512,10 +521,10 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
 
                 {/* Footer Actions */}
                  <div className="flex justify-end gap-3 p-3 border-t bg-gray-50 rounded-b-lg flex-none">
-                    <button type="button" onClick={onClose} className="px-5 py-2 border rounded text-gray-600 hover:bg-gray-100">Cancel</button>
-                    <button type="submit" form="inquiry-form" className="bg-green-600 text-white px-8 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2 font-bold transform hover:scale-105 transition-transform">
-                        <Save size={18}/> Save {mode === 'Edit' ? 'Update' : 'Inquiry'}
-                    </button>
+                     <button type="button" onClick={onClose} disabled={isLoading} className="px-5 py-2 border rounded text-gray-600 hover:bg-gray-100 disabled:opacity-70">Cancel</button>
+                     <button type="submit" form="inquiry-form" disabled={isLoading} className="bg-green-600 text-white px-8 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2 font-bold transform hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none">
+                         {isLoading ? 'Saving...' : <><Save size={18}/> Save {mode === 'Edit' ? 'Update' : 'Inquiry'}</>}
+                     </button>
                 </div>
             </div>
         </div>
