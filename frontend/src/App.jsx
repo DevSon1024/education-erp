@@ -77,6 +77,7 @@ const InquiryPage = lazy(() => import("./pages/admin/transaction/InquiryPage"));
 const FeeCollection = lazy(() =>
   import("./pages/admin/transaction/FeeCollection")
 );
+const AllReceipts = lazy(() => import("./pages/admin/transaction/AllReceipts"));
 const InquiryOnline = lazy(() =>
   import("./pages/admin/transaction/InquiryOnline")
 );
@@ -317,11 +318,19 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              <Route
+                <Route
                 path="/transaction/fees-receipt"
                 element={
                   <PrivateRoute>
                     <FeeCollection />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/transaction/all-receipts"
+                element={
+                  <PrivateRoute>
+                    <AllReceipts />
                   </PrivateRoute>
                 }
               />

@@ -11,7 +11,7 @@ export const Skeleton = ({ className, ...props }) => {
   );
 };
 
-export const SkeletonCircle = ({ className, size = 12 }) => (
+export const SkeletonCircle = ({ className, size = 48 }) => (
     <Skeleton className={clsx(`rounded-full w-${size} h-${size}`, className)} />
 );
 
