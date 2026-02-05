@@ -120,7 +120,7 @@ const StudentAdmission = () => {
     if (user?.role !== 'Super Admin') {
       dispatch(fetchBatches());
     }
-    dispatch(fetchInquiries({ status: "Open" }));
+    dispatch(fetchInquiries({}));
     dispatch(fetchStudents());
     dispatch(fetchEmployees());
     dispatch(fetchReferences());
@@ -339,23 +339,27 @@ const StudentAdmission = () => {
 
   const handleAutofillInquiry = () => {
     if (foundInquiry) {
-      setValue("firstName", foundInquiry.firstName);
-      setValue("lastName", foundInquiry.lastName);
-      setValue("middleName", foundInquiry.middleName || "");
-      setValue("email", foundInquiry.email || "");
-      setValue("gender", foundInquiry.gender || "Male");
-      setValue("mobileParent", foundInquiry.contactParent || "");
-      setValue("mobileStudent", foundInquiry.contactStudent || "");
-      setValue("address", foundInquiry.address || "");
-      setValue("state", foundInquiry.state || "Gujarat");
-      setValue("city", foundInquiry.city || "Surat");
-      setValue("education", foundInquiry.education || "");
-      setValue("dob", foundInquiry.dob ? new Date(foundInquiry.dob).toISOString().split('T')[0] : "");
-      setValue("reference", foundInquiry.referenceBy || "");
+      setValue("firstName", foundInquiry.firstName, { shouldValidate: true });
+      setValue("lastName", foundInquiry.lastName, { shouldValidate: true });
+      setValue("middleName", foundInquiry.middleName || "", { shouldValidate: true });
+      setValue("email", foundInquiry.email || "", { shouldValidate: true });
+      setValue("gender", foundInquiry.gender || "Male", { shouldValidate: true });
+      setValue("mobileParent", foundInquiry.contactParent || "", { shouldValidate: true });
+      setValue("mobileStudent", foundInquiry.contactStudent || "", { shouldValidate: true });
+      setValue("address", foundInquiry.address || "", { shouldValidate: true });
+      setValue("state", foundInquiry.state || "", { shouldValidate: true }); 
+      setValue("city", foundInquiry.city || "", { shouldValidate: true });
+      setValue("education", foundInquiry.education || "", { shouldValidate: true });
+      setValue("dob", foundInquiry.dob ? new Date(foundInquiry.dob).toISOString().split('T')[0] : "", { shouldValidate: true });
+      setValue("reference", foundInquiry.referenceBy || "", { shouldValidate: true });
       
+      if (foundInquiry.branchId) {
+          setValue("branchId", foundInquiry.branchId._id || foundInquiry.branchId, { shouldValidate: true });
+      }
+
       if (foundInquiry.studentPhoto) {
           setPreviewImage(foundInquiry.studentPhoto);
-          setValue("studentPhoto", foundInquiry.studentPhoto);
+          setValue("studentPhoto", foundInquiry.studentPhoto, { shouldValidate: true });
       }
 
       toast.info("Data Autofilled from Inquiry");
@@ -744,7 +748,7 @@ const StudentAdmission = () => {
                   className={`input ${errors.firstName ? "border-red-500" : ""}`}
                   placeholder="Student Name"
                   onChange={(e) => {
-                      setValue('firstName', formatInputText(e.target.value));
+                      setValue('firstName', formatInputText(e.target.value), { shouldValidate: true });
                   }}
                 />
                 {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
@@ -766,7 +770,7 @@ const StudentAdmission = () => {
                   className="input"
                   placeholder={`${watchRelation}'s Name`}
                   onChange={(e) => {
-                      setValue('middleName', formatInputText(e.target.value));
+                      setValue('middleName', formatInputText(e.target.value), { shouldValidate: true });
                   }}
                 />
               </div>
@@ -777,7 +781,7 @@ const StudentAdmission = () => {
                   className={`input ${errors.lastName ? "border-red-500" : ""}`}
                   placeholder="Surname"
                   onChange={(e) => {
-                      setValue('lastName', formatInputText(e.target.value));
+                      setValue('lastName', formatInputText(e.target.value), { shouldValidate: true });
                   }}
                 />
                 {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}

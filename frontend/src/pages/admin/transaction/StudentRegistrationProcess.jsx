@@ -161,6 +161,15 @@ const StudentRegistrationProcess = () => {
     dispatch(confirmRegistration(payload));
   };
 
+  const getStudentPhotoUrl = (photoPath) => {
+    if (!photoPath) return null;
+    if (photoPath.startsWith('http')) return photoPath;
+    const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '');
+    // Ensure no double slash if photoPath starts with /
+    const cleanPath = photoPath.replace(/\\/g, '/').replace(/^\//, '');
+    return `${baseUrl}/${cleanPath}`;
+  };
+
   if (!student || isLoading) return <div className="p-6 text-center">Loading Data...</div>;
 
   return (
@@ -188,7 +197,7 @@ const StudentRegistrationProcess = () => {
                 <span className="text-gray-500 block mb-1">Student Photo</span>
                 {student.studentPhoto ? (
                     <img 
-                        src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/${student.studentPhoto.replace(/\\/g, '/')}`} 
+                        src={getStudentPhotoUrl(student.studentPhoto)} 
                         alt="Student" 
                         className="h-24 w-24 object-cover rounded border"
                     />

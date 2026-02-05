@@ -100,6 +100,14 @@ const BatchMaster = () => {
       }
   };
 
+  const toggleSelectAll = () => {
+      if (selectedCourses.length === courses.length && courses.length > 0) {
+          setSelectedCourses([]);
+      } else {
+          setSelectedCourses(courses.map(c => c._id));
+      }
+  };
+
   const onSubmit = (data) => { 
       if (selectedCourses.length === 0) {
           toast.error("Please select at least one course");
@@ -305,7 +313,18 @@ const BatchMaster = () => {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 sticky top-0">
                                         <tr>
-                                            <th className="px-4 py-2 w-10">Select</th>
+                                            <th className="px-4 py-2 w-10 text-center">
+                                                <div 
+                                                    onClick={toggleSelectAll}
+                                                    className="cursor-pointer text-primary inline-flex"
+                                                    title="Select All"
+                                                >
+                                                     {selectedCourses.length === courses.length && courses.length > 0
+                                                        ? <CheckSquare size={18} /> 
+                                                        : <Square size={18} className="text-gray-400" />
+                                                     }
+                                                </div>
+                                            </th>
                                             <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Course Name</th>
                                             <th className="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Type</th>
                                         </tr>
