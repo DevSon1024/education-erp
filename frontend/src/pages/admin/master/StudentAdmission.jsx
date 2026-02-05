@@ -252,7 +252,7 @@ const StudentAdmission = () => {
         }
       }
     }
-  }, [isUpdateMode, currentStudent, setValue, courses, batches]);
+  }, [isUpdateMode, currentStudent, setValue, courses, batches, states, cities]);
 
   // Filter cities when state changes
   useEffect(() => {

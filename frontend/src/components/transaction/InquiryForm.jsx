@@ -145,7 +145,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                 contactStudent: '-'
             });
         }
-    }, [initialData, reset, mode, user]);
+    }, [initialData, reset, mode, user, states, cities, branches]);
 
     // Filter cities when state changes (for edit mode or manual state changes)
     useEffect(() => {
