@@ -16,11 +16,11 @@ const StudentList = () => {
   const { courses, branches } = useSelector((state) => state.master);
   const { user } = useSelector((state) => state.auth);
   
-  // Filter States
+  // Filter States - UPDATED KEYS TO MATCH BACKEND
   const [filters, setFilters] = useState({
-    fromDate: '',
-    toDate: new Date().toISOString().split('T')[0],
-    courseId: '',
+    startDate: '', // Changed from fromDate
+    endDate: new Date().toISOString().split('T')[0], // Changed from toDate
+    courseFilter: '', // Changed from courseId
     studentName: '',
     batch: '',
     branchId: '',
@@ -84,9 +84,17 @@ const StudentList = () => {
   };
 
   const resetFilters = () => {
+    // UPDATED KEYS TO MATCH BACKEND
     const initial = {
-        fromDate: '', toDate: new Date().toISOString().split('T')[0], courseId: '', studentName: '', batch: '', branchId: '',
-        pageSize: 10, pageNumber: 1, isRegistered: 'true'
+        startDate: '', 
+        endDate: new Date().toISOString().split('T')[0], 
+        courseFilter: '', 
+        studentName: '', 
+        batch: '', 
+        branchId: '',
+        pageSize: 10, 
+        pageNumber: 1, 
+        isRegistered: 'true'
     };
     setFilters(initial);
     setAppliedFilters(initial);
@@ -132,15 +140,18 @@ const StudentList = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label className="text-xs text-gray-500 font-semibold mb-1 block">From Date</label>
-                    <input type="date" name="fromDate" value={filters.fromDate} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
+                    {/* Updated Name to startDate */}
+                    <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                 </div>
                 <div>
                     <label className="text-xs text-gray-500 font-semibold mb-1 block">To Date</label>
-                    <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
+                    {/* Updated Name to endDate */}
+                    <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                 </div>
                 <div>
                     <label className="text-xs text-gray-500 font-semibold mb-1 block">Course</label>
-                    <select name="courseId" value={filters.courseId} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none">
+                    {/* Updated Name to courseFilter */}
+                    <select name="courseFilter" value={filters.courseFilter} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none">
                         <option value="">All Courses</option>
                         {courses && courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                     </select>
@@ -150,7 +161,6 @@ const StudentList = () => {
             {/* Row 2: Student Search & Batch */}
             <div className={`grid grid-cols-1 ${user?.role === 'Super Admin' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
                 <div className="relative z-20"> 
-                    {/* z-index needed for allowing dropdown to overflow */}
                     <StudentSearch 
                         label="Search Student"
                         onSelect={(id, student) => {
@@ -202,7 +212,7 @@ const StudentList = () => {
             <div className="grid grid-cols-2 gap-4 pt-2">
                 <button 
                     onClick={resetFilters} 
-                    className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded hover:bg-gray-200 font-medium transition text-sm flex items-center justify-center gap-2"
+                    className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
                 >
                     <RefreshCw size={16}/> Reset
                 </button>

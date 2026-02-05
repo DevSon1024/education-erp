@@ -11,18 +11,23 @@ const generateEnrollmentNumber = require('../utils/enrollmentGenerator');
 
 // @desc    Get Students
 const getStudents = asyncHandler(async (req, res) => {
+    // Added branchId to destructuring
     const {
         page = 1, pageSize = 10, courseFilter, studentName,
         hasPendingFees, reference, startDate, endDate,
-        isRegistered, isAdmissionFeesPaid, batch,
+        isRegistered, isAdmissionFeesPaid, batch, branchId,
         sortBy = '-createdAt'
     } = req.query;
     
     let query = { isDeleted: false };
 
-    // Branch-based filtering: Non-Super Admins only see their branch students
+    // Branch-based filtering logic
     if (req.user.role !== 'Super Admin' && req.user.branchId) {
+        // Non-Super Admins only see their branch students
         query.branchId = req.user.branchId;
+    } else if (branchId) {
+        // Super Admins can filter by specific branch if branchId param is present
+        query.branchId = branchId;
     }
 
     // Other filters
@@ -67,31 +72,19 @@ const getStudents = asyncHandler(async (req, res) => {
     res.json({ students, page: pageNum, pages: Math.ceil(count / limit), count });
 });
 
-// @desc    Get Single Student
+// ... (Rest of the controller functions remain unchanged)
 const getStudentById = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id)
-        .populate('course', 'name courseFees monthlyFees totalInstallment registrationFees admissionFees') // Explicitly select fee fields
+        .populate('course', 'name courseFees monthlyFees totalInstallment registrationFees admissionFees') 
         .populate('userId', 'username email');
     
     if (student) {
-        // Fetch receipts to calculate paid registration fee
         const receipts = await FeeReceipt.find({ student: student._id });
-        
-        // Calculate paid registration fee
-        // Logic: 1. Look for receipts with 'registration' in remarks
-        //        2. Or if 'One Time' payment and isRegistered, maybe the first payment?
-        //        But safe bet is remarks based or checking dates.
-        
         const regReceipts = receipts.filter(r => {
             const rem = (r.remarks || "").toLowerCase();
             return rem.includes("registration");
         });
-
-        // Use reduce to sum, because maybe they paid in parts? 
-        // Although usually registration is one-time.
         let paidRegistrationFee = regReceipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
-        
-        // Convert to mutable object to add field
         const studentObj = student.toObject();
         studentObj.paidRegistrationFee = paidRegistrationFee;
 
@@ -101,11 +94,9 @@ const getStudentById = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Create Student (Admission Phase)
 const createStudent = asyncHandler(async (req, res) => {
     let { totalFees, feeDetails, paymentPlan } = req.body;
 
-    // FIXED: Parse feeDetails if it comes as a string (due to FormData)
     if (typeof feeDetails === 'string') {
         try {
             feeDetails = JSON.parse(feeDetails);
@@ -129,17 +120,10 @@ const createStudent = asyncHandler(async (req, res) => {
     if (feeDetails && feeDetails.amount > 0) {
         admissionFeeAmount = Number(feeDetails.amount);
         isAdmissionFeesPaid = true;
-        
-        // CHANGED: Admission Fees are now separate/additive. 
-        // We do NOT subtract them from pendingFees (Tuition).
-        // pendingFees remains = totalFees initially.
     }
 
     try {
-        // 1. Prepare Parallel Lookups
         let finalBranchId = req.body.branchId;
-        
-        // Handle empty string from frontend
         if (finalBranchId === '') {
             finalBranchId = null;
         }
@@ -149,23 +133,21 @@ const createStudent = asyncHandler(async (req, res) => {
         }
 
         const branchPromise = finalBranchId ? Branch.findById(finalBranchId).lean() : Promise.resolve(null);
-        
-        // Check if we need to fetch last receipt (only if fee is paid)
         const receiptPromise = (feeDetails && feeDetails.amount > 0) 
             ? FeeReceipt.findOne().sort({ createdAt: -1 }).lean() 
             : Promise.resolve(null);
 
         const [branchDoc, lastReceipt] = await Promise.all([branchPromise, receiptPromise]);
 
-        let finalBranchName = 'Main Branch'; // Default
+        let finalBranchName = 'Main Branch'; 
         if (branchDoc) {
             finalBranchName = branchDoc.name;
         }
 
         const studentData = {
             ...req.body,
-            branchId: finalBranchId, // Ensure resolved ID is used
-            branchName: finalBranchName, // Ensure correct name is saved
+            branchId: finalBranchId, 
+            branchName: finalBranchName, 
             studentPhoto: req.file ? req.file.path.replace(/\\/g, "/") : (req.body.studentPhoto || null), 
             pendingFees,
             isAdmissionFeesPaid,
@@ -173,23 +155,18 @@ const createStudent = asyncHandler(async (req, res) => {
             isRegistered: false 
         };
 
-        // NEW: Generate Enrollment Number for ALL admissions (User request)
         if (finalBranchId) {
             studentData.enrollmentNo = await generateEnrollmentNumber(finalBranchId);
         }
 
         const student = await Student.create(studentData);
 
-        // 2. Create Receipt if paying now
         if (feeDetails && feeDetails.amount > 0) {
-            // lastReceipt already fetched in parallel above
             let nextNum = 1;
             if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
                 nextNum = Number(lastReceipt.receiptNo) + 1;
             }
             const receiptNo = String(nextNum);
-
-            // FIXED: Remarks Logic - Strictly use user input or default to 'Admission Fee'
             const receiptRemarks = feeDetails.remarks || 'Admission Fee';
 
             await FeeReceipt.create({
@@ -204,7 +181,6 @@ const createStudent = asyncHandler(async (req, res) => {
             });
         }
 
-        // 3. Send SMS (Only if admission fees are paid)
         if (isAdmissionFeesPaid) {
             const courseDoc = await Course.findById(student.course);
             const batchDoc = await Batch.findOne({ name: student.batch }); 
@@ -228,7 +204,6 @@ const createStudent = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Confirm Student Registration (Final Phase)
 const confirmStudentRegistration = asyncHandler(async (req, res) => {
     console.log("Confirm Registration Request Recieved for ID:", req.params.id);
     const student = await Student.findById(req.params.id);
@@ -238,31 +213,21 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     }
     console.log("Student Found:", student.firstName);
 
+    const { regNo, username, password, feeDetails } = req.body;
 
-    const { 
-        regNo, 
-        username, password, 
-        feeDetails 
-    } = req.body;
-
-    // DEBUG LOG
     console.log("Confirm Registration Body:", {
         regNo,
         hasFeeDetails: !!feeDetails,
         feeAmount: feeDetails?.amount,
         feeType: typeof feeDetails?.amount
     });
-
-    // Force server-side generation of RegNo to ensure sequence integrity
-    // We ignore req.body.regNo to prevent stale or manual overrides
     
-        // 1. Find Max Registration Number
         const lastStudent = await Student.aggregate([
             { 
                $match: { 
                    regNo: { $exists: true, $ne: null, $ne: "" },
                    isRegistered: true,
-                   isDeleted: { $ne: true } // CHANGED: Safer check (handles missing field)
+                   isDeleted: { $ne: true } 
                } 
             },
             {
@@ -287,8 +252,7 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
             nextSequence = lastStudent[0].seq + 1;
         }
 
-        // 2. Get Branch Short Code
-        let branchCode = 'MN'; // Default
+        let branchCode = 'MN'; 
         if (student.branchId) {
              const branch = await Branch.findById(student.branchId);
              if (branch && branch.shortCode) {
@@ -303,7 +267,6 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     let newUser;
     try {
         console.log("Attempting to create User with username:", username);
-        // Check if user already exists
         const existingUser = await User.findOne({ 
             $or: [{ username: username }, { email: student.email || `${finalRegNo}@institute.com` }] 
         });
@@ -324,12 +287,8 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         }
     } catch (userError) {
         console.error("User Creation Failed:", userError);
-        // Don't crash registration if user creation fails, but log it
-        // We might want to throw here, but for now let's proceed to save student status
     }
 
-
-    // FIXED: Allow receipt creation for ALL plans (including One Time) if amount > 0
     console.log("Checking Fee Details for Receipt:", { 
         hasFeeDetails: !!feeDetails, 
         amount: feeDetails?.amount, 
@@ -337,7 +296,6 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     });
 
     if (feeDetails && Number(feeDetails.amount) > 0) {
-        // Fetch next receipt number if not provided or valid
         let receiptNo = feeDetails.receiptNo;
         if (!receiptNo || receiptNo === 'Loading...' || receiptNo === 'Error') {
              const lastReceipt = await FeeReceipt.findOne({ branch: student.branchId }).sort({ createdAt: -1 });
@@ -354,7 +312,6 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
             remarks: feeDetails.remarks || 'Registration Fee',
             createdBy: req.user?._id, 
             branch: student.branchId,
-            // Dynamic Fields
             bankName: feeDetails.bankName,
             chequeNumber: feeDetails.chequeNumber,
             chequeDate: feeDetails.chequeDate,
@@ -362,7 +319,6 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
             transactionDate: feeDetails.transactionDate
         });
         
-        // Update pending fees
         student.pendingFees = Math.max(0, student.pendingFees - Number(feeDetails.amount));
         student.isRegistrationFeesPaid = true;
     }
@@ -387,17 +343,15 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     res.json({ message: 'Student Registration Completed', student });
 });
 
-// @desc    Get Next Registration Number Preview
 const getNextRegNo = asyncHandler(async (req, res) => {
     const { branchId } = req.query;
     
-    // Same logic as confirmStudentRegistration for generating regNo
     const lastStudent = await Student.aggregate([
         { 
            $match: { 
                regNo: { $exists: true, $ne: null, $ne: "" },
                isRegistered: true,
-               isDeleted: { $ne: true } // CHANGED: Safer check
+               isDeleted: { $ne: true } 
            } 
         },
         {
@@ -422,8 +376,7 @@ const getNextRegNo = asyncHandler(async (req, res) => {
         nextSequence = lastStudent[0].seq + 1;
     }
 
-    // Get Branch Short Code
-    let branchCode = 'MN'; // Default
+    let branchCode = 'MN'; 
     if (branchId) {
         const branch = await Branch.findById(branchId);
         if (branch && branch.shortCode) {
@@ -435,20 +388,13 @@ const getNextRegNo = asyncHandler(async (req, res) => {
     res.json({ regNo: previewRegNo });
 });
 
-
-// @desc    Permanent Delete Student
 const deleteStudent = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id);
     if (student) {
-        // 1. Delete associated Fee Receipts
         await FeeReceipt.deleteMany({ student: student._id });
-
-        // 2. Delete associated User account if exists
         if(student.userId) {
             await User.findByIdAndDelete(student.userId);
         }
-
-        // 3. Delete Student
         await Student.findByIdAndDelete(req.params.id);
         
         res.json({ message: 'Student and all associated data (receipts, user login) removed permanently' });
@@ -457,7 +403,6 @@ const deleteStudent = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Toggle Active Status
 const toggleStudentStatus = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id);
     if(student) {
@@ -469,12 +414,10 @@ const toggleStudentStatus = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Update Student
 const updateStudent = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id);
 
     if (student) {
-        // Personal Details
         student.firstName = req.body.firstName || student.firstName;
         student.middleName = req.body.middleName || student.middleName;
         student.lastName = req.body.lastName || student.lastName;
@@ -497,50 +440,21 @@ const updateStudent = asyncHandler(async (req, res) => {
         student.motherName = req.body.motherName || student.motherName;
         student.reference = req.body.reference || student.reference;
         
-        // Course and Batch Details
-        if(req.body.course) {
-            student.course = req.body.course;
-        }
-        if(req.body.batch) {
-            student.batch = req.body.batch;
-        }
-        if(req.body.batchStartDate) {
-            student.batchStartDate = req.body.batchStartDate;
-        }
-        if(req.body.paymentPlan) {
-            student.paymentPlan = req.body.paymentPlan;
-        }
-        if(req.body.totalFees !== undefined) {
-            student.totalFees = req.body.totalFees;
-        }
+        if(req.body.course) student.course = req.body.course;
+        if(req.body.batch) student.batch = req.body.batch;
+        if(req.body.batchStartDate) student.batchStartDate = req.body.batchStartDate;
+        if(req.body.paymentPlan) student.paymentPlan = req.body.paymentPlan;
+        if(req.body.totalFees !== undefined) student.totalFees = req.body.totalFees;
 
-        // Document Verification Fields
-        if(req.body.isPhotos !== undefined) {
-            student.isPhotos = req.body.isPhotos;
-        }
-        if(req.body.isIDProof !== undefined) {
-            student.isIDProof = req.body.isIDProof;
-        }
-        if(req.body.isMarksheetCertificate !== undefined) {
-            student.isMarksheetCertificate = req.body.isMarksheetCertificate;
-        }
-        if(req.body.isAddressProof !== undefined) {
-            student.isAddressProof = req.body.isAddressProof;
-        }
+        if(req.body.isPhotos !== undefined) student.isPhotos = req.body.isPhotos;
+        if(req.body.isIDProof !== undefined) student.isIDProof = req.body.isIDProof;
+        if(req.body.isMarksheetCertificate !== undefined) student.isMarksheetCertificate = req.body.isMarksheetCertificate;
+        if(req.body.isAddressProof !== undefined) student.isAddressProof = req.body.isAddressProof;
         
-        // Active Status
-        if(req.body.isActive !== undefined) {
-            student.isActive = req.body.isActive;
-        }
+        if(req.body.isActive !== undefined) student.isActive = req.body.isActive;
 
-        // Photo Upload
-        if (req.file) {
-            student.studentPhoto = req.file.path.replace(/\\/g, "/");
-        }
-
-        if(req.body.admissionDate) {
-            student.admissionDate = req.body.admissionDate;
-        }
+        if (req.file) student.studentPhoto = req.file.path.replace(/\\/g, "/");
+        if(req.body.admissionDate) student.admissionDate = req.body.admissionDate;
 
         const updatedStudent = await student.save();
         res.json(updatedStudent);
@@ -549,7 +463,6 @@ const updateStudent = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Reset Student Login (Username/Password)
 const resetStudentLogin = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
     const student = await Student.findById(req.params.id);

@@ -21,6 +21,7 @@ const Navbar = () => {
   const [hoveredMenu, setHoveredMenu] = useState(null); // Acts as "activeMenu" for click behavior
   const [filteredMenu, setFilteredMenu] = useState([]);
   const [expandedSubItems, setExpandedSubItems] = useState({});
+  const [mobileExpanded, setMobileExpanded] = useState({}); // New state for top-level mobile menu expansion
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const navRef = React.useRef(null);
 
@@ -49,6 +50,11 @@ const Navbar = () => {
 
   const toggleSubItem = (title) => {
     setExpandedSubItems(prev => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  // Toggle handler for top-level mobile menu items
+  const toggleMobileMenu = (title) => {
+    setMobileExpanded(prev => ({ ...prev, [title]: !prev[title] }));
   };
 
   useEffect(() => {
@@ -311,19 +317,34 @@ const Navbar = () => {
                       <div key={index} className="">
                           {(item.subItems?.length > 0) || item.isCustom ? (
                               <>
-                                  <div className="px-4 py-3 font-bold text-gray-800 bg-gray-50 border-y border-gray-100 flex items-center justify-between">
+                                  <div 
+                                      className="px-4 py-3 font-bold text-gray-800 bg-gray-50 border-y border-gray-100 flex items-center justify-between cursor-pointer"
+                                      onClick={() => toggleMobileMenu(item.title)}
+                                  >
                                       {item.title}
-                                      <ChevronDown size={14} className="text-gray-400"/>
+                                      <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${mobileExpanded[item.title] ? 'rotate-180' : ''}`}/>
                                   </div>
-                                  {item.isCustom ? <TransactionDropdown isMobile={true} item={item} /> : (
-                                      <div className="bg-white">
-                                      {item.subItems.map((sub, subIdx) => (
-                                          <Link key={subIdx} to={sub.path} className="block px-8 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0" onClick={() => setIsMobileMenuOpen(false)}>
-                                          {sub.title}
-                                          </Link>
-                                      ))}
-                                      </div>
-                                  )}
+                                  <AnimatePresence>
+                                    {mobileExpanded[item.title] && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="overflow-hidden"
+                                        >
+                                            {item.isCustom ? <TransactionDropdown isMobile={true} item={item} /> : (
+                                                <div className="bg-white">
+                                                {item.subItems.map((sub, subIdx) => (
+                                                    <Link key={subIdx} to={sub.path} className="block px-8 py-3 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-primary transition-colors border-b border-gray-50 last:border-0" onClick={() => setIsMobileMenuOpen(false)}>
+                                                    {sub.title}
+                                                    </Link>
+                                                ))}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                  </AnimatePresence>
                               </>
                           ) : (
                                   <Link to={item.path} className="block px-4 py-4 font-bold text-gray-800 hover:bg-gray-50 hover:text-primary transition-colors border-b border-gray-100" onClick={() => setIsMobileMenuOpen(false)}>
