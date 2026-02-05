@@ -6,7 +6,7 @@ import {
     fetchCourses, fetchEmployees, resetMasterStatus, fetchBranches 
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
-import { Search, Plus, X, Clock, Users, Edit2, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Search, Plus, X, Clock, Users, Edit2, Trash2, CheckSquare, Square, RefreshCw } from 'lucide-react';
 import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 
 const BatchMaster = () => {
@@ -21,22 +21,45 @@ const BatchMaster = () => {
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
-  // Initial Filters
+  // --- Search & Pagination State ---
   const [filters, setFilters] = useState({
-    startDate: '', endDate: new Date().toISOString().split('T')[0], searchBy: 'Batch Name', searchValue: ''
+    startDate: '', 
+    endDate: new Date().toISOString().split('T')[0], 
+    searchBy: 'Batch Name', 
+    searchValue: ''
   });
+  
+  // Applied filters determines what is actually shown/fetched
+  const [appliedFilters, setAppliedFilters] = useState(filters);
+
+  // Pagination State
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     dispatch(fetchCourses());
     dispatch(fetchEmployees());
     if (user?.role === 'Super Admin') dispatch(fetchBranches());
-    dispatch(fetchBatches(filters));
-  }, [dispatch, user]);
+    // Initial fetch
+    dispatch(fetchBatches(appliedFilters));
+  }, [dispatch, user]); // Only on mount/user change, manual refetch handled in handleSearch
 
-  const handleSearch = () => { dispatch(fetchBatches(filters)); };
+  const handleSearch = () => { 
+      setAppliedFilters(filters);
+      setCurrentPage(1); // Reset to first page on new search
+      dispatch(fetchBatches(filters));
+  };
   
   const handleReset = () => {
-    setFilters({ startDate: '', endDate: '', searchBy: 'Batch Name', searchValue: '' });
+    const initialFilters = { 
+        startDate: '', 
+        endDate: '', 
+        searchBy: 'Batch Name', 
+        searchValue: '' 
+    };
+    setFilters(initialFilters);
+    setAppliedFilters(initialFilters);
+    setCurrentPage(1);
     dispatch(fetchBatches({}));
   };
 
@@ -45,14 +68,14 @@ const BatchMaster = () => {
         toast.success(isEditing ? "Batch Updated" : "Batch Created");
         dispatch(resetMasterStatus());
         closeForm();
-        dispatch(fetchBatches(filters));
+        dispatch(fetchBatches(appliedFilters));
     } else if (isSuccess && !showForm) {
         // Handle delete success
         toast.success("Batch Deleted");
         dispatch(resetMasterStatus());
-        dispatch(fetchBatches(filters));
+        dispatch(fetchBatches(appliedFilters));
     }
-  }, [isSuccess, showForm, dispatch, filters, isEditing]);
+  }, [isSuccess, showForm, dispatch, appliedFilters, isEditing]);
 
   const closeForm = () => {
       reset();
@@ -72,7 +95,6 @@ const BatchMaster = () => {
       // Handle Date formatting for input type="date"
       const sDate = new Date(batch.startDate).toISOString().split('T')[0];
       const eDate = new Date(batch.endDate).toISOString().split('T')[0];
-      setValue('startDate', sDate);
       setValue('startDate', sDate);
       setValue('endDate', eDate);
       if (batch.branchId) setValue('branchId', batch.branchId._id); // Set branch if exists
@@ -125,59 +147,112 @@ const BatchMaster = () => {
   // Filter only Faculty for dropdown
   const facultyList = employees.filter(e => e.type === 'Faculty');
 
+  // Frontend Pagination Logic
+  // Since the API returns ALL batches for the filter (simplistic backend), we paginate here.
+  // If backend was paginated, we would send page params to API.
+  // Assuming 'batches' is the filtered list from backend.
+  const paginatedBatches = batches ? batches.slice((currentPage - 1) * pageSize, currentPage * pageSize) : [];
+  const totalPages = batches ? Math.ceil(batches.length / pageSize) : 0;
+
   return (
     <div className="container mx-auto p-4">
       
-      {/* --- SECTION 1: HEADER & ADD BUTTON --- */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Batches</h1>
-        <button 
-            onClick={() => setShowForm(true)} 
-            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all text-sm font-bold"
-        >
-            <Plus size={20}/> Add New Batch
-        </button>
-      </div>
+      {/* --- Page Heading --- */}
+      <h1 className="text-2xl font-bold text-gray-800 text-center tracking-tight mb-6">Manage Batches</h1>
 
-      {/* --- SECTION 2: FILTERS --- */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-200">
-        <h2 className="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2">
-            <Search size={14}/> Filter Batches
+      {/* --- Filter Section --- */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Filter Batches
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Start Date (From)</label>
-                <input type="date" value={filters.startDate} onChange={e => setFilters({...filters, startDate: e.target.value})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
+        
+        <div className="flex flex-col gap-4">
+            {/* Row 1: Dates & Search By & Value */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Start Date (From)</label>
+                    <input 
+                        type="date" 
+                        value={filters.startDate} 
+                        onChange={e => setFilters({...filters, startDate: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">End Date (To)</label>
+                    <input 
+                        type="date" 
+                        value={filters.endDate} 
+                        onChange={e => setFilters({...filters, endDate: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Search By</label>
+                    <select 
+                        value={filters.searchBy} 
+                        onChange={e => setFilters({...filters, searchBy: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                    >
+                        <option>Batch Name</option>
+                        <option>Faculty Name</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Value</label>
+                    <input 
+                        type="text" 
+                        placeholder="Search..."
+                        value={filters.searchValue} 
+                        onChange={e => setFilters({...filters, searchValue: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                </div>
             </div>
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">End Date (To)</label>
-                <input type="date" value={filters.endDate} onChange={e => setFilters({...filters, endDate: e.target.value})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
-            </div>
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Search By</label>
-                <select value={filters.searchBy} onChange={e => setFilters({...filters, searchBy: e.target.value})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none">
-                    <option>Batch Name</option>
-                    <option>Faculty Name</option>
-                </select>
-            </div>
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Value</label>
-                <input 
-                    type="text" 
-                    placeholder="Search..."
-                    value={filters.searchValue} 
-                    onChange={e => setFilters({...filters, searchValue: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
-                />
-            </div>
-            <div className="flex gap-2">
-                <button onClick={handleReset} className="bg-gray-100 px-3 py-2 rounded hover:bg-gray-200 text-sm w-full font-medium transition">Reset</button>
-                <button onClick={handleSearch} className="bg-primary text-white px-3 py-2 rounded hover:bg-blue-800 text-sm w-full font-medium transition">Search</button>
+
+            {/* Row 2: Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <button 
+                    onClick={handleReset} 
+                    className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <RefreshCw size={16}/> Reset
+                </button>
+                <button 
+                    onClick={handleSearch} 
+                    className="bg-primary text-white px-6 py-2.5 rounded hover:bg-blue-800 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <Search size={16}/> Search
+                </button>
             </div>
         </div>
       </div>
 
-      {/* --- SECTION 3: DATA TABLE --- */}
+      {/* --- Action Bar --- */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Show</label>
+            <select 
+                value={pageSize} 
+                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} 
+                className="border p-1 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <label className="text-sm text-gray-600">entries</label>
+        </div>
+        <button 
+            onClick={() => setShowForm(true)} 
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 shadow text-sm font-medium"
+        >
+            <Plus size={18}/> Add New Batch
+        </button>
+      </div>
+
+      {/* --- DATA TABLE --- */}
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
         {isLoading ? (
              <div className="p-4"><TableSkeleton rows={8} cols={7} /></div>
@@ -197,7 +272,7 @@ const BatchMaster = () => {
                 </tr>
             </thead>
             <tbody>
-                {batches && batches.length > 0 ? batches.map((batch) => (
+                {paginatedBatches && paginatedBatches.length > 0 ? paginatedBatches.map((batch) => (
                     <tr key={batch._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
                         <td className="p-2 border font-medium text-gray-900">
                             {batch.name}
@@ -231,12 +306,46 @@ const BatchMaster = () => {
                         </td>
                     </tr>
                 )) : (
-                    <tr><td colSpan="7" className="text-center py-8 text-gray-400">No batches found. Create one!</td></tr>
+                    <tr><td colSpan="7" className="text-center py-8 text-gray-400">No batches found.</td></tr>
                 )}
             </tbody>
         </table>
         )}
       </div>
+
+      {/* Pagination Footer */}
+      {!isLoading && batches && batches.length > 0 && (
+          <div className="bg-gray-50 px-4 py-3 border-t flex justify-between items-center mt-2 rounded-lg">
+              <span className="text-xs text-gray-500">
+                  Page {currentPage} of {totalPages} ({batches.length} records)
+              </span>
+              <div className="flex gap-1">
+                  <button 
+                      disabled={currentPage === 1} 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                      className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs"
+                  >
+                      Prev
+                  </button>
+                  {[...Array(totalPages)].map((_, i) => (
+                       <button 
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`px-3 py-1 border rounded text-xs ${currentPage === i + 1 ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-100'}`}
+                       >
+                           {i + 1}
+                       </button>
+                  ))}
+                  <button 
+                      disabled={currentPage === totalPages} 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                      className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs"
+                  >
+                      Next
+                  </button>
+              </div>
+          </div>
+      )}
 
       {/* --- ADD/EDIT BATCH MODAL --- */}
       {showForm && (

@@ -38,7 +38,8 @@ const EmployeeMaster = () => {
     joiningTo: new Date().toISOString().split('T')[0],
     gender: '', 
     searchBy: 'name', 
-    searchValue: ''
+    searchValue: '',
+    pageSize: 10
   };
   const [filters, setFilters] = useState(initialFilters);
 
@@ -47,7 +48,8 @@ const EmployeeMaster = () => {
     if(user?.role === 'Super Admin') {
         dispatch(getBranches());
     }
-  }, [dispatch, filters, user]); // Auto-fetch when filters change (or remove filters from dep array to fetch only on button click)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, user]); // Auto-fetch only on mount (and user change), not on filters change
 
   useEffect(() => {
     if (isError) {
@@ -137,110 +139,140 @@ const EmployeeMaster = () => {
 
   const resetFilters = () => {
       setFilters(initialFilters);
+      dispatch(fetchEmployees(initialFilters));
+  };
+
+  const handlePageSizeChange = (e) => {
+      const size = parseInt(e.target.value);
+      const updated = { ...filters, pageSize: size };
+      setFilters(updated);
+      dispatch(fetchEmployees(updated));
   };
 
   return (
     <div className="container mx-auto p-4">
       
       {/* --- Header --- */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Employees</h1>
-        {add && (
-            <button 
-                onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
-                className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg text-sm font-bold"
-            >
-                <Plus size={20}/> Add New Employee
-            </button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold text-gray-800 tracking-tight text-center mb-6">Manage Employees</h1>
 
       {/* --- FILTER SECTION --- */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-200">
-        <h2 className="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2">
-            <Search size={14}/> Filter Employees
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Search Employees
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-            
-            {/* Joining Date From */}
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Joining From</label>
-                <input 
-                    type="date" 
-                    value={filters.joiningFrom} 
-                    onChange={e => setFilters({...filters, joiningFrom: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
-                />
+        
+        <div className="flex flex-col gap-4">
+             {/* Row 1: Dates & Gender */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Joining Date From */}
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Joining From</label>
+                    <input 
+                        type="date" 
+                        value={filters.joiningFrom} 
+                        onChange={e => setFilters({...filters, joiningFrom: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
+                    />
+                </div>
+
+                {/* Joining Date To */}
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">To Date</label>
+                    <input 
+                        type="date" 
+                        value={filters.joiningTo} 
+                        onChange={e => setFilters({...filters, joiningTo: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
+                    />
+                </div>
+
+                {/* Gender Filter */}
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Gender</label>
+                    <select 
+                        value={filters.gender} 
+                        onChange={e => setFilters({...filters, gender: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
+                    >
+                        <option value="">All</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
             </div>
 
-            {/* Joining Date To */}
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">To Date</label>
-                <input 
-                    type="date" 
-                    value={filters.joiningTo} 
-                    onChange={e => setFilters({...filters, joiningTo: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
-                />
+            {/* Row 2: Search By & Value */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 {/* Search By */}
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Search By</label>
+                    <select 
+                        value={filters.searchBy} 
+                        onChange={e => setFilters({...filters, searchBy: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
+                    >
+                        <option value="name">Employee Name</option>
+                        <option value="email">Email ID</option>
+                        <option value="mobile">Mobile Number</option>
+                    </select>
+                </div>
+
+                {/* Search Value */}
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Value</label>
+                    <input 
+                        type="text" 
+                        placeholder="Search..."
+                        value={filters.searchValue} 
+                        onChange={e => setFilters({...filters, searchValue: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
+                    />
+                </div>
             </div>
 
-            {/* Gender Filter */}
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Gender</label>
-                <select 
-                    value={filters.gender} 
-                    onChange={e => setFilters({...filters, gender: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
-                >
-                    <option value="">All</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-            </div>
-
-            {/* Search By */}
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Search By</label>
-                <select 
-                    value={filters.searchBy} 
-                    onChange={e => setFilters({...filters, searchBy: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
-                >
-                    <option value="name">Employee Name</option>
-                    <option value="email">Email ID</option>
-                    <option value="mobile">Mobile Number</option>
-                </select>
-            </div>
-
-            {/* Search Value */}
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Value</label>
-                <input 
-                    type="text" 
-                    placeholder="Search..."
-                    value={filters.searchValue} 
-                    onChange={e => setFilters({...filters, searchValue: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-primary"
-                />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-                <button 
-                    onClick={() => dispatch(fetchEmployees(filters))} 
-                    className="bg-primary text-white flex-1 py-2 rounded shadow hover:bg-blue-800 text-sm font-bold flex justify-center items-center gap-2"
-                >
-                   <Search size={14}/> Search
-                </button>
+            {/* Row 3: Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
                 <button 
                     onClick={resetFilters} 
-                    className="bg-gray-100 text-gray-600 px-3 py-2 rounded shadow hover:bg-gray-200 text-sm font-bold"
-                    title="Reset Filters"
+                    className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
                 >
-                   <RotateCcw size={14}/>
+                    <RotateCcw size={16}/> Reset
+                </button>
+                <button 
+                    onClick={() => dispatch(fetchEmployees(filters))} 
+                    className="bg-primary text-white px-6 py-2.5 rounded hover:bg-blue-800 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                   <Search size={16}/> Search
                 </button>
             </div>
         </div>
+      </div>
+
+      {/* --- Action Bar --- */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Show</label>
+            <select 
+                value={filters.pageSize} 
+                onChange={handlePageSizeChange} 
+                className="border p-1 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+            >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <label className="text-sm text-gray-600">entries</label>
+        </div>
+        
+        {add && (
+            <button 
+                onClick={() => { reset(); setShowForm(true); setEditMode(false); }} 
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 shadow text-sm font-medium"
+            >
+                <Plus size={18}/> Add New Employee
+            </button>
+        )}
       </div>
 
       {/* --- Data Table --- */}

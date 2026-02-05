@@ -53,7 +53,7 @@ const FreeStudyMaterial = () => {
             {/* Filter Section - Styled like StudentList */}
             <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
                 <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
-                    <Search size={16}/> Search Criteria
+                    <Search size={16}/> Search Study Material
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                      <div>

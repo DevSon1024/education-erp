@@ -6,7 +6,7 @@ import {
     fetchSubjects, resetMasterStatus 
 } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
-import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye, Upload } from 'lucide-react';
+import { Search, Plus, X, Edit2, Trash2, BookOpen, Check, Layers, Eye, Upload, RefreshCw, Clock } from 'lucide-react';
 import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 
 const CourseMaster = () => {
@@ -24,19 +24,31 @@ const CourseMaster = () => {
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   
-  // Filter State
+  // --- Filter & Pagination State ---
   const [filters, setFilters] = useState({ courseId: '', courseType: '' });
+  const [appliedFilters, setAppliedFilters] = useState({ courseId: '', courseType: '' });
+  
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Load Initial Data
   useEffect(() => {
     dispatch(fetchSubjects());
-    dispatch(fetchCourses(filters));
-  }, [dispatch]);
+    dispatch(fetchCourses(appliedFilters));
+  }, [dispatch]); // Initial load
 
   // Handle Search/Filter
-  const handleSearch = () => { dispatch(fetchCourses(filters)); };
+  const handleSearch = () => { 
+      setAppliedFilters(filters);
+      setCurrentPage(1);
+      dispatch(fetchCourses(filters)); 
+  };
+  
   const handleResetFilters = () => {
-    setFilters({ courseId: '', courseType: '' });
+    const initialFilters = { courseId: '', courseType: '' };
+    setFilters(initialFilters);
+    setAppliedFilters(initialFilters);
+    setCurrentPage(1);
     dispatch(fetchCourses({}));
   };
 
@@ -46,21 +58,15 @@ const CourseMaster = () => {
         toast.success(isEditing ? "Course Updated" : "Course Created");
         dispatch(resetMasterStatus());
         
-        if (!isEditing) {
-            // On creation, reset filters and fetch all to ensure the new course is visible
-            setFilters({ courseId: '', courseType: '' });
-            dispatch(fetchCourses({})); 
-        } else {
-            // On update, keep context
-            dispatch(fetchCourses(filters));
-        }
+        // Refetch with applied filters to keep view consistent or reset if needed
+        dispatch(fetchCourses(appliedFilters));
         closeForm();
     } else if (isSuccess && !showForm) {
         toast.success("Course Deleted");
         dispatch(resetMasterStatus());
-        dispatch(fetchCourses(filters));
+        dispatch(fetchCourses(appliedFilters));
     }
-  }, [isSuccess, showForm, dispatch, filters]);
+  }, [isSuccess, showForm, dispatch, appliedFilters, isEditing]);
 
   const closeForm = () => {
       reset();
@@ -147,53 +153,86 @@ const CourseMaster = () => {
   // Unique Course Types for Filter
   const uniqueCourseTypes = [...new Set(courses.map(c => c.courseType))].filter(Boolean);
 
+  // Frontend Pagination Logic
+  const paginatedCourses = courses ? courses.slice((currentPage - 1) * pageSize, currentPage * pageSize) : [];
+  const totalPages = courses ? Math.ceil(courses.length / pageSize) : 0;
+
   return (
     <div className="container mx-auto p-4">
       
       {/* --- Header --- */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Manage Courses</h1>
-        <button 
-            onClick={() => setShowForm(true)} 
-            className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all text-sm font-bold"
-        >
-            <Plus size={20}/> Add New Course
-        </button>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-800 text-center tracking-tight mb-6">Manage Courses</h1>
 
       {/* --- Filter Section --- */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-200">
-        <h2 className="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2">
-            <Search size={14}/> Filter Courses
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Filter Courses
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Course Name</label>
-                <select 
-                    value={filters.courseId} 
-                    onChange={e => setFilters({...filters, courseId: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
-                >
-                    <option value="">All Courses</option>
-                    {courses.map((c, i) => <option key={c._id || i} value={c._id}>{c.name}</option>)}
-                </select>
+        <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Course Name</label>
+                    <select 
+                        value={filters.courseId} 
+                        onChange={e => setFilters({...filters, courseId: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                    >
+                        <option value="">All Courses</option>
+                        {courses.map((c, i) => <option key={c._id || i} value={c._id}>{c.name}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Course Type</label>
+                    <select 
+                        value={filters.courseType} 
+                        onChange={e => setFilters({...filters, courseType: e.target.value})} 
+                        className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                    >
+                        <option value="">All Types</option>
+                        {uniqueCourseTypes.map((t, i) => <option key={t || i} value={t}>{t}</option>)}
+                    </select>
+                </div>
             </div>
-            <div>
-                <label className="text-xs text-gray-500 font-semibold">Course Type</label>
-                <select 
-                    value={filters.courseType} 
-                    onChange={e => setFilters({...filters, courseType: e.target.value})} 
-                    className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+            
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <button 
+                    onClick={handleResetFilters} 
+                    className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
                 >
-                    <option value="">All Types</option>
-                    {uniqueCourseTypes.map((t, i) => <option key={t || i} value={t}>{t}</option>)}
-                </select>
-            </div>
-            <div className="flex gap-2">
-                <button onClick={handleResetFilters} className="bg-gray-100 px-3 py-2 rounded hover:bg-gray-200 text-sm w-full font-medium transition">Reset</button>
-                <button onClick={handleSearch} className="bg-primary text-white px-3 py-2 rounded hover:bg-blue-800 text-sm w-full font-medium transition">Search</button>
+                    <RefreshCw size={16}/> Reset
+                </button>
+                <button 
+                    onClick={handleSearch} 
+                    className="bg-primary text-white px-6 py-2.5 rounded hover:bg-blue-800 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <Search size={16}/> Search
+                </button>
             </div>
         </div>
+      </div>
+
+       {/* --- Action Bar --- */}
+       <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Show</label>
+            <select 
+                value={pageSize} 
+                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} 
+                className="border p-1 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <label className="text-sm text-gray-600">entries</label>
+        </div>
+        <button 
+            onClick={() => setShowForm(true)} 
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 shadow text-sm font-medium"
+        >
+            <Plus size={18}/> Add New Course
+        </button>
       </div>
 
       {/* --- Course Table --- */}
@@ -215,12 +254,13 @@ const CourseMaster = () => {
                 </tr>
             </thead>
             <tbody>
-                {courses.length > 0 ? courses.map((course, index) => (
+                {paginatedCourses.length > 0 ? paginatedCourses.map((course, index) => (
                     <tr key={course._id || index} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
                         <td className="p-2 border font-medium text-gray-700">{course.shortName}</td>
                         <td className="p-2 border font-semibold text-gray-900">{course.name}</td>
                         <td className="p-2 border text-gray-600">{course.courseType}</td>
-                        <td className="p-2 border text-gray-700">₹{course.courseFees ?? 0}</td>                        <td className="p-2 border text-gray-600">{course.duration} {course.durationType}</td>
+                        <td className="p-2 border text-gray-700">₹{course.courseFees ?? 0}</td>
+                        <td className="p-2 border text-gray-600">{course.duration} {course.durationType}</td>
                         <td className="p-2 border text-center">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${course.isActive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
                                 {course.isActive ? 'Active' : 'Inactive'}
@@ -235,7 +275,8 @@ const CourseMaster = () => {
                                 <Eye size={14}/>
                             </button>
                         </td>
-                        <td className="p-2 border text-center sticky right-0 bg-white z-[5]">                            <div className="flex justify-center gap-1">
+                        <td className="p-2 border text-center sticky right-0 bg-white z-[5]">
+                            <div className="flex justify-center gap-1">
                                 <button onClick={() => handleEdit(course)} className="bg-blue-50 text-blue-600 p-1 rounded border border-blue-200 hover:bg-blue-100 transition" title="Edit">
                                     <Edit2 size={14}/>
                                 </button>
@@ -252,6 +293,40 @@ const CourseMaster = () => {
         </table>
         )}
       </div>
+
+       {/* Pagination Footer */}
+       {!isLoading && courses && courses.length > 0 && (
+          <div className="bg-gray-50 px-4 py-3 border-t flex justify-between items-center mt-2 rounded-lg">
+              <span className="text-xs text-gray-500">
+                  Page {currentPage} of {totalPages} ({courses.length} records)
+              </span>
+              <div className="flex gap-1">
+                  <button 
+                      disabled={currentPage === 1} 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                      className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs"
+                  >
+                      Prev
+                  </button>
+                  {[...Array(totalPages)].map((_, i) => (
+                       <button 
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`px-3 py-1 border rounded text-xs ${currentPage === i + 1 ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-100'}`}
+                       >
+                           {i + 1}
+                       </button>
+                  ))}
+                  <button 
+                      disabled={currentPage === totalPages} 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                      className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs"
+                  >
+                      Next
+                  </button>
+              </div>
+          </div>
+      )}
 
       {/* --- Subject Viewer Modal --- */}
       {viewingSubjects && (
@@ -458,12 +533,16 @@ const CourseMaster = () => {
                     <button type="button" onClick={closeForm} className="px-4 py-2 border rounded hover:bg-gray-100 text-sm font-medium">Cancel</button>
                     <button type="button" onClick={() => {reset(); setSelectedSubjectMap({}); setPreviewImage(null);}} className="px-4 py-2 border text-orange-600 border-orange-200 hover:bg-orange-50 text-sm font-medium">Reset</button>
                     <button 
-        onClick={handleSubmit(onSubmit)} 
-        disabled={isLoading}
-        className={`bg-green-600 text-white px-6 py-2 rounded shadow text-sm font-bold transition flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-green-700'}`}
-    >
-        {isLoading ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update Course' : 'Save Course')}
-    </button>
+                        onClick={handleSubmit(onSubmit)} 
+                        disabled={isLoading}
+                        className={`bg-green-600 text-white px-6 py-2 rounded shadow text-sm font-bold transition flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                    >
+                        {isLoading ? (
+                            <><Clock className="animate-spin" size={16}/> {isEditing ? 'Updating...' : 'Saving...'}</>
+                        ) : (
+                            isEditing ? 'Update Course' : 'Save Course'
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
@@ -474,7 +553,6 @@ const CourseMaster = () => {
         .input-field { width: 100%; border: 1px solid #e5e7eb; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
         .input-field:focus { border-color: #2563eb; ring: 2px solid #2563eb; }
       `}</style>
-
     </div>
   );
 };

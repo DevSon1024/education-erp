@@ -129,10 +129,13 @@ const StudentList = () => {
   return (
     <div className="container mx-auto p-4">
       
+      {/* --- Page Heading --- */}
+      <h1 className="text-2xl font-bold text-gray-800 text-center tracking-tight mb-6">Manage Students</h1>
+      
       {/* --- Filter Section --- */}
       <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
         <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
-            <Search size={16}/> Search Criteria
+            <Search size={16}/> Search Students
         </h2>
         
         <div className="flex flex-col gap-4">
