@@ -62,6 +62,11 @@ const createInquiry = asyncHandler(async (req, res) => {
     data.studentPhoto = req.file.path.replace(/\\/g, "/"); // Normalize path
   }
 
+  // Handle empty string branchId
+  if (data.branchId === '') {
+    delete data.branchId;
+  }
+
   // Assign Branch automatically for non-Super Admin
   if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
     data.branchId = req.user.branchId;

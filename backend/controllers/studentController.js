@@ -138,6 +138,12 @@ const createStudent = asyncHandler(async (req, res) => {
     try {
         // 1. Prepare Parallel Lookups
         let finalBranchId = req.body.branchId;
+        
+        // Handle empty string from frontend
+        if (finalBranchId === '') {
+            finalBranchId = null;
+        }
+
         if (!finalBranchId && req.user && req.user.branchId) {
             finalBranchId = req.user.branchId;
         }
