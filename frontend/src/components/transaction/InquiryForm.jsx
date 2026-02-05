@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSelector, useDispatch } from 'react-redux';
 import { Save, X, Camera, User, Phone, BookOpen, Calendar, Copy, Clipboard, RotateCcw, Plus, Check } from 'lucide-react';
-import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation, fetchBranches } from '../../features/master/masterSlice';
+import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation, fetchBranches, fetchStates, fetchCities } from '../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { formatInputText } from '../../utils/textFormatter'; // Imported util
 import ProfileImageUploader from '../common/ProfileImageUploader';
@@ -10,7 +10,7 @@ import ProfileImageUploader from '../common/ProfileImageUploader';
 const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
-    const { courses, employees, references, educations, branches } = useSelector((state) => state.master);
+    const { courses, employees, references, educations, branches, states, cities } = useSelector((state) => state.master);
     const { isLoading } = useSelector((state) => state.transaction);
     const [preview, setPreview] = useState(null);
     
@@ -23,11 +23,16 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     // New Entry States
     const [newRef, setNewRef] = useState({ name: '', mobile: '', address: '' });
     const [newEdu, setNewEdu] = useState('');
+    
+    // State/City Management
+    const [filteredCities, setFilteredCities] = useState([]);
 
     useEffect(() => {
         dispatch(fetchEmployees());
         dispatch(fetchReferences());
         dispatch(fetchEducations());
+        dispatch(fetchStates());
+        dispatch(fetchCities());
         if(user && user.role === 'Super Admin') {
             dispatch(fetchBranches());
         }
@@ -41,8 +46,8 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
 
     const { register, handleSubmit, reset, setValue, watch, getValues } = useForm({
         defaultValues: {
-            city: 'Surat',
-            state: 'Gujarat',
+            city: '',
+            state: '',
             inquiryDate: new Date().toISOString().split('T')[0],
             source: fixedSource,
             relationType: 'Father'
@@ -140,7 +145,21 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                 contactStudent: '-'
             });
         }
-    }, [initialData, reset, fixedSource, setValue]);
+    }, [initialData, reset, mode, user]);
+
+    // Filter cities when state changes (for edit mode or manual state changes)
+    useEffect(() => {
+        const currentState = watch('state');
+        if (currentState && states.length > 0 && cities.length > 0) {
+            const stateObj = states.find(s => s.name === currentState);
+            if (stateObj) {
+                const citiesForState = cities.filter(c => 
+                    c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                );
+                setFilteredCities(citiesForState);
+            }
+        }
+    }, [watch('state'), states, cities]);
 
     const onSubmit = (data) => {
         const formData = new FormData();
@@ -302,16 +321,50 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                 <input {...register('contactParent')} className="w-full border p-2 rounded text-sm" placeholder="Parent No"/>
                             </div>
                             
-                             <div className="md:col-span-1">
-                                <label className="block text-xs font-bold text-gray-700">City</label>
-                                <input 
-                                    {...register('city')} 
+                             <div>
+                                <label className="block text-xs font-bold text-gray-700">State</label>
+                                <select 
+                                    {...register('state')} 
                                     className="w-full border p-2 rounded text-sm"
-                                    onChange={(e) => setValue('city', formatInputText(e.target.value))}
-                                />
+                                    onChange={(e) => {
+                                        const selectedState = e.target.value;
+                                        setValue('state', selectedState);
+                                        setValue('city', ''); // Reset city when state changes
+                                        
+                                        // Filter cities by selected state
+                                        const stateObj = states.find(s => s.name === selectedState);
+                                        if (stateObj) {
+                                            const citiesForState = cities.filter(c => 
+                                                c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                                            );
+                                            setFilteredCities(citiesForState);
+                                        } else {
+                                            setFilteredCities([]);
+                                        }
+                                    }}
+                                >
+                                    <option value="">-- Select State --</option>
+                                    {states.filter(s => s.isActive).map(state => (
+                                        <option key={state._id} value={state.name}>{state.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <div className="md:col-span-1">
+                                <label className="block text-xs font-bold text-gray-700">City</label>
+                                <select
+                                className="w-full border p-2 rounded text-sm"
+                                    {...register('city')}
+                                    disabled={!watch('state')}
+                                >
+                                    <option value="">-- Select City --</option>
+                                    {filteredCities.map(city => (
+                                        <option key={city._id} value={city.name}>{city.name}</option>
+                                    ))}
+                                </select>
                             </div>
 
-                            <div className="md:col-span-3">
+                            <div className="md:col-span-2"> {/* Adjusted col-span for Address */}
                                 <label className="block text-xs font-bold text-gray-700">Address</label>
                                 <textarea 
                                     {...register('address')} 
@@ -320,13 +373,6 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                     placeholder="Full Address"
                                     onChange={(e) => setValue('address', formatInputText(e.target.value))}
                                 ></textarea>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700">State</label>
-                                <select {...register('state')} className="w-full border p-2 rounded text-sm">
-                                    <option>Gujarat</option><option>Maharashtra</option><option>Rajasthan</option>
-                                </select>
                             </div>
                         </div>
                     </div>

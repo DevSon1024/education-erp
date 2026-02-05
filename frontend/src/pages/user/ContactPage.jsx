@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchStates, fetchCities } from '../../features/master/masterSlice';
 import { 
   Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin, 
   ArrowRight, Send, Clock, MessageSquare, Youtube, Headphones,
@@ -12,6 +14,10 @@ import logoImage from '../../assets/logo2.png';
 import Reveal from '../../components/Reveal';
 
 const ContactPage = () => {
+  const dispatch = useDispatch();
+  const { states, cities } = useSelector((state) => state.master);
+  const [filteredCities, setFilteredCities] = useState([]);
+
   const [activeMap, setActiveMap] = useState('head'); // 'head' or 'branch'
   
   const [formData, setFormData] = useState({
@@ -27,6 +33,27 @@ const ContactPage = () => {
   });
 
   const [generatedCode, setGeneratedCode] = useState(Math.floor(1000 + Math.random() * 9000).toString());
+
+  // Fetch location data
+  useEffect(() => {
+    dispatch(fetchStates());
+    dispatch(fetchCities());
+  }, [dispatch]);
+
+  // Filter cities when state changes
+  useEffect(() => {
+    if (formData.state && states.length > 0 && cities.length > 0) {
+      const stateObj = states.find(s => s.name === formData.state);
+      if (stateObj) {
+        const citiesForState = cities.filter(c => 
+          c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+        );
+        setFilteredCities(citiesForState);
+      }
+    } else {
+      setFilteredCities([]);
+    }
+  }, [formData.state, states, cities]);
 
   const handleChange = (e) => {
     setFormData({
@@ -291,21 +318,53 @@ const ContactPage = () => {
                     <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter Your Email Here..." className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
                  </div>
                  
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required placeholder="Phone Number" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" />
-                    <select name="state" value={formData.state} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
-                        <option value="">Select State</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                    </select>
-                 </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <select 
+                       name="state" 
+                       value={formData.state} 
+                       onChange={(e) => {
+                         const selectedState = e.target.value;
+                         setFormData({
+                           ...formData,
+                           state: selectedState,
+                           city: '' // Reset city when state changes
+                         });
+                         
+                         // Filter cities by selected state
+                         const stateObj = states.find(s => s.name === selectedState);
+                         if (stateObj) {
+                           const citiesForState = cities.filter(c => 
+                             c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                           );
+                           setFilteredCities(citiesForState);
+                         } else {
+                           setFilteredCities([]);
+                         }
+                       }} 
+                       required 
+                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                     >
+                         <option value="">Select State</option>
+                         {states.filter(s => s.isActive).map(state => (
+                           <option key={state._id} value={state.name}>{state.name}</option>
+                         ))}
+                     </select>
+                     <select 
+                       name="city" 
+                       value={formData.city} 
+                       onChange={handleChange} 
+                       required 
+                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none disabled:bg-gray-100"
+                       disabled={!formData.state}
+                     >
+                         <option value="">Select City</option>
+                         {filteredCities.map(city => (
+                           <option key={city._id} value={city.name}>{city.name}</option>
+                         ))}
+                     </select>
+                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <select name="city" value={formData.city} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
-                        <option value="">Select City</option>
-                        <option value="Surat">Surat</option>
-                        <option value="Ahmedabad">Ahmedabad</option>
-                    </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <select name="branch" value={formData.branch} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
                         <option value="">Select Branch</option>
                         <option value="Godadara">Godadara Head Office</option>

@@ -16,6 +16,8 @@ import {
   fetchEducations,
   createReference,
   createEducation,
+  fetchStates,
+  fetchCities
 } from "../../../features/master/masterSlice";
 import { fetchInquiries } from "../../../features/transaction/transactionSlice";
 import { fetchEmployees } from "../../../features/employee/employeeSlice";
@@ -39,12 +41,6 @@ import {
 } from "lucide-react";
 import ProfileImageUploader from "../../../components/common/ProfileImageUploader";
 
-const LOCATION_DATA = {
-  Gujarat: ["Surat", "Ahmedabad", "Vadodara", "Rajkot"],
-  Maharashtra: ["Mumbai", "Pune", "Nagpur", "Nashik"],
-  Delhi: ["New Delhi", "Noida", "Gurgaon"],
-};
-
 import { FormSkeleton } from "../../../components/common/SkeletonLoader"; // Corrected Import Location
 
 // getUniqueEducation removed - using centralized master list instead
@@ -63,7 +59,7 @@ const StudentAdmission = () => {
     (state) => state.students
   );
   const { inquiries } = useSelector((state) => state.transaction);
-  const { courses, batches, references, educations } = useSelector((state) => state.master);
+  const { courses, batches, references, educations, states, cities } = useSelector((state) => state.master);
   const { employees } = useSelector((state) => state.employees) || {
     employees: [],
   };
@@ -87,6 +83,7 @@ const StudentAdmission = () => {
   const [newEdu, setNewEdu] = useState('');
   const [isRefLoading, setIsRefLoading] = useState(false);
   const [isEduLoading, setIsEduLoading] = useState(false);
+  const [filteredCities, setFilteredCities] = useState([]);
 
   const {
     register,
@@ -99,8 +96,8 @@ const StudentAdmission = () => {
   } = useForm({
     defaultValues: {
       admissionDate: new Date().toISOString().split("T")[0],
-      state: "Gujarat",
-      city: "Surat",
+      state: "",
+      city: "",
       relationType: "Father", 
       reference: "Direct",
       receiptPaymentMode: "Cash",
@@ -128,6 +125,8 @@ const StudentAdmission = () => {
     dispatch(fetchEmployees());
     dispatch(fetchReferences());
     dispatch(fetchEducations());
+    dispatch(fetchStates());
+    dispatch(fetchCities());
     if(user?.role === 'Super Admin' && branches.length === 0) {
         dispatch(getBranches());
     }
@@ -254,6 +253,19 @@ const StudentAdmission = () => {
       }
     }
   }, [isUpdateMode, currentStudent, setValue, courses, batches]);
+
+  // Filter cities when state changes
+  useEffect(() => {
+    if (watchState && states.length > 0 && cities.length > 0) {
+      const stateObj = states.find(s => s.name === watchState);
+      if (stateObj) {
+        const citiesForState = cities.filter(c => 
+          c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+        );
+        setFilteredCities(citiesForState);
+      }
+    }
+  }, [watchState, states, cities]);
 
 // educationOptions effect removed
 
@@ -918,11 +930,26 @@ const StudentAdmission = () => {
                 <select
                   {...register("state", { required: "State is required" })}
                   className={`input ${errors.state ? "border-red-500" : ""}`}
+                  onChange={(e) => {
+                    const selectedState = e.target.value;
+                    setValue('state', selectedState);
+                    setValue('city', ''); // Reset city when state changes
+                    
+                    // Filter cities by selected state
+                    const stateObj = states.find(s => s.name === selectedState);
+                    if (stateObj) {
+                      const citiesForState = cities.filter(c => 
+                        c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                      );
+                      setFilteredCities(citiesForState);
+                    } else {
+                      setFilteredCities([]);
+                    }
+                  }}
                 >
-                  {Object.keys(LOCATION_DATA).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
+                  <option value="">-- Select State --</option>
+                  {states.filter(s => s.isActive).map(state => (
+                    <option key={state._id} value={state.name}>{state.name}</option>
                   ))}
                 </select>
                 {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>}
@@ -932,11 +959,11 @@ const StudentAdmission = () => {
                 <select
                   {...register("city", { required: "City is required" })}
                   className={`input ${errors.city ? "border-red-500" : ""}`}
+                  disabled={!watchState}
                 >
-                  {LOCATION_DATA[watchState]?.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                  <option value="">-- Select City --</option>
+                  {filteredCities.map(city => (
+                    <option key={city._id} value={city.name}>{city.name}</option>
                   ))}
                 </select>
                 {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>}

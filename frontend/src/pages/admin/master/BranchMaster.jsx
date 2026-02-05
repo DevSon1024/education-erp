@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBranch, getBranches, updateBranch, deleteBranch, getBranchEmployees, reset } from '../../../features/master/branchSlice';
+import { fetchStates, fetchCities } from '../../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { Edit, Trash2, Plus, Search, X, Eye, EyeOff } from 'lucide-react';
 import { TableSkeleton } from '../../../components/common/SkeletonLoader';
@@ -8,6 +9,7 @@ import { TableSkeleton } from '../../../components/common/SkeletonLoader';
 const BranchMaster = () => {
     const dispatch = useDispatch();
     const { branches, branchEmployees, isLoading, isError, message } = useSelector((state) => state.branch);
+    const { states, cities } = useSelector((state) => state.master);
     const { user } = useSelector((state) => state.auth);
 
     const [formData, setFormData] = useState({
@@ -30,12 +32,15 @@ const BranchMaster = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showDirectorPassword, setShowDirectorPassword] = useState(false);
+    const [filteredCities, setFilteredCities] = useState([]);
 
     useEffect(() => {
         if (isError) {
             toast.error(message);
         }
         dispatch(getBranches());
+        dispatch(fetchStates());
+        dispatch(fetchCities());
         return () => {
             dispatch(reset());
         };
@@ -47,6 +52,19 @@ const BranchMaster = () => {
             dispatch(getBranchEmployees());
         }
     }, [isModalOpen, dispatch]);
+
+    // Filter cities when state changes (for edit mode)
+    useEffect(() => {
+        if (formData.state && states.length > 0 && cities.length > 0) {
+            const stateObj = states.find(s => s.name === formData.state);
+            if (stateObj) {
+                const citiesForState = cities.filter(c => 
+                    c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                );
+                setFilteredCities(citiesForState);
+            }
+        }
+    }, [formData.state, states, cities]);
 
     const { name, shortCode, phone, mobile, email, address, city, state: branchState, isActive, 
             branchDirector, directorUsername, directorPassword } = formData;
@@ -330,28 +348,49 @@ const BranchMaster = () => {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-sm font-semibold text-gray-700">City <span className="text-red-500">*</span></label>
-                                    <input 
-                                        type="text" 
-                                        name="city" 
-                                        value={city} 
-                                        onChange={onChange} 
-                                        required 
+                                    <label className="text-sm font-semibold text-gray-700">State <span className="text-red-500">*</span></label>
+                                    <select
+                                        name="state"
+                                        value={branchState}
+                                        onChange={(e) => {
+                                            const selectedState = e.target.value;
+                                            setFormData({ ...formData, state: selectedState, city: '' });
+                                            
+                                            // Filter cities by selected state
+                                            const stateObj = states.find(s => s.name === selectedState);
+                                            if (stateObj) {
+                                                const citiesForState = cities.filter(c => 
+                                                    c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                                                );
+                                                setFilteredCities(citiesForState);
+                                            } else {
+                                                setFilteredCities([]);
+                                            }
+                                        }}
+                                        required
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        placeholder="e.g. Surat"
-                                    />
+                                    >
+                                        <option value="">-- Select State --</option>
+                                        {states.filter(s => s.isActive).map(state => (
+                                            <option key={state._id} value={state.name}>{state.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-sm font-semibold text-gray-700">State <span className="text-red-500">*</span></label>
-                                    <input 
-                                        type="text" 
-                                        name="state" 
-                                        value={branchState} 
-                                        onChange={onChange} 
-                                        required 
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        placeholder="e.g. Gujarat"
-                                    />
+                                    <label className="text-sm font-semibold text-gray-700">City <span className="text-red-500">*</span></label>
+                                    <select
+                                        name="city"
+                                        value={city}
+                                        onChange={onChange}
+                                        required
+                                        disabled={!branchState}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        <option value="">-- Select City --</option>
+                                        {filteredCities.map(c => (
+                                            <option key={c._id} value={c.name}>{c.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 

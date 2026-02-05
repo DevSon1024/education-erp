@@ -14,6 +14,7 @@ const { getExamRequests, cancelExamRequest, createExamRequest, getPendingExams }
 const { getExamSchedules, createExamSchedule, updateExamSchedule, deleteExamSchedule, getExamScheduleDetails } = require('../controllers/examScheduleController');
 const { getExamResults, createExamResult, updateExamResult } = require('../controllers/examResultController');
 const { createQuestion, getQuestions, updateQuestion, deleteQuestion } = require('../controllers/freeLearningController');
+const locationRoutes = require('./locationRoutes');
 
 const upload = require('../middlewares/uploadMiddleware');
 
@@ -91,5 +92,8 @@ router.route('/free-learning')
 router.route('/free-learning/:id')
     .put(protect, updateQuestion)
     .delete(protect, deleteQuestion);
+
+// --- Location Routes ---
+router.use('/location', locationRoutes);
 
 module.exports = router;

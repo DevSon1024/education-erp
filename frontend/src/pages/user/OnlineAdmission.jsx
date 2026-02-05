@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { createPublicInquiry } from '../../features/transaction/transactionSlice';
-import { fetchCourses, fetchBatches, fetchReferences, fetchEducations, createReference, createEducation } from '../../features/master/masterSlice';
+import { fetchCourses, fetchBatches, fetchReferences, fetchEducations, createReference, createEducation, fetchStates, fetchCities } from '../../features/master/masterSlice';
 import { getBranches } from '../../features/master/branchSlice';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -18,7 +18,7 @@ const OnlineAdmission = () => {
   const preSelectedCourseId = searchParams.get('courseId');
 
   const { isSuccess, isError, message, isLoading } = useSelector((state) => state.transaction);
-  const { courses, references, educations } = useSelector((state) => state.master);
+  const { courses, references, educations, states, cities } = useSelector((state) => state.master);
   const { branches } = useSelector((state) => state.branch);
 
   const [previewImage, setPreviewImage] = useState(null);
@@ -30,12 +30,13 @@ const OnlineAdmission = () => {
   const [newRefName, setNewRefName] = useState('');
   const [newRefMobile, setNewRefMobile] = useState(''); // Optional per schema but good to have
   const [newEduName, setNewEduName] = useState('');
+  const [filteredCities, setFilteredCities] = useState([]);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
       relationType: 'Father',
-      state: 'Gujarat',
-      city: 'Surat',
+      state: '',
+      city: '',
       gender: 'Male',
       source: 'OnlineAdmission',
       selectedCourse: preSelectedCourseId || ''
@@ -50,7 +51,22 @@ const OnlineAdmission = () => {
     dispatch(fetchReferences());
     dispatch(fetchEducations());
     dispatch(getBranches());
+    dispatch(fetchStates());
+    dispatch(fetchCities());
   }, [dispatch]);
+
+  useEffect(() => {
+    const currentState = watch('state');
+    if (currentState && states.length > 0 && cities.length > 0) {
+      const stateObj = states.find(s => s.name === currentState);
+      if (stateObj) {
+        const citiesForState = cities.filter(c => 
+          c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+        );
+        setFilteredCities(citiesForState);
+      }
+    }
+  }, [watch('state'), states, cities]);
 
   useEffect(() => {
     if (preSelectedCourseId) {
@@ -251,20 +267,45 @@ const OnlineAdmission = () => {
                    {errors.address && <span className="text-red-500 text-xs">{errors.address.message}</span>}
                 </div>
                 <div>
-                   <label className="block text-sm font-semibold text-gray-700 mb-1">City <span className="text-red-500">*</span></label>
-                   <input 
-                      {...register("city", { required: "Required" })} 
-                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
-                      onChange={(e) => setValue('city', formatInputText(e.target.value))}
-                   />
+                   <label className="block text-sm font-semibold text-gray-700 mb-1">State <span className="text-red-500">*</span></label>
+                   <select
+                      {...register("state", { required: "Required" })}
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all bg-white"
+                      onChange={(e) => {
+                        const selectedState = e.target.value;
+                        setValue('state', selectedState);
+                        setValue('city', ''); // Reset city when state changes
+                        
+                        // Filter cities by selected state
+                        const stateObj = states.find(s => s.name === selectedState);
+                        if (stateObj) {
+                          const citiesForState = cities.filter(c => 
+                            c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+                          );
+                          setFilteredCities(citiesForState);
+                        } else {
+                          setFilteredCities([]);
+                        }
+                      }}
+                   >
+                      <option value="">-- Select State --</option>
+                      {states.filter(s => s.isActive).map(state => (
+                        <option key={state._id} value={state.name}>{state.name}</option>
+                      ))}
+                   </select>
                 </div>
                 <div>
-                   <label className="block text-sm font-semibold text-gray-700 mb-1">State <span className="text-red-500">*</span></label>
-                   <input 
-                      {...register("state", { required: "Required" })} 
-                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all" 
-                      onChange={(e) => setValue('state', formatInputText(e.target.value))}
-                   />
+                   <label className="block text-sm font-semibold text-gray-700 mb-1">City <span className="text-red-500">*</span></label>
+                   <select
+                      {...register("city", { required: "Required" })}
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all bg-white disabled:bg-gray-100"
+                      disabled={!watch('state')}
+                   >
+                      <option value="">-- Select City --</option>
+                      {filteredCities.map(city => (
+                        <option key={city._id} value={city.name}>{city.name}</option>
+                      ))}
+                   </select>
                 </div>
             </div>
           </div>

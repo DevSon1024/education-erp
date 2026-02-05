@@ -269,6 +269,67 @@ export const deleteFreeLearningQuestion = createAsyncThunk('master/deleteFreeLea
     } catch (error) { return thunkAPI.rejectWithValue(error.message); }
 });
 
+// --- Location Thunks ---
+
+// States
+export const fetchStates = createAsyncThunk('master/fetchStates', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(`${API_URL}location/states`);
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createState = createAsyncThunk('master/createState', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(`${API_URL}location/states`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response?.data?.message || error.message); }
+});
+
+export const updateState = createAsyncThunk('master/updateState', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}location/states/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response?.data?.message || error.message); }
+});
+
+export const deleteState = createAsyncThunk('master/deleteState', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(`${API_URL}location/states/${id}`);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+// Cities
+export const fetchCities = createAsyncThunk('master/fetchCities', async (stateId, thunkAPI) => {
+    try {
+        const url = stateId ? `${API_URL}location/cities?stateId=${stateId}` : `${API_URL}location/cities`;
+        const response = await axios.get(url);
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
+export const createCity = createAsyncThunk('master/createCity', async (data, thunkAPI) => {
+    try {
+        const response = await axios.post(`${API_URL}location/cities`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response?.data?.message || error.message); }
+});
+
+export const updateCity = createAsyncThunk('master/updateCity', async ({ id, data }, thunkAPI) => {
+    try {
+        const response = await axios.put(`${API_URL}location/cities/${id}`, data);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.response?.data?.message || error.message); }
+});
+
+export const deleteCity = createAsyncThunk('master/deleteCity', async (id, thunkAPI) => {
+    try {
+        const response = await axios.delete(`${API_URL}location/cities/${id}`);
+        return response.data;
+    } catch (error) { return thunkAPI.rejectWithValue(error.message); }
+});
+
 const masterSlice = createSlice({
     name: 'master',
     initialState: {
@@ -285,6 +346,8 @@ const masterSlice = createSlice({
         educations: [],
         branches: [],
         freeLearningQuestions: [],
+        states: [],
+        cities: [],
         isLoading: false,
         isSuccess: false,
         message: ''
@@ -498,6 +561,47 @@ const masterSlice = createSlice({
                 state.freeLearningQuestions = state.freeLearningQuestions.filter(q => q._id !== action.payload.id);
                 state.isSuccess = true;
                 state.message = 'Question Deleted Successfully';
+            })
+
+            // --- Location (States & Cities) ---
+            // States
+            .addCase(fetchStates.fulfilled, (state, action) => { state.states = action.payload; })
+            .addCase(createState.fulfilled, (state, action) => {
+                state.states.unshift(action.payload);
+                state.isSuccess = true;
+                state.message = 'State Added Successfully';
+            })
+            .addCase(updateState.fulfilled, (state, action) => {
+                const index = state.states.findIndex(s => s._id === action.payload._id);
+                if (index !== -1) state.states[index] = action.payload;
+                state.isSuccess = true;
+                state.message = 'State Updated Successfully';
+            })
+            .addCase(deleteState.fulfilled, (state, action) => {
+                state.states = state.states.filter(s => s._id !== action.payload.id);
+                // Also remove cities for this state
+                state.cities = state.cities.filter(c => c.stateId?._id !== action.payload.id && c.stateId !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'State Deleted Successfully';
+            })
+            
+            // Cities
+            .addCase(fetchCities.fulfilled, (state, action) => { state.cities = action.payload; })
+            .addCase(createCity.fulfilled, (state, action) => {
+                state.cities.unshift(action.payload);
+                state.isSuccess = true;
+                state.message = 'City Added Successfully';
+            })
+            .addCase(updateCity.fulfilled, (state, action) => {
+                const index = state.cities.findIndex(c => c._id === action.payload._id);
+                if (index !== -1) state.cities[index] = action.payload;
+                state.isSuccess = true;
+                state.message = 'City Updated Successfully';
+            })
+            .addCase(deleteCity.fulfilled, (state, action) => {
+                state.cities = state.cities.filter(c => c._id !== action.payload.id);
+                state.isSuccess = true;
+                state.message = 'City Deleted Successfully';
             });
     }
 });
