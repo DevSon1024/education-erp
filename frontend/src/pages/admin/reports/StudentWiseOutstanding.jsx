@@ -21,8 +21,7 @@ const StudentWiseOutstanding = () => {
         batch: '',
         branchId: '',
         pageNumber: 1,
-        pageSize: 100, // Default to showing more for report
-        includePaymentSummary: 'true' // Request backend to calculate totals
+        pageSize: 100 // Default to showing more for report
     });
 
     const [appliedFilters, setAppliedFilters] = useState(filters);
@@ -58,8 +57,7 @@ const StudentWiseOutstanding = () => {
             batch: '',
             branchId: '',
             pageNumber: 1,
-            pageSize: 100,
-            includePaymentSummary: 'true'
+            pageSize: 100
         };
         setFilters(initial);
         setAppliedFilters(initial);
@@ -87,6 +85,20 @@ const StudentWiseOutstanding = () => {
     };
 
     const branchInfo = getBranchDetails();
+
+    const calculateFees = (student) => {
+        const courseAdmFee = student.course?.admissionFees || 0;
+        const paidAdmFee = student.admissionFeeAmount || 0;
+        
+        // Calculate pending admission fee (if any)
+        const pendingAdmission = Math.max(0, courseAdmFee - paidAdmFee);
+        
+        // Total pending fees = (Tuition pending) + (Admission pending)
+        // assuming student.pendingFees comes from backend for tuition/installments
+        const calculatedPendingFees = (student.pendingFees || 0) + pendingAdmission;
+        
+        return calculatedPendingFees;
+    };
 
     return (
         <div className="container mx-auto p-4 max-w-7xl">
@@ -195,61 +207,36 @@ const StudentWiseOutstanding = () => {
                     </thead>
                     <tbody>
                         {students && students.length > 0 ? students.map((s, index) => {
-                            // Fee Calculation Logic
-                            const registerFees = Number(s.course?.admissionFees) || 0;
-                            const monthlyAmount = Number(s.course?.monthlyFees) || 0;
-                            
-                            // Calculate months since admission
-                            const admissionDate = moment(s.admissionDate);
-                            const currentDate = moment();
-                            const calcMonth = Math.max(0, currentDate.diff(admissionDate, 'months'));
-
-                            const monthlyCharges = calcMonth > 0 ? (monthlyAmount * calcMonth) : 0;
-                            const totalFees = registerFees + monthlyCharges;
-                            
-                            // Assuming s.totalPaid exists or defaulting to 0 if not available in this view
-                            // If backend doesn't provide it, this will need a different fetch strategy
-                            const paidFee = Number(s.totalPaid) || 0; 
-                            const outstandingAmount = totalFees - paidFee;
-                            
-                            // For Table Display
-                            // Note: 'dueAmount' in table requested as "Outstanding Amount: Total Fees - PaidFee"
-                            // But usually Due Amount might be specific to current installment. 
-                            // Based on prompt "formulas like outstanding and due amount", I'll set dueAmount same as outstanding for now 
-                            // or leave it as the previously requested logic if they differ. 
-                            // User said: "Outstanding Amount: Total Fees - PaidFee". 
-                            // I will use this value for the "Outstanding Amount" column.
-                            // The user also listed "due amount" as a column. I will use the same value or 0 if paid.
-
+                            const outstanding = calculateFees(s);
                             return (
-                            <tr key={s._id} className="text-center hover:bg-gray-50">
-                                <td className="border border-gray-300 px-2 py-1.5">{index + 1}</td>
-                                <td className="border border-gray-300 px-2 py-1.5 whitespace-nowrap">{moment(s.admissionDate).format('DD-MM-YYYY')}</td>
-                                <td className="border border-gray-300 px-2 py-1.5 font-semibold text-blue-800">{s.regNo || '-'}</td>
-                                <td className="border border-gray-300 px-2 py-1.5 text-left font-medium uppercase">
-                                    {s.firstName} {s.middleName} {s.lastName}
-                                </td>
-                                <td className="border border-gray-300 px-2 py-1.5">{s.course?.name || '-'}</td>
-                                
-                                {/* Outstanding Amount (Total Fees - PaidFee) */}
-                                <td className="border border-gray-300 px-2 py-1.5 text-right font-semibold text-red-600">
-                                    {outstandingAmount.toFixed(2)}
-                                </td>
-                                
-                                {/* Follow Up Columns */}
-                                <td className="border border-gray-300 px-2 py-1.5 text-gray-400"></td>
-                                <td className="border border-gray-300 px-2 py-1.5 text-gray-400"></td>
+                                <tr key={s._id} className="text-center hover:bg-gray-50">
+                                    <td className="border border-gray-300 px-2 py-1.5">{index + 1}</td>
+                                    <td className="border border-gray-300 px-2 py-1.5 whitespace-nowrap">{moment(s.admissionDate).format('DD-MM-YYYY')}</td>
+                                    <td className="border border-gray-300 px-2 py-1.5 font-semibold text-blue-800">{s.regNo || '-'}</td>
+                                    <td className="border border-gray-300 px-2 py-1.5 text-left font-medium uppercase">
+                                        {s.firstName} {s.middleName} {s.lastName}
+                                    </td>
+                                    <td className="border border-gray-300 px-2 py-1.5">{s.course?.name || '-'}</td>
+                                    
+                                    {/* Outstanding Amount */}
+                                    <td className="border border-gray-300 px-2 py-1.5 text-right font-semibold text-red-600">
+                                        {outstanding > 0 ? outstanding.toFixed(2) : '-'}
+                                    </td>
+                                    
+                                    {/* Follow Up Columns */}
+                                    <td className="border border-gray-300 px-2 py-1.5 text-gray-400"></td>
+                                    <td className="border border-gray-300 px-2 py-1.5 text-gray-400"></td>
 
-                                <td className="border border-gray-300 px-2 py-1.5 text-gray-500 whitespace-nowrap">
-                                     {s.lastReceiptDate ? moment(s.lastReceiptDate).format('DD-MM-YYYY') : '-'}
-                                </td>
-                                <td className="border border-gray-300 px-2 py-1.5 text-right text-green-600">
-                                     {s.lastReceiptAmount ? Number(s.lastReceiptAmount).toFixed(2) : '-'}
-                                </td>
-                                <td className="border border-gray-300 px-2 py-1.5 text-right font-bold text-blue-600">
-                                     {outstandingAmount.toFixed(2)}
-                                </td>
-                            </tr>
+                                    <td className="border border-gray-300 px-2 py-1.5 text-gray-500">
+                                         -
+                                    </td>
+                                    <td className="border border-gray-300 px-2 py-1.5 text-right text-green-600">
+                                         -
+                                    </td>
+                                    <td className="border border-gray-300 px-2 py-1.5 text-right font-bold text-blue-600">
+                                        {outstanding > 0 ? outstanding.toFixed(2) : '-'}
+                                    </td>
+                                </tr>
                             );
                         }) : (
                             <tr>
