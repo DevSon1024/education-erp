@@ -113,6 +113,7 @@ const EmployeeAttendance = lazy(() => import("./pages/admin/transaction/Employee
 
 // --- REPORTS (Ensure this import is correct) ---
 const LedgerReport = lazy(() => import("./pages/admin/reports/LedgerReport"));
+const StudentWiseOutstanding = lazy(() => import("./pages/admin/reports/StudentWiseOutstanding"));
 const AdmissionFormPrint = lazy(() => import("./pages/admin/reports/AdmissionFormPrint"));
 
 const PrivateRoute = ({ children }) => {
@@ -455,6 +456,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <LedgerReport />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/reports/student-outstanding"
+                element={
+                  <PrivateRoute>
+                    <StudentWiseOutstanding />
                   </PrivateRoute>
                 }
               />

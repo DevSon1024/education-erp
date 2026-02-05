@@ -67,9 +67,16 @@ export const MENU_CONFIG = [
     title: 'Reports',
     path: '/reports',
     type: 'dropdown',
+    isCustom: true,
     subItems: [
       { title: 'Ledger', path: '/reports/ledger' },
-      { title: 'Monthly Report', path: '/reports/monthly-report' },
+      { 
+          title: 'Monthly Report', 
+          type: 'nested',
+          subItems: [
+              { title: 'Student Wise Outstanding', path: '/reports/student-outstanding' }
+          ]
+      },
       { title: 'Admission Form', path: '/reports/admission-form' }
     ]
   },

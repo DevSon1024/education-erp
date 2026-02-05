@@ -1,0 +1,268 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchStudents } from '../../../features/student/studentSlice';
+import { fetchCourses, fetchBatches, fetchBranches } from '../../../features/master/masterSlice';
+import { Search, Printer, FileText, RefreshCw } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
+import moment from 'moment';
+import logo from '../../../assets/logo2.png';
+
+const StudentWiseOutstanding = () => {
+    const dispatch = useDispatch();
+    const { students, isLoading } = useSelector((state) => state.students);
+    const { courses, branches } = useSelector((state) => state.master);
+    const { user } = useSelector((state) => state.auth);
+
+    // Filter State
+    const [filters, setFilters] = useState({
+        startDate: '',
+        endDate: new Date().toISOString().split('T')[0],
+        courseFilter: '',
+        batch: '',
+        branchId: '',
+        pageNumber: 1,
+        pageSize: 100, // Default to showing more for report
+        includePaymentSummary: 'true' // Request backend to calculate totals
+    });
+
+    const [appliedFilters, setAppliedFilters] = useState(filters);
+    const componentRef = useRef(null);
+
+    // Fetch Initial Data
+    useEffect(() => {
+        dispatch(fetchCourses());
+        dispatch(fetchBatches());
+        if (user?.role === 'Super Admin') {
+            dispatch(fetchBranches());
+        }
+    }, [dispatch, user]);
+
+    // Fetch Report Data
+    useEffect(() => {
+        dispatch(fetchStudents(appliedFilters));
+    }, [dispatch, appliedFilters]);
+
+    const handleFilterChange = (e) => {
+        setFilters({ ...filters, [e.target.name]: e.target.value });
+    };
+
+    const handleSearch = () => {
+        setAppliedFilters({ ...filters, pageNumber: 1 });
+    };
+
+    const handleReset = () => {
+        const initial = {
+            startDate: '',
+            endDate: new Date().toISOString().split('T')[0],
+            courseFilter: '',
+            batch: '',
+            branchId: '',
+            pageNumber: 1,
+            pageSize: 100,
+            includePaymentSummary: 'true'
+        };
+        setFilters(initial);
+        setAppliedFilters(initial);
+    };
+
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current,
+        documentTitle: `Student_Outstanding_Report_${moment().format('YYYY-MM-DD')}`,
+    });
+
+    // Helper to get branch details for header
+    const getBranchDetails = () => {
+        if (filters.branchId && branches) {
+            const branch = branches.find(b => b._id === filters.branchId);
+            if (branch) return branch;
+        }
+        // Default / Fallback (e.g. Logged in user's branch or Main)
+        return {
+            name: "Bhestan Branch",
+            address: "309-A, 309-B, 3rd Floor, Sai Square Building, Bhestan Circle, Bhestan Surat Gujarat-395023 (INDIA)",
+            phone: "96017-49300", 
+            mobile: "98988-30409",
+            email: "smartinstitutes@gmail.com" 
+        };
+    };
+
+    const branchInfo = getBranchDetails();
+
+    return (
+        <div className="container mx-auto p-4 max-w-7xl">
+             <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2 print:hidden">
+                <FileText className="text-primary"/> Student Wise Outstanding
+            </h1>
+
+            {/* --- Filter Section (Hidden in Print) --- */}
+            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8 print:hidden">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label className="text-sm font-semibold text-gray-600 mb-1 block">From Date</label>
+                        <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full border rounded p-2 focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                     <div>
+                        <label className="text-sm font-semibold text-gray-600 mb-1 block">To Date</label>
+                        <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full border rounded p-2 focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                    <div>
+                        <label className="text-sm font-semibold text-gray-600 mb-1 block">Course</label>
+                        <select name="courseFilter" value={filters.courseFilter} onChange={handleFilterChange} className="w-full border rounded p-2 focus:ring-2 focus:ring-primary outline-none">
+                            <option value="">All Courses</option>
+                            {courses && courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                        </select>
+                    </div>
+                     {user?.role === 'Super Admin' && (
+                        <div>
+                            <label className="text-sm font-semibold text-gray-600 mb-1 block">Branch</label>
+                            <select name="branchId" value={filters.branchId} onChange={handleFilterChange} className="w-full border rounded p-2 focus:ring-2 focus:ring-primary outline-none">
+                                <option value="">All Branches</option>
+                                {branches && branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+                            </select>
+                        </div>
+                    )}
+                </div>
+                 <div className="flex gap-2 mt-4 justify-end">
+                    <button onClick={handleReset} className="bg-gray-100 text-gray-600 px-4 py-2 rounded hover:bg-gray-200 border border-gray-300 font-medium transition flex items-center gap-1">
+                        <RefreshCw size={16}/> Reset
+                    </button>
+                    <button onClick={handleSearch} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold shadow transition flex items-center gap-2">
+                         {isLoading ? 'Loading...' : <><Search size={18}/> Show Report</>}
+                    </button>
+                </div>
+            </div>
+
+            {/* --- Report Toolbar --- */}
+            <div className="bg-white rounded-t-lg shadow border border-b-0 border-gray-200 p-3 flex justify-end print:hidden">
+                 <button onClick={handlePrint} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition font-medium">
+                    <Printer size={18}/> Print Report
+                </button>
+            </div>
+
+            {/* --- Printable Area --- */}
+            <div ref={componentRef} className="bg-white rounded-b-lg shadow border border-gray-200 p-8 min-h-[10in] print:shadow-none print:border-none print:p-0 print:w-full">
+                
+                {/* Header (Dynamic) */}
+                <div className="flex justify-between items-start mb-6 border-b-2 border-primary pb-4">
+                    <div className="flex items-center gap-4">
+                        <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
+                        <div>
+                             <h1 className="text-3xl font-extrabold text-[#e11d48]">Smart <span className="text-[#1e3a8a]">Institute</span></h1>
+                            <p className="text-xs text-blue-600 font-bold mt-1 tracking-wider uppercase">Smart management analysis of relative technology</p>
+                        </div>
+                    </div>
+                    <div className="text-right text-xs space-y-1">
+                        <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name || 'Bhestan Branch'}</h2>
+                        <div className="text-gray-600 max-w-xs ml-auto">
+                            {branchInfo.address}
+                        </div>
+                        <p className="font-semibold text-blue-800">
+                             Ph. No. : {branchInfo.phone}, Mob. No. : {branchInfo.mobile}
+                        </p>
+                        <p className="text-blue-500 underline">{branchInfo.email}</p>
+                    </div>
+                </div>
+
+                {/* Report Title */}
+                <div className="text-center mb-6">
+                    <h2 className="text-xl font-bold text-blue-500 uppercase tracking-wide inline-block border-b border-blue-200 pb-1">
+                        Student Wise Outstanding Report
+                    </h2>
+                     <p className="text-xs text-gray-500 mt-1">
+                        Report Date: {moment().format('DD-MM-YYYY')}
+                    </p>
+                </div>
+
+                {/* Table */}
+                <table className="w-full border-collapse border border-gray-300 text-xs">
+                    <thead>
+                        <tr className="bg-blue-600 text-white">
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 w-10 align-middle">Sr.</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Adm. Date</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Reg. No</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 text-left align-middle">Student Name</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Course</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 text-right align-middle">Outstanding</th>
+                            <th colSpan="2" className="border border-blue-500 px-2 py-2 text-center">Follow Up</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Rect. Date</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 text-right align-middle">Rect. Amt</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 text-right align-middle">Due Amt</th>
+                        </tr>
+                        <tr className="bg-blue-600 text-white">
+                            <th className="border border-blue-500 px-2 py-1 text-center text-[10px] w-16">Date</th>
+                            <th className="border border-blue-500 px-2 py-1 text-center text-[10px] w-16">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {students && students.length > 0 ? students.map((s, index) => {
+                            // Fee Calculation Logic
+                            const registerFees = Number(s.course?.admissionFees) || 0;
+                            const monthlyAmount = Number(s.course?.monthlyFees) || 0;
+                            
+                            // Calculate months since admission
+                            const admissionDate = moment(s.admissionDate);
+                            const currentDate = moment();
+                            const calcMonth = Math.max(0, currentDate.diff(admissionDate, 'months'));
+
+                            const monthlyCharges = calcMonth > 0 ? (monthlyAmount * calcMonth) : 0;
+                            const totalFees = registerFees + monthlyCharges;
+                            
+                            // Assuming s.totalPaid exists or defaulting to 0 if not available in this view
+                            // If backend doesn't provide it, this will need a different fetch strategy
+                            const paidFee = Number(s.totalPaid) || 0; 
+                            const outstandingAmount = totalFees - paidFee;
+                            
+                            // For Table Display
+                            // Note: 'dueAmount' in table requested as "Outstanding Amount: Total Fees - PaidFee"
+                            // But usually Due Amount might be specific to current installment. 
+                            // Based on prompt "formulas like outstanding and due amount", I'll set dueAmount same as outstanding for now 
+                            // or leave it as the previously requested logic if they differ. 
+                            // User said: "Outstanding Amount: Total Fees - PaidFee". 
+                            // I will use this value for the "Outstanding Amount" column.
+                            // The user also listed "due amount" as a column. I will use the same value or 0 if paid.
+
+                            return (
+                            <tr key={s._id} className="text-center hover:bg-gray-50">
+                                <td className="border border-gray-300 px-2 py-1.5">{index + 1}</td>
+                                <td className="border border-gray-300 px-2 py-1.5 whitespace-nowrap">{moment(s.admissionDate).format('DD-MM-YYYY')}</td>
+                                <td className="border border-gray-300 px-2 py-1.5 font-semibold text-blue-800">{s.regNo || '-'}</td>
+                                <td className="border border-gray-300 px-2 py-1.5 text-left font-medium uppercase">
+                                    {s.firstName} {s.middleName} {s.lastName}
+                                </td>
+                                <td className="border border-gray-300 px-2 py-1.5">{s.course?.name || '-'}</td>
+                                
+                                {/* Outstanding Amount (Total Fees - PaidFee) */}
+                                <td className="border border-gray-300 px-2 py-1.5 text-right font-semibold text-red-600">
+                                    {outstandingAmount.toFixed(2)}
+                                </td>
+                                
+                                {/* Follow Up Columns */}
+                                <td className="border border-gray-300 px-2 py-1.5 text-gray-400"></td>
+                                <td className="border border-gray-300 px-2 py-1.5 text-gray-400"></td>
+
+                                <td className="border border-gray-300 px-2 py-1.5 text-gray-500 whitespace-nowrap">
+                                     {s.lastReceiptDate ? moment(s.lastReceiptDate).format('DD-MM-YYYY') : '-'}
+                                </td>
+                                <td className="border border-gray-300 px-2 py-1.5 text-right text-green-600">
+                                     {s.lastReceiptAmount ? Number(s.lastReceiptAmount).toFixed(2) : '-'}
+                                </td>
+                                <td className="border border-gray-300 px-2 py-1.5 text-right font-bold text-blue-600">
+                                     {outstandingAmount.toFixed(2)}
+                                </td>
+                            </tr>
+                            );
+                        }) : (
+                            <tr>
+                                <td colSpan="11" className="border border-gray-300 px-4 py-8 text-center text-gray-500 italic">
+                                    No records found matching criteria.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+export default StudentWiseOutstanding;

@@ -16,6 +16,7 @@ const getStudents = asyncHandler(async (req, res) => {
         page = 1, pageSize = 10, courseFilter, studentName,
         hasPendingFees, reference, startDate, endDate,
         isRegistered, isAdmissionFeesPaid, batch, branchId,
+        includePaymentSummary, // NEW FLAG
         sortBy = '-createdAt'
     } = req.query;
     
@@ -62,14 +63,44 @@ const getStudents = asyncHandler(async (req, res) => {
     const pageNum = Number(page) || 1;
     const count = await Student.countDocuments(query);
 
+    // Populate necessary course fields for fee calculation
     const students = await Student.find(query)
-        .populate('course', 'name duration shortName durationType')
+        .populate('course', 'name duration shortName durationType admissionFees monthlyFees') // Added fee fields
         .populate('userId', 'username')
         .limit(limit)
         .skip(limit * (pageNum - 1))
         .sort({ createdAt: -1 });
 
-    res.json({ students, page: pageNum, pages: Math.ceil(count / limit), count });
+    let finalStudents = students;
+
+    // Optional: Calculate and attach payment summary if requested
+    if (includePaymentSummary === 'true') {
+        const studentIds = students.map(s => s._id);
+        const receipts = await FeeReceipt.find({ student: { $in: studentIds } }).lean();
+
+        // Convert mongoose docs to plain objects to attach new properties
+        finalStudents = students.map(studentDoc => {
+            const s = studentDoc.toObject();
+            const studentReceipts = receipts.filter(r => String(r.student) === String(s._id));
+            
+            // Calculate Totals
+            const totalPaid = studentReceipts.reduce((sum, r) => sum + (r.amountPaid || 0), 0);
+            
+            // Find Last Receipt
+            // Sort by date desc
+            studentReceipts.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const lastReceipt = studentReceipts[0];
+
+            s.totalPaid = totalPaid;
+            s.lastReceiptDate = lastReceipt ? lastReceipt.date : null;
+            s.lastReceiptAmount = lastReceipt ? lastReceipt.amountPaid : 0;
+            s.receiptsCount = studentReceipts.length;
+
+            return s;
+        });
+    }
+
+    res.json({ students: finalStudents, page: pageNum, pages: Math.ceil(count / limit), count });
 });
 
 // ... (Rest of the controller functions remain unchanged)
