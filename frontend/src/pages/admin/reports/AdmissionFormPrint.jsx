@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import logo from '../../../assets/logo2.png';
 import moment from 'moment';
-import { fetchBatches } from '../../../features/master/masterSlice';
+import { fetchBatches, fetchReferences } from '../../../features/master/masterSlice';
 import { getBranches } from '../../../features/master/branchSlice';
+import { fetchEmployees } from '../../../features/employee/employeeSlice';
 
 const AdmissionFormPrint = () => {
     const { id } = useParams();
@@ -18,8 +19,9 @@ const AdmissionFormPrint = () => {
     const [localPaymentPlan, setLocalPaymentPlan] = useState(null); // Local state for print toggle
 
     const { user } = useSelector((state) => state.auth); 
-    const { batches } = useSelector((state) => state.master); // Get batches from Redux
+    const { batches, references } = useSelector((state) => state.master); // Get batches & references from Redux
     const { branches } = useSelector((state) => state.branch); // Get branches from Redux
+    const { employees } = useSelector((state) => state.employees) || { employees: [] }; // Get employees
     
     // ... rest of code
     const canEdit = user && (user.role === 'Super Admin' || user.role === 'Admin');
@@ -29,6 +31,8 @@ const AdmissionFormPrint = () => {
     useEffect(() => {
         dispatch(fetchBatches()); // Fetch batches
         dispatch(getBranches()); // Fetch branches
+        dispatch(fetchReferences()); // Fetch references
+        dispatch(fetchEmployees()); // Fetch employees
         const fetchStudent = async () => {
              // ... existing fetch logic
             try {
@@ -95,9 +99,27 @@ const AdmissionFormPrint = () => {
         return branchObj || {};
     };
 
+    const getReferenceAddress = () => {
+        if (!student || !student.reference) return "";
+        // Search in External References
+        if (references && references.length > 0) {
+            const refObj = references.find(r => r.name === student.reference);
+            if (refObj) return refObj.address || "";
+        }
+        
+        // Search in Employees
+        if (employees && employees.length > 0) {
+            const empObj = employees.find(e => e.name === student.reference);
+            if (empObj) return empObj.address || "";
+        }
+        
+        return "";
+    };
+
     const batchTimeDisplay = getBatchTime();
     const batchDateDisplay = getBatchDate();
     const branchInfo = getBranchInfo();
+    const referenceAddressDisplay = getReferenceAddress();
 
     return (
         <div className="max-w-[210mm] mx-auto bg-white min-h-screen p-0 print:p-0">
@@ -127,17 +149,17 @@ const AdmissionFormPrint = () => {
                     </div>
                     <div className="w-2/3 text-right">
                         <h1 className="text-xl font-bold uppercase tracking-wide">
-                            <Editable value={branchInfo.name || student.branchName || "JAYESH INSTITUTE BRANCH"} />
+                            {branchInfo.name || student.branchName || "JAYESH INSTITUTE BRANCH"}
                         </h1>
                         <p className="text-xs font-semibold mt-1">
-                             <Editable value={branchInfo.address || student.branchLocation || "LUDHIANA"} />
+                             {branchInfo.address || student.branchLocation || "LUDHIANA"}
                         </p>
                         <p className="text-xs">
-                            Ph. No.: <Editable value={branchInfo.phone || student.branchPhone || "6354116595"} /> &nbsp; 
-                            Mo.: +91 <Editable value={branchInfo.mobile || student.branchMobile || "6354116595"} />
+                            Ph. No.: {branchInfo.phone || student.branchPhone || "6354116595"} &nbsp; 
+                            Mo.: +91 {branchInfo.mobile || student.branchMobile || "6354116595"}
                         </p>
                         <p className="text-xs font-bold text-blue-800">
-                            <Editable value={branchInfo.website || student.website || "www.smartinstituteonline.com"} />
+                            {branchInfo.website || student.website || "www.smartinstituteonline.com"}
                         </p>
                     </div>
                 </div>
@@ -348,7 +370,7 @@ const AdmissionFormPrint = () => {
                      </div>
                      <div className="flex items-end gap-2">
                         <span className="font-bold w-48 text-nowrap">Reference Address :</span>
-                        <Editable value="" className="flex-grow"/>
+                        <Editable value={referenceAddressDisplay} className="flex-grow"/>
                      </div>
                      <div className="flex items-end gap-2">
                         <span className="font-bold w-16">Mr./Mrs./Miss.</span>
