@@ -48,13 +48,22 @@ const getEmployees = asyncHandler(async (req, res) => {
 
 // @desc    Create Employee
 const createEmployee = asyncHandler(async (req, res) => {
+    console.log("--- [Debug] createEmployee Started ---");
+    console.log("Req Body:", JSON.stringify({ ...req.body, loginPassword: '***' }, null, 2));
+    if (req.file) console.log("Req File:", req.file);
+
     const { 
         name, email, mobile, gender, type, 
         loginUsername, loginPassword, isLoginActive 
     } = req.body;
 
+    if (req.file) {
+        req.body.photo = req.file.path;
+    }
+
     const empExists = await Employee.findOne({ email });
     if (empExists) {
+        console.log("[Debug] Employee email already exists:", email);
         res.status(400); throw new Error('Employee with this email already exists');
     }
 
@@ -73,8 +82,14 @@ const createEmployee = asyncHandler(async (req, res) => {
     }
 
     if(req.body.branchId) {
+        console.log("[Debug] Fetching Branch for ID:", req.body.branchId);
         const branchTry = await require('../models/Branch').findById(req.body.branchId);
-        if(branchTry) branchNameParam = branchTry.name;
+        if(branchTry) {
+            branchNameParam = branchTry.name;
+            console.log("[Debug] Branch Found:", branchNameParam);
+        } else {
+            console.log("[Debug] Branch ID provided but not found in DB");
+        }
     }
 
     let userId = null;
@@ -102,7 +117,9 @@ const createEmployee = asyncHandler(async (req, res) => {
                 branchName: branchNameParam // Set correct branch name
             });
             userId = newUser._id;
+            console.log("[Debug] User Account Created. ID:", userId);
         } catch (error) {
+            console.error("[Debug] User Creation Error:", error);
             res.status(400); throw new Error('User Login Error: ' + error.message);
         }
     }
@@ -114,6 +131,7 @@ const createEmployee = asyncHandler(async (req, res) => {
             // regNo, // Removed
             userAccount: userId
         });
+        console.log("[Debug] Employee Created. ID:", employee._id);
 
         if (userId && loginUsername) {
              const message = `Dear, ${name}. Your Registration process has been successfully completed. User ID-${loginUsername}, Password-${loginPassword}, smart institute.`;
@@ -126,7 +144,11 @@ const createEmployee = asyncHandler(async (req, res) => {
         res.status(201).json(populatedEmployee);
 
     } catch (error) {
-        if(userId) await User.findByIdAndDelete(userId);
+        console.error("[Debug] Employee Creation Failed:", error);
+        if(userId) {
+            console.log("[Debug] Rolling back User Account:", userId);
+            await User.findByIdAndDelete(userId);
+        }
         res.status(400); throw new Error(error.message);
     }
 });
@@ -137,6 +159,10 @@ const updateEmployee = asyncHandler(async (req, res) => {
     const { 
         name, type, isLoginActive, loginPassword 
     } = req.body;
+
+    if (req.file) {
+        req.body.photo = req.file.path;
+    }
 
     const employee = await Employee.findById(id);
 

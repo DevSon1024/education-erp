@@ -18,12 +18,10 @@ export const MENU_CONFIG = [
       { title: 'Exam Request List', path: '/master/exam-request-list' },
       { title: 'Exam Schedule', path: '/master/exam-schedule' },
       { title: 'Exam Result', path: '/master/exam-result' },
-      { title: 'Manage News', path: '/master/manage-news' },
-      { title: 'Manage Terms', path: '/master/manage-terms' },
       { title: 'User Rights', path: '/master/user-rights' },
       { title: 'Material', path: '/master/material' },
-      { title: 'Branch', path: '/master/branch', restricted: true }, // Super Admin only
-      { title: 'Free Learning', path: '/master/free-learning'}
+      { title: 'Free Learning', path: '/master/free-learning' },
+      { title: 'Manage News', path: '/master/manage-news' }
     ]
   },
   {
@@ -98,10 +96,12 @@ export const MENU_CONFIG = [
     path: '/utility',
     type: 'dropdown',
     subItems: [
-      { title: 'Downloads', path: '/utility/downloads' },
-      { title: 'Free Learning', path: '/utility/free-learning' },
+      { title: 'Branch', path: '/master/branch', restricted: true },
+      { title: 'Location', path: '/utility/location' },
+      { title: 'Manage Terms', path: '/master/manage-terms' },
       { title: 'Cloudinary Management', path: '/utility/cloudinary-manager' },
-      { title: 'Location', path: '/utility/location' }
+      { title: 'Downloads', path: '/utility/downloads' },
+      { title: 'Free Learning', path: '/utility/free-learning' }
     ]
   }
 ];
