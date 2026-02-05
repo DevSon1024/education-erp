@@ -63,6 +63,7 @@ const studentSchema = new mongoose.Schema(
       required: true,
     },
     batch: { type: String, required: true },
+    batchStartDate: { type: Date }, // Added to track student specific batch start date
 
     // CHANGED: Made optional because "Pay Later" has no mode yet
     paymentMode: {

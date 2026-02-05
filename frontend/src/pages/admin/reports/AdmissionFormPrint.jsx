@@ -81,6 +81,7 @@ const AdmissionFormPrint = () => {
     };
     
     const getBatchDate = () => {
+        if (student && student.batchStartDate) return moment(student.batchStartDate).format('DD/MM/YYYY');
         if (!student || !batches) return "";
         const batchObj = batches.find(b => b.name === student.batch);
         if (batchObj && batchObj.startDate) return moment(batchObj.startDate).format('DD/MM/YYYY');

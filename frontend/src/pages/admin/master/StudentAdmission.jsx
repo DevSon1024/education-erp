@@ -243,7 +243,7 @@ const StudentAdmission = () => {
             courseName: courseObj.name,
             batch: currentStudent.batch,
             batchTime: batchObj ? `${batchObj.startTime} - ${batchObj.endTime}` : "N/A",
-            startDate: currentStudent.admissionDate?.split("T")[0],
+            startDate: currentStudent.batchStartDate ? currentStudent.batchStartDate.split("T")[0] : currentStudent.admissionDate?.split("T")[0],
             fees: currentStudent.totalFees,
             admissionFees: courseObj.admissionFees || 500,
             paymentType: currentStudent.paymentPlan || "One Time",

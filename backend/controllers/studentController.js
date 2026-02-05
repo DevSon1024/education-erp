@@ -504,6 +504,9 @@ const updateStudent = asyncHandler(async (req, res) => {
         if(req.body.batch) {
             student.batch = req.body.batch;
         }
+        if(req.body.batchStartDate) {
+            student.batchStartDate = req.body.batchStartDate;
+        }
         if(req.body.paymentPlan) {
             student.paymentPlan = req.body.paymentPlan;
         }
