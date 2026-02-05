@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchLedger, resetTransaction } from '../../../features/transaction/transactionSlice';
+import { fetchBranches } from '../../../features/master/masterSlice';
 import { Search, Printer, FileText, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import moment from 'moment';
@@ -11,6 +12,8 @@ import logo from '../../../assets/logo2.png'; // Improved Logo Import
 const LedgerReport = () => {
     const dispatch = useDispatch();
     const { ledgerData, isLoading } = useSelector((state) => state.transaction);
+    const { branches } = useSelector((state) => state.master);
+    const { user } = useSelector((state) => state.auth);
     
     // Filters
     const [searchType, setSearchType] = useState('student'); // 'student' or 'regNo'
@@ -28,8 +31,11 @@ const LedgerReport = () => {
 
     // Cleanup on unmount
     useEffect(() => {
+        if (user?.role === 'Super Admin') {
+            dispatch(fetchBranches());
+        }
         return () => { dispatch(resetTransaction()); };
-    }, [dispatch]);
+    }, [dispatch, user]);
 
     // Handle Search
     const handleShowReport = () => {
@@ -50,6 +56,44 @@ const LedgerReport = () => {
         setSelectedStudentId('');
         setRegNoInput('');
         dispatch(resetTransaction());
+    };
+
+    // Helper to get branch details
+    const getBranchDetails = () => {
+        if (!ledgerData?.student) return null;
+
+        // 1. Try to find from fetched branches list if available (best source for full details)
+        if (branches && branches.length > 0) {
+            // Check if branchId is populated object or string ID
+            const branchId = typeof ledgerData.student.branchId === 'object' 
+                ? ledgerData.student.branchId?._id 
+                : ledgerData.student.branchId;
+
+            const foundBranch = branches.find(b => b._id === branchId);
+            if (foundBranch) return foundBranch;
+        }
+
+        // 2. If branchId is already populated in student data with details (fallback)
+        if (ledgerData.student.branchId && typeof ledgerData.student.branchId === 'object' && ledgerData.student.branchId.address) {
+            return ledgerData.student.branchId;
+        }
+
+        // 3. Last Resort Fallback (Main Branch / Bhestan)
+        return {
+            name: "Bhestan Branch",
+            address: "309-A, 309-B, 3rd Floor, Sai Square Building, Bhestan Circle, Bhestan Surat Gujarat-395023 (INDIA)",
+            phone: "96017-49300", 
+            mobile: "98988-30409",
+            email: "smartinstitutes@gmail.com" 
+        };
+    };
+
+    const branchInfo = getBranchDetails() || {
+        name: "Bhestan Branch",
+        address: "309-A, 309-B, 3rd Floor, Sai Square Building, Bhestan Circle, Bhestan Surat Gujarat-395023 (INDIA)",
+        phone: "96017-49300", 
+        mobile: "98988-30409",
+        email: "smartinstitutes@gmail.com" 
     };
 
     return (
@@ -133,17 +177,16 @@ const LedgerReport = () => {
                         <div className="flex justify-between items-start mb-6 border-b-2 border-primary pb-4">
                             <div className="flex items-center gap-4">
                                 <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
-                                <div>
-                                    <h1 className="text-3xl font-extrabold text-[#e11d48]">Smart <span className="text-[#1e3a8a]">Institute</span></h1>
-                                    <p className="text-xs text-blue-600 font-bold mt-1 tracking-wider uppercase">Smart management analysis of relative technology</p>
-                                </div>
                             </div>
                             <div className="text-right text-xs space-y-1">
-                                <h2 className="text-xl font-bold text-blue-600 mb-1">Bhestan Branch</h2>
-                                <p className="text-gray-600">309-A, 309-B, 3rd Floor, Sai Square Building,</p>
-                                <p className="text-gray-600">Bhestan Circle, Bhestan Surat Gujarat-395023 (INDIA)</p>
-                                <p className="font-semibold text-blue-800">Ph. No. : 9601749300, Mob. No. : 9898830409</p>
-                                <p className="text-blue-500 underline">smartinstitutes@gmail.com</p>
+                                <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name}</h2>
+                                <div className="text-gray-600 max-w-xs ml-auto whitespace-pre-line">
+                                    {branchInfo.address}
+                                </div>
+                                <p className="font-semibold text-blue-800">
+                                     Ph. No. : {branchInfo.phone}, Mob. No. : {branchInfo.mobile}
+                                </p>
+                                <p className="text-blue-500 underline">{branchInfo.email}</p>
                             </div>
                         </div>
 

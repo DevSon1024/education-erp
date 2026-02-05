@@ -75,7 +75,8 @@ export const MENU_CONFIG = [
           type: 'nested',
           subItems: [
               { title: 'Student Wise Outstanding', path: '/reports/student-outstanding' },
-              { title: 'Student Following Report', path: '/reports/student-following' }
+              { title: 'Student Following Report', path: '/reports/student-following' },
+              { title: 'Datewise OutStanding For Students', path: '/reports/datewise-outstanding' }
           ]
       },
       { title: 'Admission Form', path: '/reports/admission-form' }
