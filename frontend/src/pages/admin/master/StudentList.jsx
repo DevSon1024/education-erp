@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudents, toggleActiveStatus, resetStudentLogin, resetStatus, deleteStudent } from '../../../features/student/studentSlice';
-import { fetchCourses, fetchBatches } from '../../../features/master/masterSlice';
+import { fetchCourses, fetchBatches, fetchBranches } from '../../../features/master/masterSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Edit, Printer, FileText, CheckSquare, Square, Search, RefreshCw, Plus, Lock, X, Save, Trash2 } from 'lucide-react';
+import StudentSearch from '../../../components/StudentSearch';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 import { TableSkeleton } from '../../../components/common/SkeletonLoader';
@@ -12,7 +13,8 @@ const StudentList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { students, pagination, isLoading, isSuccess, message } = useSelector((state) => state.students);
-  const { courses } = useSelector((state) => state.master);
+  const { courses, branches } = useSelector((state) => state.master);
+  const { user } = useSelector((state) => state.auth);
   
   // Filter States
   const [filters, setFilters] = useState({
@@ -21,10 +23,14 @@ const StudentList = () => {
     courseId: '',
     studentName: '',
     batch: '',
+    branchId: '',
     pageSize: 10,
     pageNumber: 1,
-    isRegistered: 'true' 
+    isRegistered: 'true'
   });
+
+  // Applied Filters (Triggers API call)
+  const [appliedFilters, setAppliedFilters] = useState(filters);
 
   // Modal State for Reset Login
   const [showResetModal, setShowResetModal] = useState(false);
@@ -34,11 +40,14 @@ const StudentList = () => {
   useEffect(() => {
     dispatch(fetchCourses());
     dispatch(fetchBatches()); 
-  }, [dispatch]);
+    if (user?.role === 'Super Admin') {
+        dispatch(fetchBranches());
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
-    dispatch(fetchStudents(filters));
-  }, [dispatch, filters]); 
+    dispatch(fetchStudents(appliedFilters));
+  }, [dispatch, appliedFilters]); 
 
   useEffect(() => {
       if(message) {
@@ -54,21 +63,40 @@ const StudentList = () => {
 
 
   const handleFilterChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value, pageNumber: 1 });
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  const handleSearch = () => {
+    setAppliedFilters({ ...filters, pageNumber: 1 });
+  };
+
+  const handlePageChange = (newPage) => {
+    const updated = { ...filters, pageNumber: newPage };
+    setFilters(updated);
+    setAppliedFilters(prev => ({ ...prev, pageNumber: newPage }));
+  };
+  
+  const handlePageSizeChange = (e) => {
+      const size = e.target.value;
+      const updated = { ...filters, pageSize: size, pageNumber: 1 };
+      setFilters(updated);
+      setAppliedFilters(prev => ({ ...prev, pageSize: size, pageNumber: 1 }));
   };
 
   const resetFilters = () => {
-    setFilters({
-        fromDate: '', toDate: new Date().toISOString().split('T')[0], courseId: '', studentName: '', batch: '', 
+    const initial = {
+        fromDate: '', toDate: new Date().toISOString().split('T')[0], courseId: '', studentName: '', batch: '', branchId: '',
         pageSize: 10, pageNumber: 1, isRegistered: 'true'
-    });
+    };
+    setFilters(initial);
+    setAppliedFilters(initial);
   };
 
   const handleOpenResetModal = (student) => {
       setResetData({ 
           id: student._id, 
           username: student.userId?.username || '', 
-          password: '' 
+          password: ''
       });
       setShowPassword(false);
       setShowResetModal(true);
@@ -98,35 +126,92 @@ const StudentList = () => {
         <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
             <Search size={16}/> Search Criteria
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-             {/* ... Filters kept same ... */}
-            <div>
-                <label className="text-xs text-gray-500">From Date</label>
-                <input type="date" name="fromDate" value={filters.fromDate} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm"/>
+        
+        <div className="flex flex-col gap-4">
+            {/* Row 1: Dates & Course */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">From Date</label>
+                    <input type="date" name="fromDate" value={filters.fromDate} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">To Date</label>
+                    <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Course</label>
+                    <select name="courseId" value={filters.courseId} onChange={handleFilterChange} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none">
+                        <option value="">All Courses</option>
+                        {courses && courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    </select>
+                </div>
             </div>
-            <div>
-                <label className="text-xs text-gray-500">To Date</label>
-                <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm"/>
+
+            {/* Row 2: Student Search & Batch */}
+            <div className={`grid grid-cols-1 ${user?.role === 'Super Admin' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+                <div className="relative z-20"> 
+                    {/* z-index needed for allowing dropdown to overflow */}
+                    <StudentSearch 
+                        label="Search Student"
+                        onSelect={(id, student) => {
+                            if (student) {
+                                const newFilters = { ...filters, studentName: student.firstName, pageNumber: 1 };
+                                setFilters(newFilters);
+                                setAppliedFilters(newFilters);
+                            } else {
+                                const newFilters = { ...filters, studentName: '', pageNumber: 1 };
+                                setFilters(newFilters);
+                                setAppliedFilters(newFilters);
+                            }
+                        }}
+                        additionalFilters={{ isRegistered: 'true' }}
+                        placeholder="Search by Name/Reg No..."
+                        className="w-full text-sm"
+                    />
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Batch</label>
+                    <input 
+                        type="text" 
+                        name="batch" 
+                        value={filters.batch} 
+                        onChange={handleFilterChange} 
+                        className="w-full border p-2.5 rounded text-sm focus:ring-2 focus:ring-primary outline-none" 
+                        placeholder="Enter Batch Name..."
+                    />
+                </div>
+                {user?.role === 'Super Admin' && (
+                    <div>
+                        <label className="text-xs text-gray-500 font-semibold mb-1 block">Branch</label>
+                        <select 
+                            name="branchId"
+                            value={filters.branchId || ''}
+                            onChange={handleFilterChange}
+                            className="w-full border p-2.5 rounded text-sm focus:ring-2 focus:ring-primary outline-none"
+                        >
+                            <option value="">All Branches</option>
+                            {branches && branches.map(b => (
+                                <option key={b._id} value={b._id}>{b.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
-            <div>
-                <label className="text-xs text-gray-500">Course</label>
-                <select name="courseId" value={filters.courseId} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm">
-                    <option value="">All Courses</option>
-                    {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                </select>
-            </div>
-            <div>
-                <label className="text-xs text-gray-500">Student Name</label>
-                <input type="text" name="studentName" value={filters.studentName} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm" placeholder="Search name..."/>
-            </div>
-            <div>
-                <label className="text-xs text-gray-500">Batch</label>
-                <input list="batchList" name="batch" value={filters.batch} onChange={handleFilterChange} className="w-full border p-1 rounded text-sm" placeholder="Batch..."/>
-                <datalist id="batchList"><option value="Morning"/><option value="Evening"/></datalist>
-            </div>
-            <div className="flex items-end gap-2">
-                <button onClick={resetFilters} className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-gray-700 w-full flex justify-center"><RefreshCw size={18}/></button>
-                <button onClick={() => dispatch(fetchStudents(filters))} className="bg-primary text-white p-2 rounded hover:bg-blue-800 w-full flex justify-center">Search</button>
+
+            {/* Row 3: Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <button 
+                    onClick={resetFilters} 
+                    className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded hover:bg-gray-200 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <RefreshCw size={16}/> Reset
+                </button>
+                <button 
+                    onClick={handleSearch} 
+                    className="bg-primary text-white px-6 py-2.5 rounded hover:bg-blue-800 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <Search size={16}/> Search
+                </button>
             </div>
         </div>
       </div>
@@ -135,7 +220,7 @@ const StudentList = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600">Show</label>
-            <select name="pageSize" value={filters.pageSize} onChange={handleFilterChange} className="border p-1 rounded text-sm">
+            <select name="pageSize" value={filters.pageSize} onChange={handlePageSizeChange} className="border p-1 rounded text-sm">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -232,8 +317,8 @@ const StudentList = () => {
       <div className="bg-gray-50 px-4 py-3 border-t flex justify-between items-center mt-2 rounded-lg">
           <span className="text-xs text-gray-500">Page {pagination.page} of {pagination.pages} ({pagination.count} records)</span>
           <div className="flex gap-1">
-              <button disabled={pagination.page === 1} onClick={() => setFilters({...filters, pageNumber: pagination.page - 1})} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Prev</button>
-              <button disabled={pagination.page === pagination.pages} onClick={() => setFilters({...filters, pageNumber: pagination.page + 1})} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Next</button>
+              <button disabled={pagination.page === 1} onClick={() => handlePageChange(pagination.page - 1)} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Prev</button>
+              <button disabled={pagination.page === pagination.pages} onClick={() => handlePageChange(pagination.page + 1)} className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 text-xs">Next</button>
           </div>
       </div>
 
