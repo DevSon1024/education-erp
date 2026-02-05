@@ -5,6 +5,7 @@ import { fetchEducations, createEducation } from '../../features/master/masterSl
 import { X, Camera, User, Lock, Save, RefreshCw, Plus, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
+import ProfileImageUploader from '../common/ProfileImageUploader';
 
 const ProfileSettingsModal = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -89,13 +90,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
         setProfileData({ ...profileData, [e.target.name]: e.target.value });
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setProfileData({ ...profileData, photo: file });
-            setPreviewImage(URL.createObjectURL(file));
-        }
-    };
+
 
     const handlePasswordChange = (e) => {
         setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
@@ -225,20 +220,20 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                                 <form onSubmit={submitProfile} className="space-y-6">
                                     {/* Photo Upload */}
                                     <div className="flex flex-col items-center justify-center mb-8">
-                                        <div className="relative group">
-                                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
-                                                {previewImage ? (
-                                                    <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-4xl font-bold text-gray-300">{user?.name?.charAt(0)}</span>
-                                                )}
-                                            </div>
-                                            <label className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-blue-600 transition-colors">
-                                                <Camera size={18} />
-                                                <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
-                                            </label>
-                                        </div>
-                                        <p className="text-sm text-gray-500 mt-2">Allowed *.jpeg, *.jpg, *.png, *.webp</p>
+                                        <ProfileImageUploader
+                                            value={profileData.photo || previewImage}
+                                            onChange={(file) => {
+                                                setProfileData({ ...profileData, photo: file });
+                                                setPreviewImage(URL.createObjectURL(file));
+                                            }}
+                                            onDelete={() => {
+                                                setProfileData({ ...profileData, photo: null });
+                                                setPreviewImage(null);
+                                            }}
+                                            size="w-32 h-32"
+                                            name="photo"
+                                        />
+                                        <p className="text-sm text-gray-500 mt-3">Allowed *.jpeg, *.jpg, *.png, *.webp</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

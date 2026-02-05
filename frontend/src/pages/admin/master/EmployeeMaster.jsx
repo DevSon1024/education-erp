@@ -6,6 +6,7 @@ import { getBranches } from '../../../features/master/branchSlice'; // Import AP
 import { formatInputText } from '../../../utils/textFormatter';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw, Loader } from 'lucide-react';
+import ProfileImageUploader from '../../../components/common/ProfileImageUploader';
 
 import { useUserRights } from '../../../hooks/useUserRights';
 
@@ -18,6 +19,8 @@ const EmployeeMaster = () => {
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null); // Store actual File object
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const watchName = watch('name');
@@ -77,19 +80,27 @@ const EmployeeMaster = () => {
     }
   }, [watchName, editMode, showForm, setValue]);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        setPreviewImage(URL.createObjectURL(file));
-        setValue('photo', file.name);
-    }
-  };
+
 
   const onSubmit = (data) => {
+    // If there's a photo file, we need to use FormData
+    let submitData = data;
+    
+    if (photoFile) {
+        const formData = new FormData();
+        Object.keys(data).forEach(key => {
+            if (key !== 'photo' && data[key] != null) {
+                formData.append(key, data[key]);
+            }
+        });
+        formData.append('photo', photoFile);
+        submitData = formData;
+    }
+    
     if (editMode && edit) {
-        dispatch(updateEmployee({ id: currentId, data }));
+        dispatch(updateEmployee({ id: currentId, data: submitData }));
     } else if (add) {
-        dispatch(createEmployee(data));
+        dispatch(createEmployee(submitData));
     }
   };
 
@@ -120,6 +131,7 @@ const EmployeeMaster = () => {
       setEditMode(false);
       setCurrentId(null);
       setPreviewImage(null);
+      setPhotoFile(null);
       reset();
   };
 
@@ -397,16 +409,22 @@ const EmployeeMaster = () => {
                                     onChange={(e) => setValue('qualification', formatInputText(e.target.value))}
                                 />
                             </div>
-                            <div className="md:col-span-4 border-2 border-dashed border-gray-300 rounded p-4 flex flex-col items-center bg-gray-50">
-                                {previewImage ? (
-                                    <img src={previewImage} alt="Preview" className="h-20 w-20 rounded-full object-cover mb-2"/>
-                                ) : (
-                                    <Upload className="text-gray-400 mb-2"/>
-                                )}
-                                <label className="cursor-pointer text-blue-600 text-xs font-bold hover:underline">
-                                    {previewImage ? "Change Photo" : "Upload Passport Size Photo"}
-                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange}/>
-                                </label>
+                            <div className="md:col-span-4 flex flex-col items-center justify-center p-4">
+                                <ProfileImageUploader
+                                    value={previewImage}
+                                    onChange={(file) => {
+                                        setPhotoFile(file);
+                                        setPreviewImage(URL.createObjectURL(file));
+                                    }}
+                                    onDelete={() => {
+                                        setPhotoFile(null);
+                                        setPreviewImage(null);
+                                    }}
+                                    onProcessingChange={(processing) => setIsImageProcessing(processing)}
+                                    size="w-20 h-20"
+                                    name="photo"
+                                />
+                                <span className="text-xs text-gray-500 mt-2">Passport Size Photo</span>
                             </div>
                             <label className="flex items-center gap-2 mt-2 col-span-2">
                                 <input type="checkbox" {...register('isActive')} defaultChecked className="w-4 h-4"/>

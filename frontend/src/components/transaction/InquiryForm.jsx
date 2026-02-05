@@ -5,6 +5,7 @@ import { Save, X, Camera, User, Phone, BookOpen, Calendar, Copy, Clipboard, Rota
 import { fetchEmployees, fetchReferences, fetchEducations, createReference, createEducation, fetchBranches } from '../../features/master/masterSlice';
 import { toast } from 'react-toastify';
 import { formatInputText } from '../../utils/textFormatter'; // Imported util
+import ProfileImageUploader from '../common/ProfileImageUploader';
 
 const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
     const dispatch = useDispatch();
@@ -48,14 +49,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
         }
     });
 
-    // Helper for file preview
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setPreview(URL.createObjectURL(file));
-            setValue('studentPhoto', file); 
-        }
-    };
+
 
     // Copy / Paste Logic
     const handleCopy = () => {
@@ -196,23 +190,22 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                             <User size={16}/> Personal Information
                         </h4>
                         <div className="flex flex-col md:flex-row gap-4">
-                            {/* Photo Upload - Drag & Drop Style */}
+                            {/* Photo Upload */}
                             <div className="w-full md:w-40 flex-shrink-0">
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Student Photo</label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg h-40 flex flex-col justify-center items-center bg-gray-50 hover:bg-gray-100 cursor-pointer overflow-hidden relative mb-2">
-                                    <input type="file" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                                    {preview ? (
-                                        <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <>
-                                            <Camera size={24} className="text-gray-400 mb-1"/>
-                                            <p className="text-[10px] text-gray-500 text-center px-1">Drag or Click to Upload</p>
-                                        </>
-                                    )}
-                                </div>
+                                <ProfileImageUploader
+                                    value={watch('studentPhoto')}
+                                    onChange={(file) => setValue('studentPhoto', file)}
+                                    onDelete={() => {
+                                        setValue('studentPhoto', null);
+                                        setPreview(null);
+                                    }}
+                                    size="w-32 h-32"
+                                    name="studentPhoto"
+                                />
                                 
-                                {/* Moved Inquiry Date Here */}
-                                <div>
+                                {/* Inquiry Date Below Photo */}
+                                <div className="mt-3">
                                     <label className="block text-xs font-bold text-gray-700">Inquiry Date</label>
                                     <input type="date" {...register('inquiryDate')} className="w-full border p-2 rounded text-sm"/>
                                 </div>

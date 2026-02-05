@@ -37,6 +37,7 @@ import {
   Trash2,
   Edit2,
 } from "lucide-react";
+import ProfileImageUploader from "../../../components/common/ProfileImageUploader";
 
 const LOCATION_DATA = {
   Gujarat: ["Surat", "Ahmedabad", "Vadodara", "Rajkot"],
@@ -70,13 +71,14 @@ const StudentAdmission = () => {
   const { user } = useSelector((state) => state.auth); // Get Auth User
 
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [previewCourses, setPreviewCourses] = useState([]);
   const [foundInquiry, setFoundInquiry] = useState(null);
   const [duplicateStudent, setDuplicateStudent] = useState(null);
   const [payAdmissionFee, setPayAdmissionFee] = useState(null); 
-  const [isNewReference, setIsNewReference] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isNewReference, setIsNewReference] = useState(false); 
 
   // Modal & New Entry States
   const [showRefModal, setShowRefModal] = useState(false);
@@ -349,13 +351,7 @@ const StudentAdmission = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPreviewImage(URL.createObjectURL(file));
-      setValue("studentPhoto", file);
-    }
-  };
+
 
   const handleAddCourseToList = () => {
     const courseId = getValues("selectedCourseId");
@@ -453,11 +449,33 @@ const StudentAdmission = () => {
         : null,
     };
 
+    // Convert to FormData if there's a photo file
+    let submitData;
+    if (data.studentPhoto && data.studentPhoto instanceof File) {
+      const formData = new FormData();
+      
+      // Append all payload fields
+      Object.keys(payload).forEach(key => {
+        if (key === 'feeDetails' && payload[key]) {
+          // Append nested feeDetails as JSON string
+          formData.append('feeDetails', JSON.stringify(payload[key]));
+        } else if (key !== 'studentPhoto' && payload[key] != null) {
+          formData.append(key, payload[key]);
+        }
+      });
+      
+      // Append the photo file
+      formData.append('studentPhoto', data.studentPhoto);
+      submitData = formData;
+    } else {
+      submitData = payload;
+    }
+
     // Check if we're in update mode
     if (isUpdateMode && updateId) {
-      dispatch(updateStudent({ id: updateId, data: payload }));
+      dispatch(updateStudent({ id: updateId, data: submitData }));
     } else {
-      dispatch(registerStudent(payload));
+      dispatch(registerStudent(submitData));
     }
   };
 
@@ -689,27 +707,22 @@ const StudentAdmission = () => {
                 {errors.aadharCard && <p className="text-red-500 text-xs mt-1">{errors.aadharCard.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4 flex justify-center">
-                <label className="relative cursor-pointer group">
-                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 group-hover:border-blue-500 transition">
-                    {previewImage ? (
-                      <img
-                        src={previewImage}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Upload className="text-gray-400" />
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    onChange={handleImageChange}
-                    accept="image/*"
+                <div className="flex flex-col items-center">
+                  <ProfileImageUploader
+                    value={watch('studentPhoto')}
+                    onChange={(file) => setValue('studentPhoto', file)}
+                    onDelete={() => {
+                      setValue('studentPhoto', null);
+                      setPreviewImage(null);
+                    }}
+                    onProcessingChange={(processing) => setIsImageProcessing(processing)}
+                    size="w-24 h-24"
+                    name="studentPhoto"
                   />
-                  <span className="block text-center text-xs text-blue-600 font-bold mt-1">
+                  <span className="block text-center text-xs text-blue-600 font-bold mt-2">
                     Upload Photo
                   </span>
-                </label>
+                </div>
               </div>
 
               <div className="col-span-12 md:col-span-3">

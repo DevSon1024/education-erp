@@ -27,15 +27,15 @@ const InquiryViewModal = ({ inquiry, onClose }) => {
                         Inquiry Details
                     </h2>
                     <div className="flex gap-2">
-                         <button onClick={handlePrint} className="bg-white text-blue-600 px-3 py-1 rounded text-sm font-bold flex items-center gap-1 hover:bg-blue-50 transition">
+                         {/* <button onClick={handlePrint} className="bg-white text-blue-600 px-3 py-1 rounded text-sm font-bold flex items-center gap-1 hover:bg-blue-50 transition">
                             <Printer size={16}/> Print
-                        </button>
+                        </button> */}
                         <button onClick={onClose} className="text-white hover:text-red-200 transition"><X size={24}/></button>
                     </div>
                 </div>
 
                 {/* Printable Content */}
-                <div className="p-8 overflow-y-auto print:p-0 print:overflow-visible" ref={printRef}>
+                <div className="p-8 overflow-y-auto print:p-0 print:overflow-visible">
                     
                     {/* Print Header (Only visible when printing or in this view) */}
                     <div className="mb-6 border-b pb-4">
@@ -65,9 +65,26 @@ const InquiryViewModal = ({ inquiry, onClose }) => {
                             </div>
                          )}
 
-
                         <div className="col-span-2 bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500 mt-2">
                             Student Details
+                        </div>
+
+                        {/* Student Photo */}
+                        <div className="col-span-2 flex justify-center my-4">
+                            {inquiry.studentPhoto ? (
+                                <div className="text-center">
+                                    <img 
+                                        src={inquiry.studentPhoto} 
+                                        alt="Student" 
+                                        className="w-32 h-32 rounded-lg object-cover border-2 border-gray-300 shadow-md"
+                                    />
+                                    <span className="block text-gray-500 text-xs mt-2">Student Photo</span>
+                                </div>
+                            ) : (
+                                <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                                    <span className="text-gray-400 text-sm">No Image</span>
+                                </div>
+                            )}
                         </div>
 
                         <div>

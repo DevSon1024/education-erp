@@ -18,7 +18,7 @@ const AdminHome = () => {
   const { user } = useSelector((state) => state.auth);
 
   // Local State
-  const [activeTab, setActiveTab] = useState('inquiry'); // 'inquiry', 'online-admission', 'exam'
+  const [activeTab, setActiveTab] = useState('inquiry');
   
   // Exam Filters
   const [examFilters, setExamFilters] = useState({
@@ -208,7 +208,7 @@ const AdminHome = () => {
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn">
             <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <UserPlus size={20} className="text-green-600"/> Online Admission Inquiries
+                    <UserPlus size={20} className="text-green-600"/> Online Admission
                 </h3>
                 <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">

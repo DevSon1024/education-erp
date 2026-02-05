@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { User, Phone, MapPin, BookOpen, Building, Image as ImageIcon, CheckCircle, Plus, X, Upload } from 'lucide-react';
 import axios from 'axios';
 import { formatInputText } from '../../utils/textFormatter'; // Import util
+import ProfileImageUploader from '../../components/common/ProfileImageUploader';
 
 const OnlineAdmission = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const OnlineAdmission = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [newRefMode, setNewRefMode] = useState(false);
   const [newEduMode, setNewEduMode] = useState(false);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
   
   // Local state for "Add New" inputs
   const [newRefName, setNewRefName] = useState('');
@@ -126,13 +128,7 @@ const OnlineAdmission = () => {
     };
   }, [previewImage]);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (previewImage) URL.revokeObjectURL(previewImage);
-      setPreviewImage(URL.createObjectURL(file));
-    }
-  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -205,14 +201,17 @@ const OnlineAdmission = () => {
                 </div>
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Student Photo</label>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border">
-                            {previewImage ? <img src={previewImage} alt="Student photo preview" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-gray-400"/>}                        </div>
-                        <label className="cursor-pointer bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors flex items-center gap-1">
-                            <Upload size={14}/> Upload
-                            <input type="file" className="hidden" accept="image/*" {...register("studentPhoto")} onChange={handleImageChange} />
-                        </label>
-                    </div>
+                    <ProfileImageUploader
+                        value={watch('studentPhoto')}
+                        onChange={(file) => setValue('studentPhoto', file)}
+                        onDelete={() => {
+                            setValue('studentPhoto', null);
+                            setPreviewImage(null);
+                        }}
+                        onProcessingChange={(processing) => setIsImageProcessing(processing)}
+                        size="w-20 h-20"
+                        name="studentPhoto"
+                    />
                 </div>
             </div>
           </div>
@@ -366,11 +365,11 @@ const OnlineAdmission = () => {
 
           <button 
             type="submit" 
-            disabled={isLoading}
+            disabled={isLoading || isImageProcessing}
             className="w-full bg-accent hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-1 mb-4 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-             {isLoading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-             {isLoading ? 'Registering...' : 'Register Now'}
+             {(isLoading || isImageProcessing) && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+             {isImageProcessing ? 'Image Processing...' : isLoading ? 'Submitting...' : 'Register Now'}
           </button>
         </form>
       </div>
