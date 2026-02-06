@@ -146,13 +146,19 @@ const StudentAttendanceReport = () => {
         }
     }, [students, attendanceList, daysInMonth]);
 
-
-    const handlePrint = () => {
-        const originalTitle = document.title;
-        document.title = `Attendance_Report_${filters.month}`;
-        window.print();
-        document.title = originalTitle;
-    };
+    useEffect(() => {
+            const originalTitle = document.title;
+            document.title = `Student_Attendance_Report_${moment().format('DD-MM-YYYY')}`;
+            return () => {
+                document.title = originalTitle;
+            };
+        }, []);
+    
+        const handlePrint = useReactToPrint({
+            content: () => componentRef.current,
+            documentTitle: `Student_Attendance_Report_${moment().format('DD-MM-YYYY')}`,
+            onAfterPrint: () => toast.success("Report Sent to Printer"),
+        });
 
     const getBranchDetails = () => {
         let branchData = null;
@@ -268,13 +274,13 @@ const StudentAttendanceReport = () => {
             </div>
 
             {/* Toolbar */}
-             {showReport && (
+             {/* {showReport && (
              <div className="bg-white rounded-t-lg shadow border border-b-0 border-gray-200 p-3 flex justify-end print:hidden">
                   <button onClick={handlePrint} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition font-medium">
                      <Printer size={18}/> Print Report
                  </button>
              </div>
-             )}
+             )} */}
 
             {/* Printable Area - Optimized for Portrait A4 (Small print font, Normal screen font) */}
             {showReport && (

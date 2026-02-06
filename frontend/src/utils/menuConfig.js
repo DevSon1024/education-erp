@@ -92,6 +92,7 @@ export const MENU_CONFIG = [
           type: 'nested',
           subItems: [
               { title: 'Admission Form', path: '/reports/general/admission-form' },
+              { title: 'Student Completion Report', path: '/reports/general/student-completion' },
           ]
       }
     ]

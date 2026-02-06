@@ -58,10 +58,19 @@ const StudentFollowingReport = () => {
         setAppliedFilters(initial);
     };
 
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-        documentTitle: `Student_Following_Report_${moment().format('YYYY-MM-DD')}`,
-    });
+    useEffect(() => {
+            const originalTitle = document.title;
+            document.title = `Student_Following_Report_${moment().format('YYYY-MM-DD')}`;
+            return () => {
+                document.title = originalTitle;
+            };
+        }, []);
+    
+        const handlePrint = useReactToPrint({
+            content: () => componentRef.current,
+            documentTitle: `Student_Following_Report_${moment().format('YYYY-MM-DD')}`,
+            onAfterPrint: () => toast.success("Report Sent to Printer"),
+        });
 
     // Helper to get branch details for header
     const getBranchDetails = () => {
@@ -126,11 +135,11 @@ const StudentFollowingReport = () => {
             </div>
 
             {/* --- Report Toolbar --- */}
-            <div className="bg-white rounded-t-lg shadow border border-b-0 border-gray-200 p-3 flex justify-end print:hidden">
+            {/* <div className="bg-white rounded-t-lg shadow border border-b-0 border-gray-200 p-3 flex justify-end print:hidden">
                  <button onClick={handlePrint} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition font-medium">
                     <Printer size={18}/> Print Report
                 </button>
-            </div>
+            </div> */}
 
             {/* --- Printable Area --- */}
             <div ref={componentRef} className="bg-white rounded-b-lg shadow border border-gray-200 p-8 min-h-[10in] print:shadow-none print:border-none print:p-0 print:w-full">
