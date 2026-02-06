@@ -10,7 +10,7 @@ import {
   deleteTemplate 
 } from '../../../features/userRights/userRightsSlice';
 import { toast } from 'react-toastify';
-import { Save, RefreshCw, CheckSquare, Square, Trash2, Plus } from 'lucide-react';import { getMenuSections } from '../../../utils/menuConfig';
+import { Save, CheckSquare, Square, Trash2, Plus } from 'lucide-react';import { getMenuSections } from '../../../utils/menuConfig';
 
 const UserRights = () => {
   const dispatch = useDispatch();
@@ -172,18 +172,23 @@ const UserRights = () => {
     }));
   };
 
-  const onSave = () => {
-    const employee = employees.find(emp => emp._id === selectedEmployee);
-    if (employee && employee.userAccount) {
-      // Extract the user ID from userAccount (could be object or string)
-      const userId = typeof employee.userAccount === 'object' 
-        ? employee.userAccount._id 
-        : employee.userAccount;
-      
-      dispatch(saveUserRights({ userId, permissions }));
-    }
+  // Helper to extract userId from employee's userAccount
+  const getUserId = (employee) => {
+    if (!employee?.userAccount) return null;
+    return typeof employee.userAccount === 'object' 
+      ? employee.userAccount._id 
+      : employee.userAccount;
   };
 
+  const onSave = () => {
+    const employee = employees.find(emp => emp._id === selectedEmployee);
+    const userId = getUserId(employee);
+    if (userId) {
+      dispatch(saveUserRights({ userId, permissions }));
+    } else {
+      toast.error("Cannot save: Employee not linked to a User Account.");
+    }
+  };
   // Filter permissions based on active tab
   const visiblePermissions = permissions.filter(p => sections[activeTab]?.includes(p.page));
 
