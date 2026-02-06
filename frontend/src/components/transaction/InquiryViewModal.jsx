@@ -43,128 +43,156 @@ const InquiryViewModal = ({ inquiry, onClose }) => {
                         <p className="text-center text-gray-500 text-sm mt-1">Generated on {new Date().toLocaleDateString()}</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                    <div className="space-y-6 text-sm">
                         
-                        <div className="col-span-2 bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500">
-                            Basic Information
-                        </div>
-
+                        {/* Student Detail Section */}
                         <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Inquiry Date</span>
-                            <span className="font-medium text-gray-900">{formatDate(inquiry.inquiryDate)}</span>
-                        </div>
-                        <div>
-                             <span className="block text-gray-500 text-xs uppercase font-semibold">Source</span>
-                             <span className="font-medium text-gray-900">{inquiry.source || '-'}</span>
-                        </div>
-                         
-                         {inquiry.courseId && (
-                            <div className="col-span-2">
-                                <span className="block text-gray-500 text-xs uppercase font-semibold">Interested Course</span>
-                                <span className="font-medium text-gray-900">{inquiry.courseId.name}</span>
+                            <div className="bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500 mb-4">
+                                Student Detail
                             </div>
-                         )}
-
-                        <div className="col-span-2 bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500 mt-2">
-                            Student Details
-                        </div>
-
-                        {/* Student Photo */}
-                        <div className="col-span-2 flex justify-center my-4">
-                            {inquiry.studentPhoto ? (
-                                <div className="text-center">
-                                    <img 
-                                        src={inquiry.studentPhoto} 
-                                        alt="Student" 
-                                        className="w-32 h-32 rounded-lg object-cover border-2 border-gray-300 shadow-md"
-                                    />
-                                    <span className="block text-gray-500 text-xs mt-2">Student Photo</span>
+                            <div className="flex flex-col md:flex-row gap-6">
+                                {/* Photo */}
+                                <div className="flex-shrink-0">
+                                    {inquiry.studentPhoto ? (
+                                        <div className="text-center">
+                                            <img 
+                                                src={inquiry.studentPhoto.startsWith('http') ? inquiry.studentPhoto : `${import.meta.env.VITE_API_URL}/${inquiry.studentPhoto}`}
+                                                onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=No+Image"; }}
+                                                alt="Student" 
+                                                className="w-32 h-32 rounded-lg object-cover border-2 border-gray-300 shadow-md"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                                            <span className="text-gray-400 text-sm">No Image</span>
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
-                                <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                                    <span className="text-gray-400 text-sm">No Image</span>
+                                
+                                {/* Fields Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 flex-grow">
+                                    {/* Row 1 */}
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Student Name</span>
+                                        <span className="font-medium text-gray-900">{inquiry.firstName} {inquiry.lastName}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Email</span>
+                                        <span className="font-medium text-gray-900">{inquiry.email || '-'}</span>
+                                    </div>
+
+                                    {/* Row 2 */}
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Father Name</span>
+                                        <span className="font-medium text-gray-900">{inquiry.middleName || '-'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Date Of Birth</span>
+                                        <span className="font-medium text-gray-900">{inquiry.dob ? formatDate(inquiry.dob) : '-'}</span>
+                                    </div>
+
+                                    {/* Row 3 */}
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Last Name</span>
+                                        <span className="font-medium text-gray-900">{inquiry.lastName || '-'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Gender</span>
+                                        <span className="font-medium text-gray-900">{inquiry.gender || '-'}</span>
+                                    </div>
+
+                                    {/* Row 4 */}
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Contact No (H)</span>
+                                        <span className="font-medium text-gray-900">{inquiry.contactHome || '-'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Contact No (O)</span>
+                                        <span className="font-medium text-gray-900">{'-'}</span> 
+                                    </div>
+
+                                    {/* Row 5 */}
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Mobile No</span>
+                                        <span className="font-medium text-gray-900">{inquiry.contactStudent || '-'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Parent Mobile</span>
+                                        <span className="font-medium text-gray-900">{inquiry.contactParent || '-'}</span>
+                                    </div>
+
+                                    {/* Row 6 */}
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Education</span>
+                                        <span className="font-medium text-gray-900">{inquiry.education || '-'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Course Name</span>
+                                        <span className="font-medium text-gray-900">
+                                            {inquiry.courseId?.name || inquiry.interestedCourse?.name || '-'}
+                                        </span>
+                                    </div>
+
+                                    {/* Address full width */}
+                                    <div className="md:col-span-2">
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Address</span>
+                                        <span className="font-medium text-gray-900">{inquiry.address || '-'}</span>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
+                        {/* Visiting Detail Section */}
                         <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">First Name</span>
-                            <span className="font-medium text-gray-900">{inquiry.firstName}</span>
-                        </div>
-                        <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Last Name</span>
-                            <span className="font-medium text-gray-900">{inquiry.lastName}</span>
-                        </div>
-                         <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Gender</span>
-                            <span className="font-medium text-gray-900">{inquiry.gender}</span>
-                        </div>
-                        <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">DOB</span>
-                            <span className="font-medium text-gray-900">{inquiry.dob ? formatDate(inquiry.dob) : '-'}</span>
-                        </div>
-
-
-                        <div className="col-span-2 bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500 mt-2">
-                            Contact Information
-                        </div>
-
-                        <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Contact (Student)</span>
-                            <span className="font-medium text-gray-900">{inquiry.contactStudent || '-'}</span>
-                        </div>
-                        <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Contact (Parent)</span>
-                            <span className="font-medium text-gray-900">{inquiry.contactParent || '-'}</span>
-                        </div>
-                        <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Contact (Home)</span>
-                            <span className="font-medium text-gray-900">{inquiry.contactHome || '-'}</span>
-                        </div>
-                        <div>
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Email</span>
-                            <span className="font-medium text-gray-900">{inquiry.email || '-'}</span>
-                        </div>
-
-                         <div className="col-span-2">
-                            <span className="block text-gray-500 text-xs uppercase font-semibold">Address</span>
-                            <span className="font-medium text-gray-900 block max-w-md">{inquiry.address || '-'}</span>
-                        </div>
-                        
-                        <div className="col-span-2 text-center my-4 border-t border-b py-2 bg-gray-100">
-                             <div className="flex justify-around">
+                            <div className="bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500 mb-4">
+                                Visiting Detail
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                                 <div>
-                                    <span className="block text-gray-500 text-xs uppercase font-semibold">Current Status</span>
-                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${inquiry.status === 'Open' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'}`}>
-                                        {inquiry.status}
+                                    <span className="block text-gray-500 text-xs uppercase font-semibold">Followup By</span>
+                                    <span className="font-medium text-gray-900">{inquiry.allocatedTo?.name || '-'}</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                     <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Visiting Date</span>
+                                        <span className="font-medium text-gray-900">{formatDate(inquiry.inquiryDate)}</span>
+                                     </div>
+                                     <div>
+                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Visiting Time</span>
+                                        <span className="font-medium text-gray-900">
+                                            {inquiry.inquiryDate ? new Date(inquiry.inquiryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                        </span>
+                                     </div>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <span className="block text-gray-500 text-xs uppercase font-semibold">Followup Detail</span>
+                                    <span className="font-medium text-gray-900 italic">"{inquiry.followUpDetails || 'No additional details'}"</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Referencive Detail Section */}
+                        <div>
+                            <div className="bg-gray-50 p-2 font-bold text-blue-800 uppercase text-xs tracking-wider border-l-4 border-blue-500 mb-4">
+                                Referencive Detail
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-3">
+                                <div>
+                                    <span className="block text-gray-500 text-xs uppercase font-semibold">Reference Name</span>
+                                    <span className="font-medium text-gray-900">
+                                        {inquiry.referenceDetail?.name || inquiry.referenceBy || inquiry.source || '-'}
                                     </span>
                                 </div>
-                                {inquiry.allocatedTo && (
-                                    <div>
-                                        <span className="block text-gray-500 text-xs uppercase font-semibold">Allocated To</span>
-                                        <span className="font-medium text-blue-700">{inquiry.allocatedTo.name}</span>
-                                    </div>
-                                )}
-                             </div>
-                        </div>
-
-                        {inquiry.followUpDate && (
-                            <div className="col-span-2 border p-3 rounded border-gray-200">
-                                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Last Follow Up</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <span className="text-xs text-gray-500">Date:</span> <span className="font-medium">{formatDate(inquiry.followUpDate)}</span>
-                                    </div>
-                                     <div>
-                                        <span className="text-xs text-gray-500">Time:</span> <span className="font-medium">{new Date(inquiry.followUpDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <span className="text-xs text-gray-500">Remarks:</span> 
-                                        <p className="text-gray-800 mt-1 italic">"{inquiry.followUpDetails}"</p>
-                                    </div>
+                                <div>
+                                    <span className="block text-gray-500 text-xs uppercase font-semibold">Reference Mobile</span>
+                                    <span className="font-medium text-gray-900">{inquiry.referenceDetail?.mobile || '-'}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-gray-500 text-xs uppercase font-semibold">Reference Address</span>
+                                    <span className="font-medium text-gray-900">{inquiry.referenceDetail?.address || '-'}</span>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
                     </div>
                     
