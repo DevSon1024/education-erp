@@ -10,7 +10,8 @@ const StudentSearch = ({
     className,
     required = false,
     error,
-    additionalFilters = {} // Allow passing extra filters like { isRegistered: 'false' }
+    additionalFilters = {}, // Allow passing extra filters like { isRegistered: 'false' }
+    mode = 'student' // 'student' or 'inquiry'
 }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
@@ -22,8 +23,10 @@ const StudentSearch = ({
     const wrapperRef = useRef(null);
     const inputRef = useRef(null);
 
-    // API URL - aligning with studentSlice.js
-    const API_URL = `${import.meta.env.VITE_API_URL}/students/`;
+    // API URL Selection
+    const API_URL = mode === 'inquiry' 
+        ? `${import.meta.env.VITE_API_URL}/transaction/inquiry/`
+        : `${import.meta.env.VITE_API_URL}/students/`;
 
     // Debounce Logic
     useEffect(() => {
@@ -62,14 +65,19 @@ const StudentSearch = ({
         try {
             const { data } = await axios.get(`${API_URL}${defaultSelectedId}`, { withCredentials: true });
             setSelectedStudent(data);
-            setQuery(`${data.firstName} ${data.lastName} (${data.regNo || data.enrollmentNo || 'N/A'})`);
+            
+            // Name only as requested
+            const labelText = `${data.firstName} ${data.lastName}`;
+            setQuery(labelText);
             setInitialLoadDone(true);
         } catch (error) {
-            console.error("Failed to fetch initial student", error);
+            console.error("Failed to fetch initial data", error);
         }
     };
 
-    // Load all students with pending payments on mount (for fee collection)
+    // Load all students/inquiries with pending status on mount (optional based on props?)
+    // Actually, for inquiry filter, we might not want to load ALL on mount if there are thousands.
+    // Keeping logic consistent for now but checking if mode='student' for original behavior
     useEffect(() => {
         if (!initialLoadDone && !defaultSelectedId) {
             loadAllStudents();
@@ -85,9 +93,15 @@ const StudentSearch = ({
             };
             
             const { data } = await axios.get(API_URL, { params, withCredentials: true });
-            setResults(data.students || []);
+            
+            if (mode === 'inquiry') {
+                setResults(Array.isArray(data) ? data : (data.inquiries || [])); // Handle potential diff response structure
+            } else {
+                setResults(data.students || []); 
+            }
+
         } catch (error) {
-            console.error("Failed to load students", error);
+            console.error("Failed to load list", error);
             setResults([]);
         } finally {
             setLoading(false);
@@ -105,7 +119,13 @@ const StudentSearch = ({
             };
             
             const { data } = await axios.get(API_URL, { params, withCredentials: true });
-            setResults(data.students || []);
+            
+            if (mode === 'inquiry') {
+                setResults(Array.isArray(data) ? data : (data.inquiries || []));
+            } else {
+                setResults(data.students || []); 
+            }
+            
             setIsOpen(true);
         } catch (error) {
             console.error("Search failed", error);
@@ -115,12 +135,16 @@ const StudentSearch = ({
         }
     };
 
-    const handleSelect = (student) => {
-        setSelectedStudent(student);
-        setQuery(`${student.firstName} ${student.lastName} (${student.regNo || student.enrollmentNo || 'N/A'})`);
+    const handleSelect = (item) => {
+        setSelectedStudent(item);
+        
+        // Name only selection
+        const labelText = `${item.firstName} ${item.lastName}`;
+        
+        setQuery(labelText);
         setIsOpen(false);
         if (onSelect) {
-            onSelect(student._id, student); // Pass simplified ID and full object
+            onSelect(item._id, item); // Pass simplified ID and full object
         }
     };
 
@@ -192,21 +216,18 @@ const StudentSearch = ({
                         <div className="p-4 text-center text-gray-400 text-sm">Searching...</div>
                     ) : results.length > 0 ? (
                         <ul>
-                            {results.map((student) => (
+                            {results.map((item) => (
                                 <li 
-                                    key={student._id}
-                                    onClick={() => handleSelect(student)}
+                                    key={item._id}
+                                    onClick={() => handleSelect(item)}
                                     className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center group"
                                 >
                                     <div>
                                         <p className="font-medium text-gray-800 text-sm">
-                                            {student.firstName} {student.lastName}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Reg: {student.regNo || 'N/A'} • {student.course?.name || 'No Course'}
+                                            {item.firstName} {item.lastName}
                                         </p>
                                     </div>
-                                    {selectedStudent && selectedStudent._id === student._id && (
+                                    {selectedStudent && selectedStudent._id === item._id && (
                                         <Check size={16} className="text-blue-600" />
                                     )}
                                 </li>
@@ -214,7 +235,7 @@ const StudentSearch = ({
                         </ul>
                     ) : (
                         <div className="p-4 text-center text-gray-400 text-sm">
-                            No students found matching "{query}"
+                            No results found matching "{query}"
                         </div>
                     )}
                 </div>

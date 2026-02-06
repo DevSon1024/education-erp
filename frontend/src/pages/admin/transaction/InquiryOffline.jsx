@@ -8,6 +8,7 @@ import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import SmartTable from '../../../components/ui/SmartTable';
 import InquiryForm from '../../../components/transaction/InquiryForm'; // Imported reusable form
 import InquiryViewModal from '../../../components/transaction/InquiryViewModal';
+import StudentSearch from '../../../components/StudentSearch';
 import { 
     Plus, Search, RotateCcw, X, PhoneCall, User, Edit, Trash2, Eye, Calendar
 } from 'lucide-react';
@@ -139,7 +140,7 @@ const InquiryOffline = () => {
   const [filters, setFilters] = useState({ startDate: '', endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', source: 'Walk-in' });
   const [modal, setModal] = useState({ type: null, data: null }); // type: 'form', 'followup', 'view'
 
-  useEffect(() => { dispatch(fetchInquiries(filters)); dispatch(fetchCourses()); dispatch(fetchEmployees()); }, [dispatch, filters]);
+  useEffect(() => { dispatch(fetchInquiries(filters)); dispatch(fetchCourses()); dispatch(fetchEmployees()); }, [dispatch]);
   
   // Check for conversion data from Visitors page
   useEffect(() => {
@@ -234,21 +235,77 @@ const InquiryOffline = () => {
             </button>
         </div>
         
-        {/* Filter Bar */}
-        <div className="bg-white p-3 rounded border shadow-sm flex gap-3 mb-4 flex-wrap">
-             <input type="date" value={filters.startDate} onChange={e => setFilters({...filters, startDate: e.target.value})} className="border p-2 rounded text-sm"/>
-             <input type="date" value={filters.endDate} onChange={e => setFilters({...filters, endDate: e.target.value})} className="border p-2 rounded text-sm"/>
-             <select value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})} className="border p-2 rounded text-sm min-w-[120px]">
-                <option value="">All Status</option>
-                <option value="Open">Open</option>
-                <option value="InProgress">InProgress</option>
-                <option value="Recall">Recall</option>
-                <option value="Close">Close</option>
-                <option value="Complete">Complete</option>
-             </select>
-             <input placeholder="Search Name..." value={filters.studentName} onChange={e => setFilters({...filters, studentName: e.target.value})} className="border p-2 rounded text-sm flex-grow min-w-[200px]"/>
-             <button onClick={() => dispatch(fetchInquiries(filters))} className="bg-gray-800 text-white px-4 rounded hover:bg-black"><Search size={18}/></button>
+      {/* --- Filter Section --- */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Search Offline Inquiries
+        </h2>
+        
+        <div className="flex flex-col gap-4">
+            {/* Row 1: Dates & Status */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">From Date</label>
+                    <input type="date" value={filters.startDate} onChange={e => setFilters({...filters, startDate: e.target.value})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"/>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">To Date</label>
+                    <input type="date" value={filters.endDate} onChange={e => setFilters({...filters, endDate: e.target.value})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"/>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Status</label>
+                    <select value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All Status</option>
+                        <option value="Open">Open</option>
+                        <option value="InProgress">InProgress</option>
+                        <option value="Recall">Recall</option>
+                        <option value="Close">Close</option>
+                        <option value="Complete">Complete</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Row 2: Student Search & Branch (if Super Admin) */}
+            <div className={`grid grid-cols-1 ${user?.role === 'Super Admin' ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-4`}>
+                <div className="relative z-20"> 
+                    <StudentSearch 
+                        label="Search Student"
+                        mode="inquiry"
+                        additionalFilters={{ source: 'Walk-in' }}
+                        onSelect={(id, student) => {
+                            if (student) {
+                                setFilters({ ...filters, studentName: student.firstName });
+                            } else {
+                                setFilters({ ...filters, studentName: '' });
+                            }
+                        }}
+                        placeholder="Search by Name for Offline Inquiries..."
+                        className="w-full text-sm"
+                    />
+                </div>
+                {/* Add Branch Filter here if needed for Super Admin, currently implicitly handled by API/User role but visual filter could be added */}
+            </div>
+
+            {/* Row 3: Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <button 
+                    onClick={() => {
+                        setFilters({ startDate: '', endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', source: 'Walk-in' });
+                        dispatch(fetchInquiries({ startDate: '', endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', source: 'Walk-in' }));
+                    }} 
+                    className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <RotateCcw size={16}/> Reset
+                </button>
+                <button 
+                    onClick={() => dispatch(fetchInquiries(filters))} 
+                    className="bg-blue-600 text-white px-6 py-2.5 rounded hover:bg-blue-700 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <Search size={16}/> Search
+                </button>
+            </div>
         </div>
+      </div>
 
       <div className="bg-white rounded-lg shadow overflow-x-auto border">
         <table className="w-full border-collapse min-w-[1400px]">

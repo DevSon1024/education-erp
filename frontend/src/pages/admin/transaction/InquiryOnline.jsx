@@ -5,6 +5,7 @@ import { fetchInquiries, updateInquiry, resetTransaction } from '../../../featur
 import { fetchCourses } from '../../../features/master/masterSlice';
 import { fetchEmployees } from '../../../features/employee/employeeSlice';
 import InquiryForm from '../../../components/transaction/InquiryForm';
+import StudentSearch from '../../../components/StudentSearch';
 import InquiryViewModal from '../../../components/transaction/InquiryViewModal';
 import SmartTable from '../../../components/ui/SmartTable';
 import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye, Calendar } from 'lucide-react';
@@ -149,7 +150,7 @@ const InquiryOnline = () => {
 
   useEffect(() => {
     dispatch(fetchInquiries(filters));
-  }, [dispatch, filters]);
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchCourses()); // Required for InquiryForm dropdowns
@@ -170,10 +171,12 @@ const InquiryOnline = () => {
   };
 
   const handleResetFilters = () => {
-      setFilters({ 
+      const resetState = { 
           startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], status: '', studentName: '', 
           dateFilterType: 'inquiryDate', source: 'Online' 
-      });
+      };
+      setFilters(resetState);
+      dispatch(fetchInquiries(resetState));
   };
 
   const handleSaveFollowUp = ({ id, data }) => {
@@ -242,45 +245,76 @@ const InquiryOnline = () => {
       </div>
 
       {/* --- FILTER SECTION --- */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-            <div className="col-span-1">
-                <label className="text-xs font-bold text-gray-500 uppercase">Inquiry Type</label>
-                <select name="dateFilterType" onChange={handleFilterChange} value={filters.dateFilterType} className="w-full border p-2 rounded text-sm focus:ring-2 ring-blue-100 outline-none">
-                    <option value="inquiryDate">Inquiry Date</option>
-                    <option value="followUpDate">Follow-up Date</option>
-                    <option value="createdAt">Allocation Date</option>
-                </select>
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <h2 className="text-sm font-bold text-gray-700 uppercase mb-3 flex items-center gap-2">
+            <Search size={16}/> Search Online Inquiries
+        </h2>
+        
+        <div className="flex flex-col gap-4">
+            {/* Row 1: Dates & Date Type */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                     <label className="text-xs text-gray-500 font-semibold mb-1 block">Inquiry Type</label>
+                    <select name="dateFilterType" onChange={handleFilterChange} value={filters.dateFilterType} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="inquiryDate">Inquiry Date</option>
+                        <option value="followUpDate">Follow-up Date</option>
+                        <option value="createdAt">Allocation Date</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">From Date</label>
+                    <input type="date" name="startDate" onChange={handleFilterChange} value={filters.startDate} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"/>
+                </div>
+                <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">To Date</label>
+                    <input type="date" name="endDate" onChange={handleFilterChange} value={filters.endDate} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"/>
+                </div>
             </div>
-            <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Start Date</label>
-                <input type="date" name="startDate" onChange={handleFilterChange} value={filters.startDate} className="w-full border p-2 rounded text-sm focus:ring-2 ring-blue-100 outline-none"/>
+
+            {/* Row 2: Status & Student Search */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-1 block">Status</label>
+                    <select name="status" onChange={handleFilterChange} value={filters.status} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All Status</option>
+                        <option value="Open">Open</option>
+                        <option value="InProgress">InProgress</option>
+                        <option value="Recall">Recall</option>
+                        <option value="Close">Close</option>
+                        <option value="Complete">Complete</option>
+                    </select>
+                </div>
+                <div className="relative z-20"> 
+                    <StudentSearch 
+                        label="Search Student"
+                        mode="inquiry"
+                        additionalFilters={{ source: 'Online' }}
+                        onSelect={(id, student) => {
+                             if (student) {
+                                setFilters({ ...filters, studentName: student.firstName });
+                            } else {
+                                setFilters({ ...filters, studentName: '' });
+                            }
+                        }}
+                        placeholder="Search by Name for Online Inquiries..."
+                        className="w-full text-sm"
+                    />
+                </div>
             </div>
-            <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">End Date</label>
-                <input type="date" name="endDate" onChange={handleFilterChange} value={filters.endDate} className="w-full border p-2 rounded text-sm focus:ring-2 ring-blue-100 outline-none"/>
-            </div>
-            <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Status</label>
-                <select name="status" onChange={handleFilterChange} value={filters.status} className="w-full border p-2 rounded text-sm focus:ring-2 ring-blue-100 outline-none">
-                    <option value="">All Status</option>
-                    <option value="Open">Open</option>
-                    <option value="InProgress">InProgress</option>
-                    <option value="Recall">Recall</option>
-                    <option value="Close">Close</option>
-                    <option value="Complete">Complete</option>
-                </select>
-            </div>
-            <div>
-                <label className="text-xs font-bold text-gray-500 uppercase">Search Student</label>
-                <input type="text" name="studentName" onChange={handleFilterChange} value={filters.studentName} placeholder="Name..." className="w-full border p-2 rounded text-sm focus:ring-2 ring-blue-100 outline-none"/>
-            </div>
-            <div className="flex gap-2">
-                <button onClick={() => dispatch(fetchInquiries(filters))} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition flex items-center gap-2">
-                    <Search size={16}/> Search
+
+            {/* Row 3: Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <button 
+                    onClick={handleResetFilters} 
+                    className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <RotateCcw size={16}/> Reset
                 </button>
-                <button onClick={handleResetFilters} className="bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200 transition" title="Reset Filters">
-                    <RotateCcw size={18}/>
+                <button 
+                    onClick={() => dispatch(fetchInquiries(filters))} 
+                    className="bg-blue-600 text-white px-6 py-2.5 rounded hover:bg-blue-700 font-medium transition text-sm flex items-center justify-center gap-2"
+                >
+                    <Search size={16}/> Search
                 </button>
             </div>
         </div>
