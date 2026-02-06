@@ -118,6 +118,7 @@ const AdmissionFormPrint = lazy(() => import("./pages/admin/reports/AdmissionFor
 const StudentFollowingReport = lazy(() => import("./pages/admin/reports/StudentFollowingReport"));
 const DatewiseOutstandingReport = lazy(() => import('./pages/admin/reports/DatewiseOutstandingReport'));
 const StudentAttendanceReport = lazy(() => import('./pages/admin/reports/StudentAttendanceReport'));
+const EmployeeAttendanceReport = lazy(() => import('./pages/admin/reports/EmployeeAttendanceReport'));
 
 const PrivateRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
@@ -491,6 +492,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <StudentAttendanceReport />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/reports/attendance/employee"
+                element={
+                  <PrivateRoute>
+                    <EmployeeAttendanceReport />
                   </PrivateRoute>
                 }
               />
