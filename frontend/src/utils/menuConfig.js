@@ -79,7 +79,21 @@ export const MENU_CONFIG = [
               { title: 'Datewise OutStanding For Students', path: '/reports/datewise-outstanding' }
           ]
       },
-      { title: 'Admission Form', path: '/reports/admission-form' }
+      { 
+          title: 'Attendance',
+          type: 'nested',
+          subItems: [
+              { title: 'Student', path: '/reports/attendance/student' },
+              { title: 'Employee', path: '/reports/attendance/employee' },
+          ]
+      },
+      { 
+          title: 'General Report', 
+          type: 'nested',
+          subItems: [
+              { title: 'Admission Form', path: '/reports/general/admission-form' },
+          ]
+      }
     ]
   },
   {
