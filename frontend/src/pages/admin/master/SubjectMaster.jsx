@@ -195,17 +195,17 @@ const SubjectMaster = () => {
                     
                     {/* Names */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Subject Name *</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Subject Name <span className="text-red-500">*</span></label>
                         <input {...register('name', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. Programming in C"/>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Printed Name *</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Printed Name <span className="text-red-500">*</span></label>
                         <input {...register('printedName', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="On Certificate"/>
                     </div>
 
                     {/* Duration */}
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Duration *</label>
+                        <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Duration <span className="text-red-500">*</span></label>
                         <input type="number" {...register('duration', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                     </div>
                     <div>

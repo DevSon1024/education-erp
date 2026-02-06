@@ -120,15 +120,15 @@ const StudentRegistrationReport = () => {
                                 <th rowSpan="2" className="border border-gray-400 p-1 w-48">Student Full Name</th>
                                 <th rowSpan="2" className="border border-gray-400 p-1 w-12">Status</th>
                                 <th colSpan="4" className="border border-gray-400 p-1">Document Details</th>
-                                <th colSpan="2" className="border border-gray-400 p-1">Registration Status (Paid Amount)</th>
+                                <th colSpan="2" className="border border-gray-400 p-1">Registration Status</th>
                             </tr>
                             <tr className="bg-blue-500 text-white print:bg-gray-100 print:text-black">
                                 <th className="border border-gray-400 p-1 w-10">Photo</th>
                                 <th className="border border-gray-400 p-1 w-10">ID</th>
                                 <th className="border border-gray-400 p-1 w-12">Mark</th>
                                 <th className="border border-gray-400 p-1 w-10">Addr</th>
-                                <th className="border border-gray-400 p-1 w-16">Adm Fees</th>
-                                <th className="border border-gray-400 p-1 w-16">Reg Fees</th>
+                                <th className="border border-gray-400 p-1 w-16">Admission Fees</th>
+                                <th className="border border-gray-400 p-1 w-16">Regestration Fees</th>
                             </tr>
                         </thead>
                         <tbody>

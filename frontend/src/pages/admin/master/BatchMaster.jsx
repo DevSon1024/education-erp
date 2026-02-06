@@ -363,7 +363,7 @@ const BatchMaster = () => {
                     <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Batch Name */}
                         <div className="md:col-span-2">
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Batch Name *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Batch Name <span className="text-red-500">*</span></label>
                             <input {...register('name', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. Morning Batch A"/>
                         </div>
 
@@ -382,7 +382,7 @@ const BatchMaster = () => {
 
                         {/* Faculty */}
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Faculty *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Faculty <span className="text-red-500">*</span></label>
                             <select {...register('faculty', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none">
                                 <option value="">Select Faculty</option>
                                 {facultyList.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
@@ -397,27 +397,27 @@ const BatchMaster = () => {
 
                         {/* Dates */}
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Start Date *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Start Date <span className="text-red-500">*</span></label>
                             <input type="date" {...register('startDate', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">End Date *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">End Date <span className="text-red-500">*</span></label>
                             <input type="date" {...register('endDate', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                         </div>
 
                         {/* Timing */}
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Start Time *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Start Time <span className="text-red-500">*</span></label>
                             <input type="time" {...register('startTime', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">End Time *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-1">End Time <span className="text-red-500">*</span></label>
                             <input type="time" {...register('endTime', {required: true})} className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-primary outline-none"/>
                         </div>
 
                         {/* Course List Selection */}
                         <div className="md:col-span-2 border-t pt-4 mt-2">
-                            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Select Courses for Batch *</label>
+                            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Select Courses for Batch <span className="text-red-500">*</span></label>
                             <div className="max-h-40 overflow-y-auto border rounded-lg">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 sticky top-0">

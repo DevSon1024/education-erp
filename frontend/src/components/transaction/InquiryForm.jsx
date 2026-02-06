@@ -255,7 +255,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-grow content-start">
                                 {/* Row 1: First Name | Relation+Name | Last Name (All in one row) */}
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700">First Name *</label>
+                                    <label className="block text-xs font-bold text-gray-700">First Name <span className="text-red-500">*</span></label>
                                     <input 
                                         {...register('firstName', {required: true})} 
                                         className="w-full border p-2 rounded text-sm" 
@@ -285,9 +285,9 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700">Last Name</label>
+                                    <label className="block text-xs font-bold text-gray-700">Last Name <span className="text-red-500">*</span></label>
                                     <input 
-                                        {...register('lastName')} 
+                                        {...register('lastName', {required: true})} 
                                         className="w-full border p-2 rounded text-sm" 
                                         placeholder="Surname"
                                         onChange={(e) => setValue('lastName', formatInputText(e.target.value))}
@@ -318,7 +318,7 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700">Contact (Student) *</label>
+                                <label className="block text-xs font-bold text-gray-700">Contact (Student) <span className="text-red-500">*</span></label>
                                 <input {...register('contactStudent', {required: true})} className="w-full border p-2 rounded text-sm" placeholder="Mobile No"/>
                             </div>
                             <div>

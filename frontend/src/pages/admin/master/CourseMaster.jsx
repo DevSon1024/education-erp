@@ -377,17 +377,17 @@ const CourseMaster = () => {
                         
                         {/* Row 1: Basic Names */}
                         <div className="md:col-span-2">
-                            <label className="label">Course Name *</label>
+                            <label className="label">Course Name <span className="text-red-500">*</span></label>
                             <input {...register('name', {required: true})} className="input-field" placeholder="e.g. Master in Computer Science"/>
                         </div>
                         <div>
-                            <label className="label">Short Name *</label>
+                            <label className="label">Short Name <span className="text-red-500">*</span></label>
                             <input {...register('shortName', {required: true})} className="input-field" placeholder="e.g. MCS"/>
                         </div>
 
                         {/* Row 2: Fees & Config */}
                         <div>
-                            <label className="label">Total Fees *</label>
+                            <label className="label">Total Fees <span className="text-red-500">*</span></label>
                             <input type="number" {...register('courseFees', {required: true})} className="input-field" placeholder="0"/>
                         </div>
                         <div>
@@ -414,7 +414,7 @@ const CourseMaster = () => {
 
                         {/* Row 3: Duration & Type */}
                         <div>
-                            <label className="label">Duration *</label>
+                            <label className="label">Duration <span className="text-red-500">*</span></label>
                             <input type="number" {...register('duration', {required: true})} className="input-field" placeholder="6"/>
                         </div>
                         <div>

@@ -416,7 +416,7 @@ const EmployeeMaster = () => {
                         {/* Branch Selection for Super Admin */}
                         {user?.role === 'Super Admin' && (
                           <div className="mb-4 bg-blue-50 p-3 rounded border border-blue-100">
-                               <label className="block text-xs font-bold text-blue-800 mb-1">Assign Branch *</label>
+                               <label className="block text-xs font-bold text-blue-800 mb-1">Assign Branch <span className="text-red-500">*</span></label>
                                <select {...register('branchId', {required: "Branch is Required"})} className="w-full border border-blue-300 p-2 rounded text-sm bg-white">
                                    <option value="">-- Select Branch --</option>
                                    {branches.map(b => (
@@ -429,7 +429,7 @@ const EmployeeMaster = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-bold text-gray-700">Full Name *</label>
+                                <label className="block text-xs font-bold text-gray-700">Full Name <span className="text-red-500">*</span></label>
                                 <input 
                                     {...register('name', {required:true})} 
                                     className="w-full border p-2 rounded text-sm mt-1"
@@ -437,11 +437,11 @@ const EmployeeMaster = () => {
                                 />
                             </div>
                              <div>
-                                <label className="block text-xs font-bold text-gray-700">Mobile Number *</label>
+                                <label className="block text-xs font-bold text-gray-700">Mobile Number <span className="text-red-500">*</span></label>
                                 <input {...register('mobile', {required:true})} className="w-full border p-2 rounded text-sm mt-1"/>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-700">Email *</label>
+                                <label className="block text-xs font-bold text-gray-700">Email <span className="text-red-500">*</span></label>
                                 <input {...register('email', {required:true})} className="w-full border p-2 rounded text-sm mt-1"/>
                             </div>
                             <div>
@@ -451,7 +451,7 @@ const EmployeeMaster = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-700">Type (Role) *</label>
+                                <label className="block text-xs font-bold text-gray-700">Type (Role) <span className="text-red-500">*</span></label>
                                 <select {...register('type', {required:true})} className="w-full border p-2 rounded text-sm mt-1">
                                     <option>Faculty</option><option>Manager</option><option>Marketing Person</option><option>Branch Director</option><option>Receptionist</option><option>Other</option>
                                 </select>

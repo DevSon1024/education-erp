@@ -702,7 +702,7 @@ const StudentAdmission = () => {
               {user?.role === 'Super Admin' && (
                   <div className="col-span-12 bg-blue-50 p-4 rounded border-2 border-blue-100 mb-2">
                        <label className="label text-blue-800 font-bold block mb-2">
-                          Select Branch for this Student *
+                          Select Branch for this Student <span className="text-red-500">*</span>
                        </label>
                        <select 
                           {...register("branchId", { required: "Branch is required for Super Admin" })}
@@ -717,7 +717,7 @@ const StudentAdmission = () => {
                   </div>
               )}
               <div className="col-span-12 md:col-span-4">
-                <label className="label">1. Admission Date</label>
+                <label className="label">Admission Date</label>
                 <input
                   type="date"
                   {...register("admissionDate", { required: "Admission Date is required" })}
@@ -726,14 +726,17 @@ const StudentAdmission = () => {
                 {errors.admissionDate && <p className="text-red-500 text-xs mt-1">{errors.admissionDate.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4">
-                <label className="label">1. Aadhar Card No *</label>
+                <label className="label">Aadhar Card No</label>
                 <input
                   {...register("aadharCard", { 
-                    required: "Aadhar Card is required", 
-                    minLength: { value: 12, message: "Must be 12 digits" },
-                    pattern: { value: /^[0-9]*$/, message: "Only numbers allowed" }
+                    validate: (value) => {
+                      if (!value || value.trim() === '') return true; // Optional field
+                      if (value.length !== 12) return "Must be exactly 12 digits";
+                      if (!/^[0-9]{12}$/.test(value)) return "Only numbers allowed";
+                      return true;
+                    }
                   })}
-                  placeholder="12 Digit Number"
+                  placeholder="12 Digit Number (Optional)"
                   className={`input ${errors.aadharCard ? "border-red-500" : ""}`}
                   maxLength={12}
                   onInput={(e) => { if (e.target.value.length > 12) e.target.value = e.target.value.slice(0, 12); }}
@@ -760,7 +763,7 @@ const StudentAdmission = () => {
               </div>
 
               <div className="col-span-12 md:col-span-3">
-                <label className="label">2. First Name *</label>
+                <label className="label">First Name <span className="text-red-500">*</span></label>
                 <input
                   {...register("firstName", { required: "First Name is required" })}
                   className={`input ${errors.firstName ? "border-red-500" : ""}`}
@@ -793,7 +796,7 @@ const StudentAdmission = () => {
                 />
               </div>
               <div className="col-span-12 md:col-span-4">
-                <label className="label">2. Last Name *</label>
+                <label className="label">2. Last Name <span className="text-red-500">*</span></label>
                 <input
                   {...register("lastName", { required: "Last Name is required" })}
                   className={`input ${errors.lastName ? "border-red-500" : ""}`}
@@ -841,7 +844,7 @@ const StudentAdmission = () => {
                 />
               </div>
               <div className="col-span-6 md:col-span-3">
-                <label className="label">4. Date of Birth *</label>
+                <label className="label">4. Date of Birth <span className="text-red-500">*</span></label>
                 <input
                   type="date"
                   {...register("dob", { required: "Date of Birth is required" })}
@@ -850,7 +853,7 @@ const StudentAdmission = () => {
                 {errors.dob && <p className="text-red-500 text-xs mt-1">{errors.dob.message}</p>}
               </div>
               <div className="col-span-6 md:col-span-4">
-                <label className="label">4. Gender *</label>
+                <label className="label">4. Gender <span className="text-red-500">*</span></label>
                 <div className="flex gap-4 mt-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -895,7 +898,7 @@ const StudentAdmission = () => {
               </div>
               <div className="col-span-12 md:col-span-4">
                 <label className="label text-blue-700">
-                  5. Parent Contact *
+                  5. Parent Contact <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register("mobileParent", {
@@ -936,7 +939,7 @@ const StudentAdmission = () => {
 
               <div className="col-span-12">
                 <label className="label">
-                  7. Address (House No, Building, Street) *
+                  7. Address (House No, Building, Street) <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   {...register("address", { required: "Address is required" })}
@@ -948,7 +951,7 @@ const StudentAdmission = () => {
               </div>
 
               <div className="col-span-12 md:col-span-4">
-                <label className="label">8. State *</label>
+                <label className="label">8. State <span className="text-red-500">*</span></label>
                 <select
                   {...register("state", { required: "State is required" })}
                   className={`input ${errors.state ? "border-red-500" : ""}`}
@@ -977,7 +980,7 @@ const StudentAdmission = () => {
                 {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state.message}</p>}
               </div>
               <div className="col-span-12 md:col-span-4">
-                <label className="label">8. City *</label>
+                <label className="label">8. City <span className="text-red-500">*</span></label>
                 <select
                   {...register("city", { required: "City is required" })}
                   className={`input ${errors.city ? "border-red-500" : ""}`}
@@ -1134,7 +1137,7 @@ const StudentAdmission = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="col-span-1 md:col-span-4 mb-2">
-                      <label className="label mb-2">Select Batch *</label>
+                      <label className="label mb-2">Select Batch <span className="text-red-500">*</span></label>
                       <div className="border rounded-lg overflow-hidden max-h-60 overflow-y-auto bg-white shadow-sm">
                         <table className="w-full text-sm">
                           <thead className="bg-gray-100 text-left sticky top-0 border-b">

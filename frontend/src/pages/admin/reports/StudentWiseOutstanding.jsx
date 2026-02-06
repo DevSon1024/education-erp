@@ -167,10 +167,6 @@ const StudentWiseOutstanding = () => {
                 <div className="flex justify-between items-start mb-6 border-b-2 border-primary pb-4">
                     <div className="flex items-center gap-4">
                         <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
-                        <div>
-                             <h1 className="text-3xl font-extrabold text-[#e11d48]">Smart <span className="text-[#1e3a8a]">Institute</span></h1>
-                            <p className="text-xs text-blue-600 font-bold mt-1 tracking-wider uppercase">Smart management analysis of relative technology</p>
-                        </div>
                     </div>
                     <div className="text-right text-xs space-y-1">
                         <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name || 'Bhestan Branch'}</h2>
@@ -203,6 +199,7 @@ const StudentWiseOutstanding = () => {
                             <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Reg. No</th>
                             <th rowSpan="2" className="border border-blue-500 px-2 py-2 text-left align-middle">Student Name</th>
                             <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Course</th>
+                            <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Mobile No.</th>
                             <th rowSpan="2" className="border border-blue-500 px-2 py-2 text-right align-middle">Outstanding</th>
                             <th colSpan="2" className="border border-blue-500 px-2 py-2 text-center">Follow Up</th>
                             <th rowSpan="2" className="border border-blue-500 px-2 py-2 align-middle">Rect. Date</th>
@@ -226,6 +223,7 @@ const StudentWiseOutstanding = () => {
                                         {s.firstName} {s.middleName} {s.lastName}
                                     </td>
                                     <td className="border border-gray-300 px-2 py-1.5">{s.course?.name || '-'}</td>
+                                    <td className="border border-gray-300 px-2 py-1.5 text-center">{s.mobileParent || '-'}</td>
                                     
                                     {/* Outstanding Amount */}
                                     <td className="border border-gray-300 px-2 py-1.5 text-right font-semibold text-red-600">
@@ -249,7 +247,7 @@ const StudentWiseOutstanding = () => {
                             );
                         }) : (
                             <tr>
-                                <td colSpan="11" className="border border-gray-300 px-4 py-8 text-center text-gray-500 italic">
+                                <td colSpan="12" className="border border-gray-300 px-4 py-8 text-center text-gray-500 italic">
                                     No records found matching criteria.
                                 </td>
                             </tr>

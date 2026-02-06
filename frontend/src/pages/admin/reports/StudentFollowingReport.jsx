@@ -148,10 +148,6 @@ const StudentFollowingReport = () => {
                 <div className="flex justify-between items-start mb-6 border-b-2 border-primary pb-4">
                     <div className="flex items-center gap-4">
                         <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
-                        <div>
-                             <h1 className="text-3xl font-extrabold text-[#e11d48]">Smart <span className="text-[#1e3a8a]">Institute</span></h1>
-                            <p className="text-xs text-blue-600 font-bold mt-1 tracking-wider uppercase">Smart management analysis of relative technology</p>
-                        </div>
                     </div>
                     <div className="text-right text-xs space-y-1">
                         <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name || 'Bhestan Branch'}</h2>
