@@ -375,8 +375,14 @@ const StudentAdmission = () => {
     const startDate = getValues("batchStartDate");
     const paymentType = getValues("paymentType");
 
-    if (!courseId || !batchName || !startDate) {
+    // In edit mode, start date and payment type are from existing data
+    if (!isUpdateMode && (!courseId || !batchName || !startDate)) {
       toast.error("Please select Course, Batch and Start Date");
+      return;
+    }
+    
+    if (isUpdateMode && (!courseId || !batchName)) {
+      toast.error("Please select Course and Batch");
       return;
     }
 
@@ -386,9 +392,10 @@ const StudentAdmission = () => {
     let finalFees = courseObj.courseFees;
     let emiConfig = null;
     const admissionFee = courseObj.admissionFees || 500;
-    const registrationFees = courseObj.registrationFees || 0; // Capture for all plans
+    const registrationFees = courseObj.registrationFees || 0;
 
-    if (paymentType === "Monthly") {
+    // Only calculate EMI for create mode (edit mode keeps existing payment plan)
+    if (!isUpdateMode && paymentType === "Monthly") {
       const installments = courseObj.totalInstallment || 1;
       const remaining = finalFees - registrationFees;
       const monthlyAmt = Math.ceil(remaining / installments);
@@ -409,15 +416,17 @@ const StudentAdmission = () => {
       batchTime: batchObj
         ? `${batchObj.startTime} - ${batchObj.endTime}`
         : "N/A",
-      startDate,
+      startDate: isUpdateMode ? (currentStudent?.batchStartDate?.split("T")[0] || currentStudent?.admissionDate?.split("T")[0]) : startDate,
       fees: finalFees,
       admissionFees: admissionFee,
-      registrationFees: registrationFees, // Added field
-      paymentType,
-      emiConfig,
+      registrationFees: registrationFees,
+      paymentType: isUpdateMode ? (currentStudent?.paymentPlan || "One Time") : paymentType,
+      emiConfig: isUpdateMode ? currentStudent?.emiDetails : emiConfig,
     };
     setPreviewCourses([newEntry]);
-    setValue("selectedCourseId", "");
+    if (!isUpdateMode) {
+      setValue("selectedCourseId", "");
+    }
   };
 
   const onSubmit = (data) => {
@@ -495,7 +504,14 @@ const StudentAdmission = () => {
     }
   };
 
-// Auto-set payment for One Time plan removed - now optional for all
+  // Auto-update preview in edit mode when course/batch changes
+  useEffect(() => {
+    if (isUpdateMode && watchCourseSelection && watchSelectedBatch && step === 2) {
+      handleAddCourseToList();
+    }
+  }, [isUpdateMode, watchCourseSelection, watchSelectedBatch, step]);
+
+  // Auto-set payment for One Time plan removed - now optional for all
   useEffect(() => {
     if (previewCourses.length === 0) {
         setPayAdmissionFee(null); // Reset when list cleared
@@ -1211,22 +1227,27 @@ const StudentAdmission = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="label">Start Date</label>
-                      <input
-                        type="date"
-                        {...register("batchStartDate")}
-                        className="input"
-                        defaultValue={new Date().toISOString().split("T")[0]}
-                      />
-                    </div>
-                    <div>
-                      <label className="label">Payment Plan</label>
-                      <select {...register("paymentType")} className="input">
-                        <option value="One Time">One Time</option>
-                        <option value="Monthly">Monthly</option>
-                      </select>
-                    </div>
+                    {/* Conditionally hide Start Date and Payment Plan in Edit Mode */}
+                    {!isUpdateMode && (
+                      <>
+                        <div>
+                          <label className="label">Start Date</label>
+                          <input
+                            type="date"
+                            {...register("batchStartDate")}
+                            className="input"
+                            defaultValue={new Date().toISOString().split("T")[0]}
+                          />
+                        </div>
+                        <div>
+                          <label className="label">Payment Plan</label>
+                          <select {...register("paymentType")} className="input">
+                            <option value="One Time">One Time</option>
+                            <option value="Monthly">Monthly</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
 
                     {/* Document Verification Section */}
                     <div className="col-span-4 bg-purple-50 p-4 rounded border border-purple-200 mt-4">
@@ -1266,19 +1287,24 @@ const StudentAdmission = () => {
                         </label>
                       </div>
                     </div>
-                    <div className="col-span-2 flex justify-end items-end">
-                      <button
-                        type="button"
-                        onClick={handleAddCourseToList}
-                        className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black h-10 w-full justify-center"
-                      >
-                        <Plus size={16} /> Add to List
-                      </button>
-                    </div>
+
+                    {/* Only show Add to List button in Create Mode */}
+                    {!isUpdateMode && (
+                      <div className="col-span-2 flex justify-end items-end">
+                        <button
+                          type="button"
+                          onClick={handleAddCourseToList}
+                          className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black h-10 w-full justify-center"
+                        >
+                          <Plus size={16} /> Add to List
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
+              {/* Preview Section - different display for Edit Mode */}
               {previewCourses.length > 0 && (
                 <div className="border rounded-lg overflow-hidden shadow-sm">
                   <div className="bg-slate-800 text-white p-3 font-bold text-sm">
@@ -1293,9 +1319,9 @@ const StudentAdmission = () => {
                         <th className="p-3">Batch Time</th>
                         <th className="p-3">Course Fees</th>
                         <th className="p-3">Duration</th>
-                        <th className="p-3">Registration Fees</th>
-                        <th className="p-3">Monthly Fees</th>
-                        <th className="p-3">Action</th>
+                        {!isUpdateMode && <th className="p-3">Registration Fees</th>}
+                        {!isUpdateMode && <th className="p-3">Monthly Fees</th>}
+                        {!isUpdateMode && <th className="p-3">Action</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -1307,50 +1333,50 @@ const StudentAdmission = () => {
                           <td className="p-3">{item.batchTime}</td>
                           <td className="p-3">₹{item.fees}</td>
                           <td className="p-3">
-                             {/* Find duration from course object if possible, or just skip if not in item */}
                              {courses.find(c => c._id === item.courseId)?.duration} {courses.find(c => c._id === item.courseId)?.durationType}
                           </td>
-                           <td className="p-3">
-                              {item.registrationFees !== undefined ? `₹${item.registrationFees}` : (item.emiConfig ? `₹${item.emiConfig.registrationFees}` : '-')}
-                          </td>
-                          <td className="p-3">
-                              {item.emiConfig ? `₹${item.emiConfig.monthlyInstallment}` : '-'}
-                          </td>
-                          <td className="p-3 flex gap-2">
-                             <button
-                                type="button"
-                                onClick={() => {
-                                    // Edit Functionality: Load data back to form and remove from list
+                          {!isUpdateMode && (
+                            <>
+                              <td className="p-3">
+                                {item.registrationFees !== undefined ? `₹${item.registrationFees}` : (item.emiConfig ? `₹${item.emiConfig.registrationFees}` : '-')}
+                              </td>
+                              <td className="p-3">
+                                {item.emiConfig ? `₹${item.emiConfig.monthlyInstallment}` : '-'}
+                              </td>
+                              <td className="p-3 flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
                                     setValue("selectedCourseId", item.courseId);
                                     setValue("selectedBatch", item.batch);
                                     setValue("batchStartDate", item.startDate);
                                     setValue("paymentType", item.paymentType);
-                                    // Document verification status should also be restored hopefully it persisted in form state if not cleared
-                                    // Remove from specific index
                                     const newList = previewCourses.filter((_, i) => i !== index);
                                     setPreviewCourses(newList);
-                                }}
-                                className="text-blue-500 hover:text-blue-700"
-                                title="Edit"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                  const newList = previewCourses.filter((_, i) => i !== index);
-                                  setPreviewCourses(newList);
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
+                                  }}
+                                  className="text-blue-500 hover:text-blue-700"
+                                  title="Edit"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newList = previewCourses.filter((_, i) => i !== index);
+                                    setPreviewCourses(newList);
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </td>
+                            </>
+                          )}
                         </tr>
                       ))}
                     </tbody>
-                    {previewCourses.length > 0 && previewCourses[0].paymentType === "Monthly" && previewCourses[0].emiConfig && (
+                    {!isUpdateMode && previewCourses.length > 0 && previewCourses[0].paymentType === "Monthly" && previewCourses[0].emiConfig && (
                       <tfoot className="bg-yellow-50 text-xs text-yellow-800">
                         <tr>
                           <td colSpan="9" className="p-3">
@@ -1365,8 +1391,8 @@ const StudentAdmission = () => {
                 </div>
               )}
 
-              {/* Show Payment Option for ALL Plans */}
-              {previewCourses.length > 0 && (
+              {/* Payment Option - Only show in Create Mode */}
+              {!isUpdateMode && previewCourses.length > 0 && (
                 <div className="bg-white p-6 rounded border shadow-sm mt-6">
                   <h3 className="font-bold text-lg text-gray-800 mb-4 border-b pb-2">
                     Admission Fee Payment
@@ -1444,11 +1470,11 @@ const StudentAdmission = () => {
                   <ChevronLeft size={16} /> Back to Personal
                 </button>
 
-                {payAdmissionFee === true && (
+                {/* Create Mode Buttons */}
+                {!isUpdateMode && payAdmissionFee === true && (
                   <button
                     type="button"
                     onClick={() => {
-                      // UPDATED: Now One Time also pays only Admission Fee initially (as per user request)
                       const amountToSet = previewCourses[0].admissionFees;
                       setValue("amountPaid", amountToSet);
                       setStep(3);
@@ -1459,20 +1485,36 @@ const StudentAdmission = () => {
                   </button>
                 )}
 
-                  {payAdmissionFee === false && (
-                    <button
-                        type="submit"
-                        disabled={isLoading || isSubmitting}
-                        className={`bg-orange-600 text-white px-6 py-2 rounded font-bold flex items-center gap-2 shadow opacity-90 transition ${
-                        isLoading || isSubmitting
-                            ? "cursor-not-allowed opacity-50"
-                            : "hover:bg-orange-700 hover:opacity-100"
-                        }`}
-                    >
-                        <Save size={18} />
-                        {isLoading || isSubmitting ? "Saving..." : "Save & Admit (Pay Later)"}
-                    </button>
-                    )}
+                {!isUpdateMode && payAdmissionFee === false && (
+                  <button
+                    type="submit"
+                    disabled={isLoading || isSubmitting}
+                    className={`bg-orange-600 text-white px-6 py-2 rounded font-bold flex items-center gap-2 shadow opacity-90 transition ${
+                      isLoading || isSubmitting
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-orange-700 hover:opacity-100"
+                    }`}
+                  >
+                    <Save size={18} />
+                    {isLoading || isSubmitting ? "Saving..." : "Save & Admit (Pay Later)"}
+                  </button>
+                )}
+
+                {/* Edit Mode Button - Direct Update */}
+                {isUpdateMode && previewCourses.length > 0 && (
+                  <button
+                    type="submit"
+                    disabled={isLoading || isSubmitting}
+                    className={`bg-blue-600 text-white px-6 py-2 rounded font-bold flex items-center gap-2 shadow transition ${
+                      isLoading || isSubmitting
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-blue-700"
+                    }`}
+                  >
+                    <Save size={18} />
+                    {isLoading || isSubmitting ? "Updating..." : "Update Admission"}
+                  </button>
+                )}
               </div>
             </div>
           )}
