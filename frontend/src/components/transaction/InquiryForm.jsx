@@ -161,7 +161,16 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
         }
     }, [watch('state'), states, cities]);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading) {
+            setIsSubmitting(false);
+        }
+    }, [isLoading]);
+
     const onSubmit = (data) => {
+        setIsSubmitting(true);
         const formData = new FormData();
         
         // Append all standard fields
@@ -566,8 +575,8 @@ const InquiryForm = ({ mode, initialData, onClose, onSave }) => {
                 {/* Footer Actions */}
                  <div className="flex justify-end gap-3 p-3 border-t bg-gray-50 rounded-b-lg flex-none">
                      <button type="button" onClick={onClose} disabled={isLoading} className="px-5 py-2 border rounded text-gray-600 hover:bg-gray-100 disabled:opacity-70">Cancel</button>
-                     <button type="submit" form="inquiry-form" disabled={isLoading} className="bg-green-600 text-white px-8 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2 font-bold transform hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none">
-                         {isLoading ? 'Saving...' : <><Save size={18}/> Save {mode === 'Edit' ? 'Update' : 'Inquiry'}</>}
+                     <button type="submit" form="inquiry-form" disabled={isLoading || isSubmitting} className="bg-green-600 text-white px-8 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2 font-bold transform hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none">
+                         {isLoading || isSubmitting ? 'Saving...' : <><Save size={18}/> Save {mode === 'Edit' ? 'Update' : 'Inquiry'}</>}
                      </button>
                 </div>
             </div>

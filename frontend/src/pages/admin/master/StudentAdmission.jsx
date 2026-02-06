@@ -1634,7 +1634,7 @@ const StudentAdmission = () => {
                   >
                     <Save size={18} />
                     {isLoading || isSubmitting
-                      ? "Processing..."
+                      ? "Saving..."
                       : "Confirm Admission & Pay"}
                   </button>
                 </div>

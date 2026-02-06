@@ -216,7 +216,8 @@ const PendingAdmissionFees = () => {
                         {isSuperAdmin && (
                             <button 
                                 onClick={() => handleDelete(s._id)} 
-                                className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" 
+                                disabled={isLoading}
+                                className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed" 
                                 title="Delete"
                             >
                                 <Trash2 size={14}/>

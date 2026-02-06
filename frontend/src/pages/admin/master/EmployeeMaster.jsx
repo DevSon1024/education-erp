@@ -84,7 +84,18 @@ const EmployeeMaster = () => {
 
 
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+        setIsSubmitting(false);
+    }
+  }, [isLoading]);
+
   const onSubmit = (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     // If there's a photo file, we need to use FormData
     let submitData = data;
     
@@ -519,9 +530,9 @@ const EmployeeMaster = () => {
 
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <button type="button" onClick={closeForm} disabled={isLoading} className="px-6 py-2 border rounded hover:bg-gray-100 text-sm font-medium disabled:opacity-70">Cancel</button>
-                        <button type="submit" disabled={isLoading} className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                             {isLoading ? <Loader className="animate-spin" size={16}/> : null}
-                             {isLoading ? 'Saving...' : (editMode ? "Update Employee" : "Save Employee")}
+                        <button type="submit" disabled={isLoading || isSubmitting} className="bg-primary text-white px-8 py-2 rounded hover:bg-blue-800 shadow text-sm font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                             {isLoading || isSubmitting ? <Loader className="animate-spin" size={16}/> : null}
+                             {isLoading || isSubmitting ? 'Saving...' : (editMode ? "Update Employee" : "Save Employee")}
                         </button>
                     </div>
                 </form>

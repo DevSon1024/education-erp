@@ -132,11 +132,23 @@ const FeeCollection = () => {
         fetchNextReceiptNo();
     };
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading) {
+            setIsSubmitting(false);
+        }
+    }, [isLoading]);
+
     const onSubmit = (data) => {
+        if (isSubmitting) return;
+        
         if (!selectedStudent) {
             toast.error("Please select a student");
             return;
         }
+        
+        setIsSubmitting(true);
 
         const payload = {
             ...data,
@@ -334,9 +346,9 @@ const FeeCollection = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-2">
-                        <button type="submit" disabled={isLoading} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                            {isLoading ? <RotateCcw className="animate-spin" size={16}/> : <Save size={16}/>} 
-                            {isLoading ? 'Saving...' : (editingReceipt ? 'Update' : 'Save')}
+                        <button type="submit" disabled={isLoading || isSubmitting} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                            {isLoading || isSubmitting ? <RotateCcw className="animate-spin" size={16}/> : <Save size={16}/>} 
+                            {isLoading || isSubmitting ? 'Saving...' : (editingReceipt ? 'Update' : 'Save')}
                         </button>
                         <button type="button" onClick={resetForm} className="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-300 transition flex items-center gap-2 text-sm font-medium">
                             <RotateCcw size={16}/> Reset

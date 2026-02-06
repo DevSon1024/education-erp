@@ -121,7 +121,7 @@ const FollowUpModal = ({ inquiry, onClose, onSave }) => {
                         </div>
                     )}
                     <button disabled={isLoading} className="bg-blue-600 text-white w-full py-2 rounded mt-2 hover:bg-blue-700 font-bold shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                        {isLoading ? 'Updating...' : 'Update Status'}
+                        {isLoading ? 'Saving...' : 'Update Status'}
                     </button>
                 </form>
             </div>
