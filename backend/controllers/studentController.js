@@ -23,10 +23,8 @@ const getStudents = asyncHandler(async (req, res) => {
 
     // Branch-based filtering logic
     if (req.user.role !== 'Super Admin' && req.user.branchId) {
-        // Non-Super Admins only see their branch students
         query.branchId = req.user.branchId;
     } else if (branchId) {
-        // Super Admins can filter by specific branch if branchId param is present
         query.branchId = branchId;
     }
 
@@ -63,7 +61,8 @@ const getStudents = asyncHandler(async (req, res) => {
     const count = await Student.countDocuments(query);
 
     const students = await Student.find(query)
-        .populate('course', 'name duration shortName durationType')
+        // CHANGED: Added 'registrationFees' to populate
+        .populate('course', 'name duration shortName durationType registrationFees')
         .populate('userId', 'username')
         .limit(limit)
         .skip(limit * (pageNum - 1))

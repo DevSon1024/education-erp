@@ -94,6 +94,7 @@ export const MENU_CONFIG = [
               { title: 'Admission Form', path: '/reports/general/admission-form' },
               { title: 'Student Completion Report', path: '/reports/general/student-completion' },
               { title: 'Student Contact Report', path: '/reports/general/student-contact' },
+              { title: 'Student Registration Report', path: '/reports/general/student-registration' },
           ]
       }
     ]
