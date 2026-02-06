@@ -165,10 +165,12 @@ const EmployeeAttendanceReport = () => {
     }, [employees, attendanceList, daysInMonth, filters.employeeId]);
 
 
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-        documentTitle: `Employee_Attendance_Report_${filters.month}`,
-    });
+    const handlePrint = () => {
+        const originalTitle = document.title;
+        document.title = `Employee_Attendance_Report_${filters.month}`;
+        window.print();
+        document.title = originalTitle;
+    };
 
     const getBranchDetails = () => {
         let branchData = null;
