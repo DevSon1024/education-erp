@@ -43,7 +43,7 @@ const AdminHome = () => {
     dispatch(fetchExamRequests()); // Changed from fetchPendingExams
   };
 
-  const handleAddToOnline = (inquiry) => {
+  const handleAddToOnline = (inquiry, refreshSource = 'QuickContact') => {
     if (confirm(`Transfer inquiry for ${inquiry.firstName} to Online list?`)) {
         dispatch(updateInquiry({ 
             id: inquiry._id, 
@@ -51,7 +51,7 @@ const AdminHome = () => {
         })).then((res) => {
             if (!res.error) {
                 toast.success("Inquiry transferred to Online list");
-                dispatch(fetchInquiries({ source: 'QuickContact' })); // Refresh list with correct filter
+                dispatch(fetchInquiries({ source: refreshSource })); // Refresh list with correct filter
             }
         });
     }
@@ -251,12 +251,22 @@ const AdminHome = () => {
                                     {inq.branchId?.name || 'All'}
                                 </td>
                                 <td className="px-6 py-4 text-center">
-                                    <button 
-                                        onClick={() => navigate('/master/student/new', { state: { inquiryData: inq } })}
-                                        className="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-md text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 mx-auto"
-                                    >
-                                        <CheckCircle size={14}/> Complete Admission
-                                    </button>
+                                    <div className="flex justify-center gap-2">
+                                        <button 
+                                            onClick={() => navigate('/master/student/new', { state: { inquiryData: inq } })}
+                                            className="bg-primary hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1"
+                                            title="Complete Admission"
+                                        >
+                                            <CheckCircle size={14}/> Admission
+                                        </button>
+                                        <button 
+                                            onClick={() => handleAddToOnline(inq, 'OnlineAdmission')}
+                                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-md text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1"
+                                            title="Add to Online Inquiry"
+                                        >
+                                            <CheckCircle size={14}/> Add to Online
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         )) : (

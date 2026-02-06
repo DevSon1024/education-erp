@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchExamRequests, cancelExamRequest, fetchCourses } from '../../../features/master/masterSlice';
-import { fetchStudents } from '../../../features/student/studentSlice';
 import { Search, RefreshCw, XCircle } from 'lucide-react';
+import StudentSearch from '../../../components/StudentSearch';
 import { toast } from 'react-toastify';
 
 const ExamRequestList = () => {
@@ -10,7 +10,6 @@ const ExamRequestList = () => {
   
   // Redux Data
   const { examRequests, courses, isLoading } = useSelector((state) => state.master);
-  const { students } = useSelector((state) => state.students); // Use students for filter dropdown
 
   // Local Filter State
   const [filters, setFilters] = useState({
@@ -20,7 +19,6 @@ const ExamRequestList = () => {
 
   useEffect(() => {
     dispatch(fetchCourses());
-    dispatch(fetchStudents({ pageSize: 1000 })); // Fetch all for dropdown (optimize in production)
     dispatch(fetchExamRequests());
   }, [dispatch]);
 
@@ -47,31 +45,14 @@ const ExamRequestList = () => {
       <div className="bg-white p-4 rounded shadow mb-6 border-t-4 border-primary">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           {/* Student Filter */}
+          {/* Student Filter */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Select Student</label>
-            <input 
-               list="studentList" 
-               className="border p-2 rounded w-full text-sm" 
-               placeholder="Search Student..."
-               value={filters.studentId}
-               onChange={(e) => {
-                 // Logic to handle Datalist value vs ID would go here, 
-                 // but for simplicity we assume direct selection or use a proper Select component
-                 // For now, let's assume we map names to IDs or use a Select
-               }} 
-               // Simple alternative: Select Dropdown
+            <StudentSearch 
+                label="Select Registered Student"
+                onSelect={(id) => setFilters({...filters, studentId: id})}
+                defaultSelectedId={filters.studentId}
+                additionalFilters={{ isRegistered: 'true' }} // Filter only registered students
             />
-            {/* Better UX: Standard Select for now */}
-            <select 
-                className="border p-2 rounded w-full text-sm -mt-8" // visual hack or replace input
-                value={filters.studentId}
-                onChange={(e) => setFilters({...filters, studentId: e.target.value})}
-            >
-                <option value="">-- All Students --</option>
-                {students.map(s => (
-                    <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.regNo})</option>
-                ))}
-            </select>
           </div>
 
           {/* Course Filter */}

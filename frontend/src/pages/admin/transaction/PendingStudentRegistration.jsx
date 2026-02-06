@@ -185,9 +185,11 @@ const PendingStudentRegistration = () => {
                             <Printer size={14}/>
                         </Link>
 
-                        <button onClick={() => handleDelete(s._id)} disabled={isLoading} className="bg-red-50 text-red-600 p-1.5 rounded border border-red-200 hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed" title="Delete">
-                            <Trash2 size={14}/>
-                        </button>
+                        {user?.role === 'Super Admin' && (
+                            <button onClick={() => handleDelete(s._id)} disabled={isLoading} className="bg-red-50 text-red-600 p-1.5 rounded border border-red-200 hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed" title="Delete">
+                                <Trash2 size={14}/>
+                            </button>
+                        )}
                    </div>
                 </td>
               </tr>

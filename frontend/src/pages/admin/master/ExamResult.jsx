@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchExamSchedules, fetchBatches, fetchExamResults, createExamResult, updateExamResult, resetMasterStatus } from '../../../features/master/masterSlice';
-import { fetchStudents } from '../../../features/student/studentSlice';
+
+// import { fetchStudents } from '../../../features/student/studentSlice'; // Removed as we use StudentSearch
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Plus, Search, RefreshCw, Edit, Printer, Award, Save } from 'lucide-react';
+import StudentSearch from '../../../components/StudentSearch';
 
 const ExamResult = () => {
   const dispatch = useDispatch();
@@ -14,21 +16,19 @@ const ExamResult = () => {
   // Local State
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(null);
-  const [filters, setFilters] = useState({ examId: '', batch: '', regNo: '', studentName: '' });
+  const [filters, setFilters] = useState({ examId: '', batch: '', studentId: '' }); // consolidated student search
   
   // Pagination State
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
 
   // Form Setup
-  const { register, handleSubmit, reset, setValue } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
 
   useEffect(() => {
     dispatch(fetchExamSchedules());
     dispatch(fetchBatches());
     dispatch(fetchExamResults());
-    // Fetch all students for the dropdown in "Add New" form (optimization needed for large datasets)
-    dispatch(fetchStudents({ pageSize: 1000 }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const ExamResult = () => {
 
   const onSearch = () => dispatch(fetchExamResults(filters));
   const onReset = () => {
-    setFilters({ examId: '', batch: '', regNo: '', studentName: '' });
+    setFilters({ examId: '', batch: '', studentId: '' });
     dispatch(fetchExamResults());
   };
 
@@ -96,13 +96,14 @@ const ExamResult = () => {
                 
                 {/* Student Selection */}
                 <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Select Student</label>
-                    <select {...register('studentId', {required: true})} className="border p-2 rounded w-full" disabled={!!editMode}>
-                        <option value="">-- Search/Select Student --</option>
-                        {students.map(s => (
-                            <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.regNo}) - {s.course?.name}</option>
-                        ))}
-                    </select>
+                    <StudentSearch 
+                        label="Select Registered Student"
+                        onSelect={(id) => setValue('studentId', id, { shouldValidate: true })}
+                        defaultSelectedId={editMode ? watch('studentId') : null}
+                    />
+                    {/* Hidden input to register with hook form */}
+                    <input type="hidden" {...register('studentId', {required: true})} />
+                     {editMode && <p className="text-xs text-blue-600 mt-1">Note: Student editing via search is supported.</p>}
                 </div>
 
                 <div>
@@ -169,15 +170,15 @@ const ExamResult = () => {
                         value={filters.batch} onChange={(e) => setFilters({...filters, batch: e.target.value})} />
                     <datalist id="batchList">{batches.map(b => <option key={b._id} value={b.name} />)}</datalist>
                 </div>
-                <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Reg Number</label>
-                    <input className="border p-2 rounded w-full text-sm" placeholder="Search Reg No..."
-                        value={filters.regNo} onChange={(e) => setFilters({...filters, regNo: e.target.value})} />
-                </div>
-                <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Student Name</label>
-                    <input className="border p-2 rounded w-full text-sm" placeholder="Search Name..."
-                        value={filters.studentName} onChange={(e) => setFilters({...filters, studentName: e.target.value})} />
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Search Student (Reg No / Name)</label>
+                    <StudentSearch 
+                        placeholder="Search by Name or Reg No..."
+                        onSelect={(id) => setFilters({...filters, studentId: id})}
+                        defaultSelectedId={filters.studentId}
+                        additionalFilters={{ isRegistered: 'true' }}
+                        className="z-50" // Ensure dropdown is above
+                    />
                 </div>
                 <div className="flex gap-2">
                     <button onClick={onReset} className="bg-gray-200 text-gray-700 px-3 py-2 rounded hover:bg-gray-300"><RefreshCw size={16}/></button>

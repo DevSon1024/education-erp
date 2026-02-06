@@ -310,9 +310,11 @@ const StudentList = () => {
                         <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1 rounded border border-orange-200 hover:bg-orange-100 transition" title="Update">
                             <Edit size={14}/>
                         </Link>
-                        <button onClick={() => handleDelete(s._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
-                            <Trash2 size={14}/>
-                        </button>
+                        {user?.role === 'Super Admin' && (
+                            <button onClick={() => handleDelete(s._id)} className="bg-red-50 text-red-600 p-1 rounded border border-red-200 hover:bg-red-100 transition" title="Delete">
+                                <Trash2 size={14}/>
+                            </button>
+                        )}
                         <Link to={`/print/admission-form/${s._id}?mode=FULL`} target="_blank" className="bg-purple-50 text-purple-600 p-1 rounded border border-purple-200 hover:bg-purple-100 transition" title="Print">
                             <Printer size={14}/>
                         </Link>

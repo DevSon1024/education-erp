@@ -57,8 +57,8 @@ export const MENU_CONFIG = [
         title: 'Attendance',
         type: 'nested',
         subItems: [
-          { title: 'Student', path: '/transaction/attendance/student' },
-          { title: 'Employee', path: '/transaction/attendance/employee' }
+          { title: 'Student Attendance', path: '/transaction/attendance/student' },
+          { title: 'Employee Attendance', path: '/transaction/attendance/employee' }
         ]
       }
     ]
@@ -83,8 +83,8 @@ export const MENU_CONFIG = [
           title: 'Attendance',
           type: 'nested',
           subItems: [
-              { title: 'Student', path: '/reports/attendance/student' },
-              { title: 'Employee', path: '/reports/attendance/employee' },
+              { title: 'Student Attendance Report', path: '/reports/attendance/student' },
+              { title: 'Employee Attendance Report', path: '/reports/attendance/employee' },
           ]
       },
       { 
@@ -126,7 +126,6 @@ export const MENU_CONFIG = [
       { title: 'Manage Terms', path: '/master/manage-terms' },
       { title: 'Cloudinary Management', path: '/utility/cloudinary-manager' },
       { title: 'Downloads', path: '/utility/downloads' },
-      { title: 'Free Learning', path: '/utility/free-learning' }
     ]
   }
 ];

@@ -11,6 +11,7 @@ const getExamResults = asyncHandler(async (req, res) => {
 
     if (examId) query.exam = examId;
     if (batch) query.batch = { $regex: batch, $options: 'i' };
+    if (req.query.studentId) query.student = req.query.studentId;
     
     // Filter by Student details (requires looking up students first)
     if (regNo || studentName) {

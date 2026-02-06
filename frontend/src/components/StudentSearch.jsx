@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Search, X, Check } from 'lucide-react';
+import { ChevronDown, X, Check } from 'lucide-react';
 
 const StudentSearch = ({ 
     onSelect, 
@@ -167,7 +167,15 @@ const StudentSearch = ({
                 </label>
             )}
             
-            <div className="relative group">
+            <div 
+                className="relative group cursor-pointer"
+                onClick={() => {
+                    if (!isOpen) { 
+                        setIsOpen(true);
+                        if(inputRef.current) inputRef.current.focus();
+                    }
+                }}
+            >
                 <input
                     ref={inputRef}
                     type="text"
@@ -189,22 +197,26 @@ const StudentSearch = ({
                         }
                     }}
                     placeholder={placeholder}
-                    className={`w-full border rounded-lg p-2.5 pl-9 pr-8 focus:ring-2 focus:ring-blue-500 outline-none transition-all
+                    className={`w-full border rounded-lg p-2.5 pr-10 pl-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all cursor-pointer
                         ${error ? 'border-red-500 bg-red-50' : selectedStudent ? 'border-blue-300 bg-blue-50/30' : 'border-gray-300'}
                     `}
                 />
                 
-                <Search size={18} className="absolute left-3 top-3 text-gray-400" />
-                
-                {query && (
-                    <button 
-                        type="button"
-                        onClick={clearSelection}
-                        className="absolute right-2 top-2.5 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 transition"
-                    >
-                        <X size={16} />
-                    </button>
-                )}
+                <div className="absolute right-3 top-3 flex items-center gap-1">
+                    {query && (
+                        <button 
+                            type="button"
+                            onClick={clearSelection}
+                            className="p-0.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 transition"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
+                    <ChevronDown 
+                        size={18} 
+                        className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+                    />
+                </div>
             </div>
 
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
