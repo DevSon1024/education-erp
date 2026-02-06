@@ -9,7 +9,7 @@ import { fetchEmployees } from "../../../features/employee/employeeSlice";
 import {
   Filter,
   Search,
-  RotateCcw,
+  RefreshCw,
   Printer,
   Eye,
   CreditCard,
@@ -129,7 +129,7 @@ const PendingAdmissionFees = () => {
             </div>
             
             <div className="flex items-end gap-2">
-                <button onClick={handleReset} className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-gray-700 w-full flex justify-center"><RotateCcw size={18}/></button>
+                <button onClick={handleReset} className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-gray-700 w-full flex justify-center"><RefreshCw size={18}/></button>
                 <button onClick={handleSearch} className="bg-primary text-white p-2 rounded hover:bg-blue-800 w-full flex justify-center">Search</button>
             </div>
         </div>

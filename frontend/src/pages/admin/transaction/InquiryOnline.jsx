@@ -8,7 +8,7 @@ import InquiryForm from '../../../components/transaction/InquiryForm';
 import StudentSearch from '../../../components/StudentSearch';
 import InquiryViewModal from '../../../components/transaction/InquiryViewModal';
 import SmartTable from '../../../components/ui/SmartTable';
-import { Search, RotateCcw, PhoneCall, Globe, X, Edit, Trash2, Eye, Calendar } from 'lucide-react';
+import { Search, RefreshCw, PhoneCall, Globe, X, Edit, Trash2, Eye, Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 
@@ -308,7 +308,7 @@ const InquiryOnline = () => {
                     onClick={handleResetFilters} 
                     className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
                 >
-                    <RotateCcw size={16}/> Reset
+                    <RefreshCw size={16}/> Reset
                 </button>
                 <button 
                     onClick={() => dispatch(fetchInquiries(filters))} 

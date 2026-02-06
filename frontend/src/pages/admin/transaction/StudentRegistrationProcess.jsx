@@ -36,9 +36,9 @@ const StudentRegistrationProcess = () => {
     // Dynamic Fields
     bankName: '',
     chequeNumber: '',
-    chequeDate: '',
+    chequeDate: new Date().toISOString().split('T')[0], // Default today for UI
     transactionId: '',
-    transactionDate: ''
+    transactionDate: new Date().toISOString().split('T')[0] // Default today for UI
   });
 
   useEffect(() => {

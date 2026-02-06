@@ -102,6 +102,8 @@ const StudentAdmission = () => {
       reference: "Direct",
       receiptPaymentMode: "Cash",
       receiptDate: new Date().toISOString().split("T")[0],
+      chequeDate: new Date().toISOString().split("T")[0], // Default today for UI
+      transactionDate: new Date().toISOString().split("T")[0], // Default today for UI
     },
   });
 

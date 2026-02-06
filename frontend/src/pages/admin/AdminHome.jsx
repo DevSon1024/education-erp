@@ -26,13 +26,17 @@ const AdminHome = () => {
     minPendingDays: ''
   });
 
-  // Initial Fetch
+  // Initial Fetch - Fetch ALL inquiries and filter them client-side
   useEffect(() => {
-    // Fetching ONLY "QuickContact" for dashboard as per requirements
-    dispatch(fetchInquiries({ source: 'QuickContact' }));
+    // Fetch all inquiries without source filter to have complete data
+    dispatch(fetchInquiries({}));
     dispatch(fetchExamRequests()); // Changed from fetchPendingExams
     dispatch(fetchCourses());
   }, [dispatch]);
+
+  // Filter inquiries based on active tab
+  const quickContactInquiries = inquiries?.filter(inq => inq.source === 'QuickContact') || [];
+  const onlineAdmissionInquiries = inquiries?.filter(inq => inq.source === 'OnlineAdmission') || [];
 
   const handleExamFilter = () => {
     dispatch(fetchExamRequests(examFilters)); // Changed from fetchPendingExams
@@ -43,15 +47,15 @@ const AdminHome = () => {
     dispatch(fetchExamRequests()); // Changed from fetchPendingExams
   };
 
-  const handleAddToOnline = (inquiry, refreshSource = 'QuickContact') => {
-    if (confirm(`Transfer inquiry for ${inquiry.firstName} to Online list?`)) {
+  const handleAddToOnline = (inquiry) => {
+    if (confirm(`Transfer inquiry for ${inquiry.firstName} to Online Inquiry list?`)) {
         dispatch(updateInquiry({ 
             id: inquiry._id, 
             data: { source: 'Online' } 
         })).then((res) => {
             if (!res.error) {
-                toast.success("Inquiry transferred to Online list");
-                dispatch(fetchInquiries({ source: refreshSource })); // Refresh list with correct filter
+                toast.success("Inquiry transferred to Online Inquiry list");
+                dispatch(fetchInquiries({})); // Refresh all inquiries
             }
         });
     }
@@ -97,10 +101,7 @@ const AdminHome = () => {
 
           {(canViewOnlineAdmissions || (user && user.role === 'Super Admin')) && (
           <button 
-            onClick={() => {
-                setActiveTab('online-admission');
-                dispatch(fetchInquiries({ source: 'OnlineAdmission' }));
-            }}
+            onClick={() => setActiveTab('online-admission')}
             className={`px-8 py-2 rounded-full font-medium transition-all ${
               activeTab === 'online-admission' 
               ? 'bg-primary text-white shadow-sm' 
@@ -135,9 +136,9 @@ const AdminHome = () => {
                 </h3>
                 <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                        Total: {inquiries?.length || 0}
+                        Total: {quickContactInquiries.length}
                     </span>
-                    <button onClick={() => dispatch(fetchInquiries({ source: 'QuickContact' }))} className="p-1 hover:bg-gray-200 rounded-full transition-colors" title="Refresh">
+                    <button onClick={() => dispatch(fetchInquiries({}))} className="p-1 hover:bg-gray-200 rounded-full transition-colors" title="Refresh">
                         <RefreshCw size={16} className="text-gray-500"/>
                     </button>
                 </div>
@@ -161,7 +162,7 @@ const AdminHome = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {inquiries && inquiries.length > 0 ? inquiries.map((inq, index) => (
+                        {quickContactInquiries.length > 0 ? quickContactInquiries.map((inq, index) => (
                             <tr key={inq._id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 text-sm text-gray-500">{index + 1}</td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
@@ -212,9 +213,9 @@ const AdminHome = () => {
                 </h3>
                 <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                        Total: {inquiries?.length || 0}
+                        Total: {onlineAdmissionInquiries.length}
                     </span>
-                    <button onClick={() => dispatch(fetchInquiries({ source: 'OnlineAdmission' }))} className="p-1 hover:bg-gray-200 rounded-full transition-colors" title="Refresh">
+                    <button onClick={() => dispatch(fetchInquiries({}))} className="p-1 hover:bg-gray-200 rounded-full transition-colors" title="Refresh">
                         <RefreshCw size={16} className="text-gray-500"/>
                     </button>
                 </div>
@@ -234,7 +235,7 @@ const AdminHome = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {inquiries && inquiries.length > 0 ? inquiries.map((inq) => (
+                        {onlineAdmissionInquiries.length > 0 ? onlineAdmissionInquiries.map((inq) => (
                             <tr key={inq._id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 text-sm text-gray-900">
                                     {inq.createdAt ? new Date(inq.createdAt).toLocaleDateString('en-GB') : '-'}

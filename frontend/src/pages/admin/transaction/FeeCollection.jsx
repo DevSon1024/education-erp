@@ -33,7 +33,9 @@ const FeeCollection = () => {
         defaultValues: {
             receiptNo: 'Loading...',
             date: new Date().toISOString().split('T')[0],
-            paymentMode: 'Cash'
+            paymentMode: 'Cash',
+            chequeDate: new Date().toISOString().split('T')[0], // Default today for UI
+            transactionDate: new Date().toISOString().split('T')[0] // Default today for UI
         }
     });
 
@@ -123,7 +125,9 @@ const FeeCollection = () => {
         reset({
             receiptNo: 'Loading...',
             date: new Date().toISOString().split('T')[0],
-            paymentMode: 'Cash'
+            paymentMode: 'Cash',
+            chequeDate: new Date().toISOString().split('T')[0],
+            transactionDate: new Date().toISOString().split('T')[0]
         });
         setSelectedStudent(null);
         setPaymentSummary(null);

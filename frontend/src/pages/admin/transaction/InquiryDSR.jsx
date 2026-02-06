@@ -10,7 +10,7 @@ import InquiryForm from '../../../components/transaction/InquiryForm'; // Import
 import InquiryViewModal from '../../../components/transaction/InquiryViewModal';
 import StudentSearch from '../../../components/StudentSearch';
 import { 
-    Plus, Search, X, PhoneCall, FileText, Edit, Trash2, Calendar, Eye
+    Plus, Search, X, PhoneCall, FileText, Edit, Trash2, Calendar, Eye, RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../../utils/dateUtils';
@@ -256,7 +256,7 @@ const InquiryDSR = () => {
                     }} 
                     className="bg-red-100 text-red-700 px-6 py-2.5 rounded hover:bg-red-200 font-medium transition text-sm flex items-center justify-center gap-2"
                 >
-                    <X size={16}/> Reset
+                    <RefreshCw size={16}/> Reset
                 </button>
                 <button 
                     onClick={() => dispatch(fetchInquiries(filters))} 

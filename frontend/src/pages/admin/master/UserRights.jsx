@@ -15,11 +15,23 @@ import { Save, RefreshCw, CheckSquare, Square, Trash2, Plus } from 'lucide-react
 const UserRights = () => {
   const dispatch = useDispatch();
   
+  // Initialize sections immediately to avoid race conditions
+  const [sections] = useState(() => getMenuSections());
+  
   // Local State
   const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [permissions, setPermissions] = useState([]);
+  const [permissions, setPermissions] = useState(() => {
+    // Initialize with all pages from sections
+    const allPages = Object.values(getMenuSections()).flat();
+    return allPages.map(page => ({
+      page,
+      view: false,
+      add: false,
+      edit: false,
+      delete: false
+    }));
+  });
   const [activeTab, setActiveTab] = useState('Master'); // Default Tab
-  const [sections, setSections] = useState({});
 
   // Redux State
   const { employees } = useSelector((state) => state.employees);
@@ -31,7 +43,6 @@ const UserRights = () => {
   useEffect(() => {
     dispatch(fetchEmployees());
     dispatch(fetchTemplates());
-    setSections(getMenuSections());
   }, [dispatch]);
 
   useEffect(() => {
@@ -43,14 +54,26 @@ const UserRights = () => {
 
   // Load existing rights when fetched from backend
   useEffect(() => {
-    if (rights && rights.permissions) {
+    if (rights && rights.permissions && Array.isArray(rights.permissions)) {
       // Flatten all pages from SECTIONS to ensure we have a complete list
       const allPages = Object.values(sections).flat();
       
       const mergedPermissions = allPages.map(page => {
         const existing = rights.permissions.find(p => p.page === page);
-        return existing || { page, view: false, add: false, edit: false, delete: false };
+        
+        if (existing) {
+          // Use existing data with proper boolean conversion
+          return {
+            page,
+            view: Boolean(existing.view),
+            add: Boolean(existing.add),
+            edit: Boolean(existing.edit),
+            delete: Boolean(existing.delete)
+          };
+        }
+        return { page, view: false, add: false, edit: false, delete: false };
       });
+      
       setPermissions(mergedPermissions);
     }
   }, [rights, sections]);
@@ -64,8 +87,14 @@ const UserRights = () => {
     setSelectedEmployee(empId);
     if (empId) {
       const employee = employees.find(emp => emp._id === empId);
+      
       if (employee && employee.userAccount) {
-        dispatch(fetchUserRights(employee.userAccount));
+        // Extract the user ID from userAccount (could be object or string)
+        const userId = typeof employee.userAccount === 'object' 
+          ? employee.userAccount._id 
+          : employee.userAccount;
+        
+        dispatch(fetchUserRights(userId));
       } else {
         toast.warning("This employee is not linked to a User Account.");
         setPermissions([]);
@@ -146,7 +175,12 @@ const UserRights = () => {
   const onSave = () => {
     const employee = employees.find(emp => emp._id === selectedEmployee);
     if (employee && employee.userAccount) {
-      dispatch(saveUserRights({ userId: employee.userAccount, permissions }));
+      // Extract the user ID from userAccount (could be object or string)
+      const userId = typeof employee.userAccount === 'object' 
+        ? employee.userAccount._id 
+        : employee.userAccount;
+      
+      dispatch(saveUserRights({ userId, permissions }));
     }
   };
 

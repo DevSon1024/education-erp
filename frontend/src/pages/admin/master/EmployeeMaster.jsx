@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees, createEmployee, updateEmployee, deleteEmployee, resetEmployeeStatus } from '../../../features/employee/employeeSlice';
 import { getBranches } from '../../../features/master/branchSlice'; // Import API
+import { fetchEducations, createEducation } from '../../../features/master/masterSlice';
 import { formatInputText } from '../../../utils/textFormatter';
 import { toast } from 'react-toastify';
 import { Search, Plus, X, Upload, User, Briefcase, Lock, Trash2, Edit, RotateCcw, Loader } from 'lucide-react';
@@ -14,6 +15,7 @@ const EmployeeMaster = () => {
   const dispatch = useDispatch();
   const { employees, isSuccess, isError, message, isLoading } = useSelector((state) => state.employees);
   const { branches } = useSelector((state) => state.branch);
+  const { educations } = useSelector((state) => state.master);
   const { user } = useSelector((state) => state.auth); // Get Auth User
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -21,6 +23,9 @@ const EmployeeMaster = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [photoFile, setPhotoFile] = useState(null); // Store actual File object
   const [isImageProcessing, setIsImageProcessing] = useState(false);
+  const [showEduModal, setShowEduModal] = useState(false);
+  const [newEdu, setNewEdu] = useState('');
+  const [isEduLoading, setIsEduLoading] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const watchName = watch('name');
@@ -45,6 +50,7 @@ const EmployeeMaster = () => {
 
   useEffect(() => {
     dispatch(fetchEmployees(filters));
+    dispatch(fetchEducations());
     if(user?.role === 'Super Admin') {
         dispatch(getBranches());
     }
@@ -357,7 +363,45 @@ const EmployeeMaster = () => {
       {/* --- Modal Form (Same as before) --- */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+                {/* Education Modal */}
+                {showEduModal && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 rounded-lg">
+                      <div className="bg-white p-5 rounded-lg shadow-2xl w-80 border animate-fadeIn">
+                           <div className="flex justify-between items-center mb-4 border-b pb-2">
+                              <h4 className="font-bold text-gray-800">Add Education</h4>
+                              <button type="button" onClick={() => setShowEduModal(false)}><X size={18} className="text-gray-500 hover:text-red-500"/></button>
+                          </div>
+                           <div className="space-y-3">
+                              <input 
+                                  className="w-full border p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Degree / Certificate Name *"
+                                  value={newEdu}
+                                  onChange={e => setNewEdu(formatInputText(e.target.value))}
+                              />
+                              <button 
+                                  type="button" 
+                                  onClick={() => {
+                                      if(!newEdu) return toast.error('Education Name required');
+                                      setIsEduLoading(true);
+                                      dispatch(createEducation({ name: newEdu })).then((res) => {
+                                          setIsEduLoading(false);
+                                           if(!res.error) {
+                                              setValue('education', newEdu);
+                                              setShowEduModal(false);
+                                              toast.success('Education Added!');
+                                              setNewEdu('');
+                                           }
+                                      });
+                                  }}
+                                  disabled={isEduLoading}
+                                  className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition flex justify-center items-center gap-2"
+                              >
+                                  {isEduLoading ? 'Saving...' : 'Save Education'}
+                              </button>
+                           </div>
+                      </div>
+                  </div>
+                )}
                 <div className="bg-primary text-white p-4 flex justify-between items-center sticky top-0 z-10">
                     <h2 className="text-lg font-bold flex items-center gap-2">
                         {editMode ? <><Edit size={20}/> Update Employee</> : <><User size={20}/> Add New Employee</>}
@@ -438,19 +482,27 @@ const EmployeeMaster = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-700">Education</label>
-                                <input 
-                                    {...register('education')} 
-                                    className="w-full border p-2 rounded text-sm mt-1"
-                                    onChange={(e) => setValue('education', formatInputText(e.target.value))}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700">Qualification</label>
-                                <input 
-                                    {...register('qualification')} 
-                                    className="w-full border p-2 rounded text-sm mt-1"
-                                    onChange={(e) => setValue('qualification', formatInputText(e.target.value))}
-                                />
+                                <div className="flex gap-2 mt-1">
+                                    <select
+                                      {...register("education")}
+                                      className="w-full border p-2 rounded text-sm"
+                                    >
+                                      <option value="">-- Select Education --</option>
+                                      {educations.map((opt, i) => (
+                                        <option key={opt._id || i} value={opt.name}>
+                                          {opt.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowEduModal(true)}
+                                      className="p-2 bg-blue-50 text-blue-600 rounded border hover:bg-blue-100 flex-shrink-0"
+                                      title="Add New Education"
+                                    >
+                                      <Plus size={20} />
+                                    </button>
+                                </div>
                             </div>
                             <div className="md:col-span-4 flex flex-col items-center justify-center p-4">
                                 <ProfileImageUploader
