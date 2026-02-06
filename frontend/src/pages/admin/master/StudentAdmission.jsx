@@ -1288,18 +1288,18 @@ const StudentAdmission = () => {
                       </div>
                     </div>
 
-                    {/* Only show Add to List button in Create Mode */}
-                    {!isUpdateMode && (
-                      <div className="col-span-2 flex justify-end items-end">
-                        <button
-                          type="button"
-                          onClick={handleAddCourseToList}
-                          className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black h-10 w-full justify-center"
-                        >
-                          <Plus size={16} /> Add to List
-                        </button>
-                      </div>
-                    )}
+
+                    {/* Add to List button - shown in both Create and Update Mode */}
+                    <div className="col-span-2 flex justify-end items-end">
+                      <button
+                        type="button"
+                        onClick={handleAddCourseToList}
+                        className="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-black h-10 w-full justify-center"
+                      >
+                        <Plus size={16} /> Add to List
+                      </button>
+                    </div>
+
                   </div>
                 </div>
               )}

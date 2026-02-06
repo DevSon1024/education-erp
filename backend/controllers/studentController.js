@@ -418,6 +418,39 @@ const updateStudent = asyncHandler(async (req, res) => {
     const student = await Student.findById(req.params.id);
 
     if (student) {
+        // Detect if course is being changed
+        const isCourseChanged = req.body.course && req.body.course.toString() !== student.course.toString();
+        
+        // If course is changed, calculate fee adjustment
+        if (isCourseChanged && req.body.totalFees !== undefined) {
+            console.log(`Course changed from ${student.course} to ${req.body.course}`);
+            
+            // Fetch all receipts for this student
+            const allReceipts = await FeeReceipt.find({ student: student._id });
+            
+            // Calculate total paid amount EXCLUDING admission fees
+            // Only count registration fees and installment payments
+            const totalPaidAmount = allReceipts.reduce((sum, receipt) => {
+                const remarks = (receipt.remarks || "").toLowerCase();
+                // Exclude admission fee receipts from calculation
+                if (remarks.includes("admission")) {
+                    return sum; // Don't add admission fees
+                }
+                return sum + receipt.amountPaid;
+            }, 0);
+            
+            console.log(`Total paid amount (excluding admission fees): ₹${totalPaidAmount}`);
+            console.log(`New course fees: ₹${req.body.totalFees}`);
+            
+            // Adjust pending fees: new course fees - total paid amount
+            const adjustedPendingFees = Math.max(0, req.body.totalFees - totalPaidAmount);
+            
+            console.log(`Adjusted pending fees: ₹${adjustedPendingFees}`);
+            
+            // Update pending fees
+            student.pendingFees = adjustedPendingFees;
+        }
+
         student.firstName = req.body.firstName || student.firstName;
         student.middleName = req.body.middleName || student.middleName;
         student.lastName = req.body.lastName || student.lastName;
