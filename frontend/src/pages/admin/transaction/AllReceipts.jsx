@@ -17,6 +17,7 @@ const AllReceipts = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { receipts, isLoading, isSuccess, message } = useSelector(state => state.transaction);
+    const { user } = useSelector(state => state.auth);
     
     // Filters State
     const [filters, setFilters] = useState({
@@ -189,6 +190,7 @@ const AllReceipts = () => {
                                 <th className="p-2 border font-semibold">Receipt Number</th>
                                 <th className="p-2 border font-semibold">Student Name</th>
                                 <th className="p-2 border font-semibold">Course Name</th>
+                                {user && user.role === 'Super Admin' && <th className="p-2 border font-semibold">Branch</th>}
                                 <th className="p-2 border font-semibold text-right">Amount (₹)</th>
                                 <th className="p-2 border font-semibold text-center">Receipt Type</th>
                                 <th className="p-2 border font-semibold text-center sticky right-0 bg-blue-600 z-10 w-32">Actions</th>
@@ -207,6 +209,11 @@ const AllReceipts = () => {
                                             {receipt.course?.name} 
                                             {receipt.course?.shortName && <span className="text-gray-500 ml-1">[{receipt.course.shortName}]</span>}
                                         </td>
+                                        {user && user.role === 'Super Admin' && (
+                                            <td className="p-2 border">
+                                                {receipt.branch?.name || receipt.student?.branchName || '-'}
+                                            </td>
+                                        )}
                                         <td className="p-2 border text-right font-medium">
                                             {receipt.amountPaid?.toLocaleString('en-IN')}
                                         </td>

@@ -244,7 +244,7 @@ const ReceiptPrintTemplate = React.forwardRef(({ receipt }, ref) => {
           color: '#0066cc'
       }}>
           <div>Website :: www.smartinstituteonline.com</div>
-          <div>Copyright © 2010 Smart Institute. All Rights reserved</div>
+          <div>Copyright © 2026 Smart Institute. All Rights reserved</div>
       </div>
 
     </div>

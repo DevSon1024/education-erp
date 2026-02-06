@@ -13,6 +13,10 @@ const feeReceiptSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
+    branch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Branch",
+    },
     amountPaid: { type: Number, required: true },
     // Standardized to 3 receipt types: Cash, Cheque, Online/UPI
     paymentMode: {

@@ -71,7 +71,7 @@ const FacilitiesPage = () => {
                 JOB FAIRS/CAMPUS PLACEMENTS
             </h2>
             <p className="text-gray-600 leading-relaxed text-lg">
-              The Institute conducts periodic job fairs/campus placements where companies gather to hire skilled students for their job requirements. Last year (2011), Smart Institute conducted 5 job fairs in which around 115 students participated.
+              The Institute conducts periodic job fairs/campus placements where companies gather to hire skilled students for their job requirements. Last year, Smart Institute conducted 5 job fairs in which around 115 students participated.
             </p>
           </motion.div>
           </Reveal>

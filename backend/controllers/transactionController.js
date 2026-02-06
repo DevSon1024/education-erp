@@ -2,6 +2,7 @@ const Inquiry = require("../models/Inquiry");
 const FeeReceipt = require("../models/FeeReceipt");
 const Student = require("../models/Student");
 const Batch = require("../models/Batch");
+const Counter = require("../models/Counter");
 const asyncHandler = require("express-async-handler");
 const generateEnrollmentNumber = require("../utils/enrollmentGenerator");
 const sendSMS = require("../utils/smsSender"); // Moved to top for global use
@@ -180,6 +181,15 @@ const getFeeReceipts = asyncHandler(async (req, res) => {
     query.date = { $gte: start, $lte: end };
   }
 
+  // --- BRANCH SCOPING ---
+  if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
+      query.branch = req.user.branchId;
+  }
+  // Allow Super Admin to filter by branch if provided in query
+  if (req.query.branchId) {
+      query.branch = req.query.branchId;
+  }
+
   if (receiptNo) query.receiptNo = { $regex: receiptNo, $options: "i" };
   if (paymentMode) query.paymentMode = paymentMode;
   if (studentId) query.student = studentId;
@@ -187,6 +197,7 @@ const getFeeReceipts = asyncHandler(async (req, res) => {
   const receipts = await FeeReceipt.find(query)
     .populate("student", "firstName lastName regNo enrollmentNo middleName mobileStudent mobileParent batch totalFees pendingFees branchName emiDetails")
     .populate("course", "name")
+    .populate("branch", "name shortCode") // Populate Branch for Super Admin visibility
     .sort({ createdAt: -1 });
 
   res.json(receipts);
@@ -200,9 +211,8 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
   } = req.body;
 
   // 1. Parallel Data Fetching
-  const [student, lastReceipt, existingReceipts] = await Promise.all([
+  const [student, existingReceipts] = await Promise.all([
     Student.findById(studentId),
-    FeeReceipt.findOne().sort({ createdAt: -1 }).lean(),
     FeeReceipt.find({ student: studentId }).sort({ createdAt: 1 }).lean()
   ]);
 
@@ -211,12 +221,26 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     throw new Error("Student not found");
   }
 
-  // 2. Generate Receipt No
-  let nextNum = 1;
-  if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
-    nextNum = Number(lastReceipt.receiptNo) + 1;
+  // 2. Generate Global Receipt No using Atomic Counter
+  let counter = await Counter.findById("receiptNo");
+  if (!counter) {
+    // Lazy Initialization: Find max existing receipt number
+    const lastReceipt = await FeeReceipt.findOne().sort({ receiptNo: -1 }).collation({ locale: "en_US", numericOrdering: true });
+    let maxSeq = 0;
+    if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
+        maxSeq = Number(lastReceipt.receiptNo);
+    }
+    counter = await Counter.create({ _id: "receiptNo", seq: maxSeq }); // Initialize with max existing
   }
-  const receiptNo = String(nextNum);
+
+  const updatedCounter = await Counter.findByIdAndUpdate(
+      "receiptNo",
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true } // Upsert just in case, though create above handles it
+  );
+  
+  const receiptNo = String(updatedCounter.seq);
+
 
   // 2.5. Calculate Installment Number
   let installmentNumber = 1;
@@ -229,11 +253,21 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     installmentNumber = 3; 
   }
 
+  // Determine Branch for Receipt
+  // If Super Admin, use Student's Branch. If Branch User, use their Branch.
+  let branchId = null;
+  if (req.user.role === 'Super Admin') {
+      branchId = student.branchId;
+  } else if (req.user.branchId) {
+      branchId = req.user.branchId;
+  }
+
   // 3. Create Receipt
   const receipt = await FeeReceipt.create({
     receiptNo,
     student: studentId,
     course: courseId,
+    branch: branchId, // Assign Branch
     amountPaid,
     paymentMode,
     remarks,
@@ -539,11 +573,20 @@ const generateReceiptReport = asyncHandler(async (req, res) => {
 
 // @desc    Get Next Receipt Number
 const getNextReceiptNo = asyncHandler(async (req, res) => {
-    const lastReceipt = await FeeReceipt.findOne().sort({ createdAt: -1 });
+    // Use Counter for Next Number prediction
     let nextNum = 1;
-    if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
-        nextNum = Number(lastReceipt.receiptNo) + 1;
+    const counter = await Counter.findById("receiptNo");
+    
+    if (counter) {
+        nextNum = counter.seq + 1;
+    } else {
+        // Fallback or Init Logic just for display
+        const lastReceipt = await FeeReceipt.findOne().sort({ receiptNo: -1 }).collation({ locale: "en_US", numericOrdering: true });
+        if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
+            nextNum = Number(lastReceipt.receiptNo) + 1;
+        }
     }
+    
     res.json(String(nextNum));
 });
 

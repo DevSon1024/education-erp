@@ -134,7 +134,7 @@ const LedgerReport = () => {
                                 <input 
                                     type="text" 
                                     className="w-full border rounded-md p-2.5 focus:ring-2 focus:ring-primary outline-none"
-                                    placeholder="Enter Reg No (e.g. 2026-1001)"
+                                    placeholder="Enter Reg No (e.g. 1-BHE)"
                                     value={regNoInput}
                                     onChange={(e) => setRegNoInput(e.target.value)}
                                 />
