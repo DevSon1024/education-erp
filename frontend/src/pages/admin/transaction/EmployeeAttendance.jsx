@@ -80,7 +80,7 @@ const EmployeeAttendance = () => {
                    employeeId: e._id,
                    name: e.name,
                    srNumber: e.srNumber,
-                   isPresent: false,
+                   isPresent: true,
                    remark: ''
                 }));
                 // Preserve state if we just switched dates and previous grid had data? No, new date = new attendance.
@@ -329,7 +329,7 @@ const EmployeeAttendance = () => {
                                                      {row.isPresent ? <CheckSquare size={24} /> : <Square size={24} />}
                                                 </button>
                                             </td>
-                                            <td className="px-6 py-3 text-sm text-gray-600 font-mono">{row.srNumber || '-'}</td>
+                                            <td className="px-6 py-3 text-sm text-gray-600 font-mono">{idx + 1}</td>
                                             <td className="px-6 py-3 text-sm font-medium text-gray-800">{row.name}</td>
                                             <td className="px-6 py-3">
                                                 <input type="text"

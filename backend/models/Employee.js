@@ -10,7 +10,7 @@ const employeeSchema = new mongoose.Schema({
         enum: ['Manager', 'Faculty', 'Marketing Person', 'Branch Director', 'Receptionist', 'Other'],
         required: true
     },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true },
     duration: { type: String }, 
     dob: { type: Date },
     dateOfJoining: { type: Date },

@@ -207,11 +207,17 @@ exports.deleteStudentAttendance = async (req, res) => {
 
 exports.getEmployeesForAttendance = async (req, res) => {
     try {
-        // Fetch all active employees
-        const employees = await Employee.find({ 
+        // Fetch active employees with branch filtering
+        const query = { 
             isActive: true, 
             isDeleted: false 
-        });
+        };
+
+        if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
+            query.branchId = req.user.branchId;
+        }
+
+        const employees = await Employee.find(query);
 
         // Map
         const mapped = employees.map(e => ({
@@ -238,7 +244,8 @@ exports.checkEmployeeAttendanceStatus = async (req, res) => {
         endOfDay.setHours(23,59,59,999);
 
         const record = await EmployeeAttendance.findOne({
-            date: { $gte: startOfDay, $lte: endOfDay }
+            date: { $gte: startOfDay, $lte: endOfDay },
+            branchId: req.user.branchId || null // Check specifically for this branch
         }).populate('takenBy', 'name')
           .populate('records.employeeId', 'name');
 
@@ -263,8 +270,11 @@ exports.saveEmployeeAttendance = async (req, res) => {
         const endOfDay = new Date(attendanceDate);
         endOfDay.setHours(23,59,59,999);
 
+        const branchId = req.user.branchId || null; // Use current user's branch
+        
         let attendance = await EmployeeAttendance.findOne({
-            date: { $gte: startOfDay, $lte: endOfDay }
+            date: { $gte: startOfDay, $lte: endOfDay },
+            branchId: branchId // Find specific branch record
         });
 
         if (attendance) {
@@ -278,7 +288,8 @@ exports.saveEmployeeAttendance = async (req, res) => {
                 date: attendanceDate,
                 takenBy,
                 remarks,
-                records
+                records,
+                branchId: branchId // Save with branchId
             });
             await attendance.save();
             return res.status(201).json({ message: "Employee attendance saved", attendance });
@@ -298,6 +309,11 @@ exports.getEmployeeAttendanceHistory = async (req, res) => {
             query.date = { $gte: new Date(fromDate), $lte: new Date(toDate) };
         }
         
+        // Filter by branch for non-super admins
+        if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
+            query.branchId = req.user.branchId;
+        }
+
         const records = await EmployeeAttendance.find(query)
             .populate('takenBy', 'name')
             .populate('records.employeeId', 'name')

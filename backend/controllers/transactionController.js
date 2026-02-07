@@ -519,7 +519,16 @@ const getStudentPaymentSummary = asyncHandler(async (req, res) => {
 
       // Add one installment (Upcoming EMI) if there is any remaining total balance
       let upcomingEMI = 0;
-      if ((student.pendingFees || 0) > 0) {
+      
+      const startDate = student.batchStartDate || student.admissionDate || student.createdAt;
+      const start = new Date(startDate);
+      const now = new Date();
+      
+      // EMI starts from the month AFTER the batch start / admission date
+      // Calculate the end of the starting month
+      const startMonthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      if ((student.pendingFees || 0) > 0 && now > startMonthEnd) {
            upcomingEMI = monthlyInstallment;
            // Cap EMI at total pending balance to avoid asking for more than due
            if (upcomingEMI > student.pendingFees) {

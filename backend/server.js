@@ -15,16 +15,32 @@ const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const logger = require("./config/logger");
 
+app.set('trust proxy', 1);
 // Security Middleware
 app.use(helmet());
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://smartinstituteonline.com",
+  "https://www.smartinstituteonline.com",
+  "https://smar.smartinstituteonline.com" // Allow itself
+];
 // CORS Middleware (Must be before Rate Limiter for 429s to work in browser)
-app.use(
-  cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:5173", "https://smartinstituteonline.com"].filter(Boolean),
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  credentials: true
+}));
 
 // Rate Limiting
 const limiter = rateLimit({

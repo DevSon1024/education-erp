@@ -42,6 +42,15 @@ const getEmployees = asyncHandler(async (req, res) => {
         }
     }
 
+    // 4. Branch Restriction for Non-Super Admins
+    if (req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
+        query.branchId = req.user.branchId;
+    }
+    // Allow manual filter if Super Admin wants to see specific branch
+    if (req.user && req.user.role === 'Super Admin' && req.query.branchId) {
+        query.branchId = req.query.branchId;
+    }
+
     const employees = await Employee.find(query).populate('branchId', 'name shortCode').populate('userAccount', 'username').sort({ createdAt: -1 });
     res.json(employees);
 });

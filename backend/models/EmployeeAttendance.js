@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const employeeAttendanceSchema = new mongoose.Schema({
-    date: { type: Date, required: true, unique: true }, // One record per day for all employees
+    date: { type: Date, required: true }, // Not unique globally anymore
+    branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' }, // Optional for backward compat, but key now
     takenBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     remarks: { type: String }, // General remarks for the day
     records: [{

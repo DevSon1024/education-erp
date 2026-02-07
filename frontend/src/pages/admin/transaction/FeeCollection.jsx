@@ -257,7 +257,7 @@ const FeeCollection = () => {
                                     error={error?.message}
                                     onSelect={handleStudentSelect}
                                     placeholder="Search student..."
-                                    additionalFilters={{ hasPendingFees: 'true' }}
+                                    additionalFilters={{ isRegistered: 'true' }}
                                 />
                             )}
                         />

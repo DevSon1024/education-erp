@@ -454,7 +454,9 @@ const StudentAdmission = () => {
 
     const primaryCourse = previewCourses[0];
 
-    const isPaying = payAdmissionFee || (data.amountPaid && Number(data.amountPaid) > 0);
+    // Ensure we only pay if the User explicitly selected "Yes" (payAdmissionFee === true)
+    // Removed fallback to data.amountPaid to prevent bug where stale Step 3 data triggers payment after going back and selecting "No".
+    const isPaying = payAdmissionFee === true;
       
     const payload = {
       ...data,

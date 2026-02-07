@@ -117,7 +117,7 @@ const StudentAttendance = () => {
                    courseName: s.courseName,
                    contactStudent: s.contactStudent,
                    contactParent: s.contactParent,
-                   isPresent: false,
+                   isPresent: true,
                    remark: ''
                 }));
                 setAttendanceGrid(initGrid);

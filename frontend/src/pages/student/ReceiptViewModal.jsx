@@ -72,7 +72,7 @@ const ReceiptViewModal = ({ isOpen, onClose, receipt }) => {
                                 {/* Branch Details */}
                                 <div className="text-right text-gray-600 text-xs leading-relaxed">
                                     <h3 className="text-lg font-bold text-blue-800 mb-1">
-                                        {receipt.student?.branchId?.name || receipt.student?.branchName || 'Main Branch'}
+                                        {receipt.student?.branchId?.name || receipt.student?.branchName + 'Branch' || 'Main Branch'}
                                     </h3>
                                     <p>{receipt.student?.branchId?.address || 'Address Line 1'}</p>
                                     <p>{receipt.student?.branchId?.city}, {receipt.student?.branchId?.state} - {receipt.student?.branchId?.pincode}</p>

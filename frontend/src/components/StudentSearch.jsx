@@ -67,7 +67,7 @@ const StudentSearch = ({
             setSelectedStudent(data);
             
             // Name only as requested
-            const labelText = `${data.firstName} ${data.lastName}`;
+            const labelText = `${data.firstName} ${data.middleName || ''} ${data.lastName}`.trim().replace(/\s+/g, ' ');
             setQuery(labelText);
             setInitialLoadDone(true);
         } catch (error) {
@@ -139,7 +139,7 @@ const StudentSearch = ({
         setSelectedStudent(item);
         
         // Name only selection
-        const labelText = `${item.firstName} ${item.lastName}`;
+        const labelText = `${item.firstName} ${item.middleName || ''} ${item.lastName}`.trim().replace(/\s+/g, ' ');
         
         setQuery(labelText);
         setIsOpen(false);
@@ -236,7 +236,7 @@ const StudentSearch = ({
                                 >
                                     <div>
                                         <p className="font-medium text-gray-800 text-sm">
-                                            {item.firstName} {item.lastName}
+                                            {item.firstName} {item.middleName} {item.lastName}
                                         </p>
                                     </div>
                                     {selectedStudent && selectedStudent._id === item._id && (

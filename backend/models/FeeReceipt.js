@@ -41,7 +41,7 @@ const feeReceiptSchema = new mongoose.Schema(
 
 // Indexes
 feeReceiptSchema.index({ student: 1 });
-feeReceiptSchema.index({ receiptNo: 1 });
+// feeReceiptSchema.index({ receiptNo: 1 });
 feeReceiptSchema.index({ date: -1 });
 feeReceiptSchema.index({ createdAt: -1 }); // Optimized for sorting last Created
 
