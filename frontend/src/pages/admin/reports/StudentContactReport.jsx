@@ -113,14 +113,19 @@ const StudentContactReport = () => {
                     className="bg-white shadow-lg mx-auto p-8 min-h-[297mm] print:shadow-none print:mx-0 print:p-0 print:w-full"
                 >
                      {/* Header */}
-                     <div className="flex justify-between items-start mb-4 border-b-2 border-primary pb-2">
-                        <div className="w-1/4">
-                            <img src={logo} alt="Logo" className="h-20 object-contain" />
+                     <div className="flex justify-between items-start mb-6 border-b-2 border-primary pb-4">
+                        <div className="flex items-center gap-4">
+                            <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
                         </div>
-                        <div className="w-3/4 text-right space-y-1">
-                            <h2 className="text-xl font-bold text-blue-700 uppercase">{headerBranch.name}</h2>
-                            <p className="text-xs font-medium text-gray-600 whitespace-pre-line">{headerBranch.address}</p>
-                            <p className="text-xs font-bold">Ph: {headerBranch.phone} | Mo: {headerBranch.mobile}</p>
+                        <div className="text-right text-xs space-y-1">
+                            <h2 className="text-xl font-bold text-blue-600 mb-1">{headerBranch.name || 'Bhestan Branch'}</h2>
+                            <div className="text-gray-600 max-w-xs ml-auto">
+                                {headerBranch.address}
+                            </div>
+                            <p className="font-semibold text-blue-800">
+                                 Ph. No. : {headerBranch.phone}, Mob. No. : {headerBranch.mobile}
+                            </p>
+                            <p className="text-blue-500 underline">{headerBranch.email}</p>
                         </div>
                     </div>
 

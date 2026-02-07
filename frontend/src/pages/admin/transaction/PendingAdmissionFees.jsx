@@ -156,9 +156,9 @@ const PendingAdmissionFees = () => {
             <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
               <th className="p-2 border font-semibold">Enrl No.</th>
               <th className="p-2 border font-semibold">Admission Date</th>
-              <th className="p-2 border font-semibold">Student</th>
-              <th className="p-2 border font-semibold">Father/Husband</th>
-              <th className="p-2 border font-semibold">Last Name</th>
+              <th className="p-2 border font-semibold">Student Name</th>
+              {/* <th className="p-2 border font-semibold">Father/Husband</th>
+              <th className="p-2 border font-semibold">Last Name</th> */}
               {isSuperAdmin && <th className="p-2 border font-semibold">Branch Name</th>}
               <th className="p-2 border font-semibold">Contact(Home)</th>
               <th className="p-2 border font-semibold">Contact(Student)</th>
@@ -173,9 +173,9 @@ const PendingAdmissionFees = () => {
               <tr key={s._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
                 <td className="p-2 border font-bold text-gray-700">{s.enrollmentNo || '-'}</td>
                 <td className="p-2 border whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
-                <td className="p-2 border font-medium text-gray-900">{s.firstName}</td>
-                <td className="p-2 border">{s.middleName || '-'}</td>
-                <td className="p-2 border">{s.lastName}</td>
+                <td className="p-2 border font-medium text-gray-900">{s.firstName} {s.middleName} {s.lastName}</td>
+                {/* <td className="p-2 border">{s.middleName || '-'}</td>
+                <td className="p-2 border">{s.lastName}</td> */}
                 
                 {isSuperAdmin && <td className="p-2 border text-gray-600">{s.branchName + ' Branch' || 'Main Branch'}</td>}
 

@@ -251,7 +251,7 @@ const StudentWiseOutstanding = () => {
                                     <td className="border border-gray-300 px-2 py-1.5 text-left font-medium uppercase">
                                         {s.firstName} {s.middleName} {s.lastName}
                                     </td>
-                                    <td className="border border-gray-300 px-2 py-1.5">{s.course?.name || '-'}</td>
+                                    <td className="border border-gray-300 px-2 py-1.5">{s.course?.shortName || s.course?.name || '-'}</td>
                                     <td className="border border-gray-300 px-2 py-1.5 text-center">{s.mobileParent || '-'}</td>
                                     
                                     {/* Outstanding Amount (same logic as FeeCollection - reg + upcoming EMI or reg only) */}
@@ -266,7 +266,7 @@ const StudentWiseOutstanding = () => {
                                     <td className="border border-gray-300 px-2 py-1.5 text-gray-500">
                                          -
                                     </td>
-                                    <td className="border border-gray-300 px-2 py-1.5 text-right text-green-600">
+                                    <td className="border border-gray-300 px-2 py-1.5 text-green-600">
                                          -
                                     </td>
                                     {/* Due Amount (total balance - same as FeeCollection) */}

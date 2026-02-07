@@ -202,7 +202,6 @@ exports.deleteStudentAttendance = async (req, res) => {
     }
 };
 
-
 // --- EMPLOYEE ATTENDANCE SECTION ---
 
 exports.getEmployeesForAttendance = async (req, res) => {

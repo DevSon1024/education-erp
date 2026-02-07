@@ -297,6 +297,7 @@ const EmployeeMaster = () => {
         <table className="w-full border-collapse min-w-[1200px]">
             <thead>
                 <tr className="bg-blue-600 text-white text-left text-xs uppercase tracking-wider">
+                    <th className="p-2 border font-semibold w-12 text-center">S.No</th>
                     <th className="p-2 border font-semibold">Employee Name</th>
                     <th className="p-2 border font-semibold">Mobile</th>
                     <th className="p-2 border font-semibold">Email</th>
@@ -309,8 +310,9 @@ const EmployeeMaster = () => {
                 </tr>
             </thead>
             <tbody>
-                {employees.length > 0 ? employees.map((emp) => (
+                {employees.length > 0 ? employees.map((emp, index) => (
                     <tr key={emp._id} className="hover:bg-blue-50 text-xs border-b border-gray-100 transition-colors">
+                        <td className="p-2 border text-center font-medium text-gray-700">{index + 1}</td>
                         <td className="p-2 border font-medium text-gray-900">
                             {emp.name}
                         </td>

@@ -261,8 +261,8 @@ const StudentList = () => {
               <th className="p-2 border font-semibold">Admission Date</th>
               <th className="p-2 border font-semibold">Reg. Date</th>
               <th className="p-2 border font-semibold">Student Name</th>
-              <th className="p-2 border font-semibold">Father/Husband</th>
-              <th className="p-2 border font-semibold">Last Name</th>
+              {/* <th className="p-2 border font-semibold">Father/Husband</th> */}
+              {/* <th className="p-2 border font-semibold">Last Name</th> */}
               <th className="p-2 border font-semibold">Mobile</th>
               <th className="p-2 border font-semibold">Course</th>
               <th className="p-2 border font-semibold">Duration</th>
@@ -280,9 +280,9 @@ const StudentList = () => {
                 <td className="p-2 border whitespace-nowrap">{moment(s.admissionDate).format('DD/MM/YYYY')}</td>
                 <td className="p-2 border whitespace-nowrap">{s.registrationDate ? moment(s.registrationDate).format('DD/MM/YYYY') : '-'}</td>
 
-                <td className="p-2 border font-medium text-gray-900">{s.firstName}</td>
-                <td className="p-2 border">{s.middleName || '-'}</td>
-                <td className="p-2 border">{s.lastName}</td>
+                <td className="p-2 border font-medium text-gray-900">{s.firstName} {s.middleName} {s.lastName}</td>
+                {/* <td className="p-2 border">{s.middleName || '-'}</td>
+                <td className="p-2 border">{s.lastName}</td> */}
 
                 <td className="p-2 border text-gray-600">{s.mobileStudent}</td>
 

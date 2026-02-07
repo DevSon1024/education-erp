@@ -98,7 +98,7 @@ const StudentAttendance = () => {
                     const mapped = attendanceStatus.record.records.map(r => ({
                         studentId: r.studentId._id || r.studentId, 
                         enrollmentNo: r.enrollmentNo,
-                        name: r.studentName || (r.studentId?.firstName ? `${r.studentId.firstName} ${r.studentId.lastName}` : 'Unknown'),
+                        name: r.studentName || (r.studentId?.firstName ? `${r.studentId.firstName} ${r.studentId.middleName ? r.studentId.middleName + ' ' : ''}${r.studentId.lastName}` : 'Unknown'),
                         courseName: r.courseName,
                         contactStudent: r.contactStudent,
                         contactParent: r.contactParent,
@@ -113,7 +113,7 @@ const StudentAttendance = () => {
                 const initGrid = currentAttendanceStudents.map(s => ({
                    studentId: s._id,
                    enrollmentNo: s.enrollmentNo,
-                   name: s.name,
+                   name: `${s.firstName} ${s.middleName ? s.middleName + ' ' : ''}${s.lastName}`,
                    courseName: s.courseName,
                    contactStudent: s.contactStudent,
                    contactParent: s.contactParent,
@@ -163,7 +163,7 @@ const StudentAttendance = () => {
             const mapped = record.records.map(r => ({
                 studentId: r.studentId._id || r.studentId, 
                 enrollmentNo: r.enrollmentNo,
-                name: r.studentName || (r.studentId?.firstName ? `${r.studentId.firstName} ${r.studentId.lastName}` : 'Unknown'),
+                name: r.studentName || (r.studentId?.firstName ? `${r.studentId.firstName} ${r.studentId.middleName ? r.studentId.middleName + ' ' : ''}${r.studentId.lastName}` : 'Unknown'),
                 courseName: r.courseName,
                 contactStudent: r.contactStudent,
                 contactParent: r.contactParent,
@@ -527,7 +527,7 @@ const StudentAttendance = () => {
                                          <tr key={idx} className={rec.isPresent ? 'bg-green-50' : 'bg-red-50'}>
                                             <td className="px-4 py-2 text-sm text-gray-700 font-mono">{rec.enrollmentNo || '-'}</td>
                                             <td className="px-4 py-2 text-sm text-gray-800">
-                                                {rec.studentName || (rec.studentId?.firstName ? `${rec.studentId.firstName} ${rec.studentId.lastName}` : 'Unknown')}
+                                                {rec.studentName || (rec.studentId?.firstName ? `${rec.studentId.firstName} ${rec.studentId.middleName ? rec.studentId.middleName + ' ' : ''}${rec.studentId.lastName}` : 'Unknown')}
                                             </td>
                                             <td className="px-4 py-2 text-sm font-bold">
                                                 {rec.isPresent ? <span className="text-green-600">Present</span> : <span className="text-red-500">Absent</span>}

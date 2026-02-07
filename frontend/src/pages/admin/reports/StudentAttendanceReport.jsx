@@ -167,33 +167,23 @@ const StudentAttendanceReport = () => {
         if (filters.batch) {
              const selectedBatch = batches.find(b => b.name === filters.batch);
              if (selectedBatch?.branchId) {
+                 // Check if branchId is populated or is just ID
                  branchData = typeof selectedBatch.branchId === 'object' ? selectedBatch.branchId : branches.find(b => b._id === selectedBatch.branchId);
              }
         }
 
         // 2. If no batch selected (or batch has no branch), try to infer from the students being displayed
         if (!branchData && reportData.length > 0) {
-            // Check the first student's branch
             const firstStudent = reportData[0];
-            // Student object from StudentList slice usually has 'branchName' or 'branchId'
-            if (firstStudent.branchName) {
-                // If we have just the name, we might need to find the full object in 'branches' to get address/phone
-                // OR we just use the name and default the rest if we can't find it.
-                const foundBranch = branches.find(b => b.name === firstStudent.branchName); 
-                if (foundBranch) {
-                    branchData = foundBranch;
-                } else {
-                    // Falls back to using just the name
-                     branchData = { name: firstStudent.branchName };
-                }
-            } else if (firstStudent.branchId) {
+            if (firstStudent.branchId) {
                  branchData = typeof firstStudent.branchId === 'object' ? firstStudent.branchId : branches.find(b => b._id === firstStudent.branchId);
+            } else if (firstStudent.branchName) {
+                // If only name available, try to find in branches list, otherwise use just the name
+                branchData = branches.find(b => b.name === firstStudent.branchName) || { name: firstStudent.branchName }; 
             }
         }
 
-        // 3. If still nothing and User is not Super Admin, maybe use User's assigned branch? (Optional, if available in auth state)
-        // (Skipping for now to avoid over-engineering without seeing auth slice)
-
+        // 3. Fallback to Main Branch if still not found
         if (branchData) {
             return {
                 name: branchData.name,
@@ -290,39 +280,34 @@ const StudentAttendanceReport = () => {
                     className="bg-white shadow-lg mx-auto print:shadow-none print:mx-0 print:w-full"
                     style={{ minHeight: '297mm' }} 
                 >
-                     {/* Header Flex Container */}
-                     <div className="flex border border-gray-800 mb-2 items-stretch text-black p-2 print:p-0">
-                         {/* Logo */}
-                        <div className="w-[15%] p-1 flex items-center justify-center border-r border-gray-800">
-                             <img src={logo} alt="Institute Logo" className="h-16 md:h-24 print:h-16 object-contain" />
+                     {/* Header (Standardized) */}
+                     <div className="flex justify-between items-start mb-2 border-b-2 border-primary pb-2">
+                        <div className="flex items-center gap-4">
+                            <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
                         </div>
-                        
-                        {/* Branch Info */}
-                        <div className="w-[60%] p-2 flex flex-col justify-center border-r border-gray-800 pl-4">
-                             <h2 className="text-lg md:text-m print:text-base font-bold uppercase leading-tight">Branch Name: {branchInfo.name}</h2>
-                             <p className="text-xs md:text-sm print:text-[10px] font-medium leading-tight">{branchInfo.address}</p>
-                             <p className="text-xs md:text-sm print:text-[10px] font-bold mt-0.5">Ph: {branchInfo.phone} | Mo: {branchInfo.mobile}</p>
-                        </div>
-                        
-                        {/* Month & Legend Box */}
-                        <div className="w-[25%] flex">
-                            {/* Month Box */}
-                            <div className="w-[60%] border-r border-gray-800 flex flex-col items-center justify-center p-1 bg-gray-50">
-                                <span className="text-xs md:text-sm print:text-[10px] font-bold">Month Of</span>
-                                <span className="text-base md:text-lg print:text-sm font-bold leading-tight">{monthLabel}</span>
+                        <div className="text-right text-xs space-y-1">
+                            <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name || 'Bhestan Branch'}</h2>
+                            <div className="text-gray-600 max-w-xs ml-auto">
+                                {branchInfo.address}
                             </div>
-                            {/* Legend Box */}
-                            <div className="w-[40%] flex flex-col justify-center p-1 text-[10px] md:text-xs print:text-[9px] font-bold leading-3">
-                                <div>P - PRESENT`</div>
-                                <div>A - ABSENT</div>
-                                <div>S - SUNDAYS</div>
-                            </div>
+                            <p className="font-semibold text-blue-800">
+                                 Ph. No. : {branchInfo.phone}, Mob. No. : {branchInfo.mobile}
+                            </p>
+                            <p className="text-blue-500 underline">{branchInfo.email}</p>
                         </div>
-                     </div>
+                    </div>
 
-                    {/* Report Title */}
-                    <div className="text-center mb-2">
-                        <h3 className="text-red-600 font-bold text-base md:text-lg print:text-sm uppercase tracking-wider">Daily Attendance Report of Student</h3>
+                    {/* Report Title, Month & Legend */}
+                    <div className="text-center mb-4">
+                        <h3 className="text-xl font-bold text-red-600 uppercase tracking-wide">Daily Attendance Report of Student</h3>
+                        <div className="flex justify-center items-center gap-6 mt-2">
+                            <span className="text-sm font-bold text-gray-800 border p-1 rounded bg-gray-50">Month: {monthLabel}</span>
+                            <div className="flex gap-3 text-[10px] font-bold text-gray-600 border p-1 rounded bg-gray-50">
+                                <span className="text-green-700">P - PRESENT</span>
+                                <span className="text-red-600">A - ABSENT</span>
+                                <span className="text-red-800">S - SUNDAYS</span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Table */}
@@ -344,7 +329,7 @@ const StudentAttendanceReport = () => {
                                     <th className="border border-gray-800 bg-cyan-300 p-1 print:p-0 w-auto print:w-5" rowSpan="2" title="Total Absent">A</th>
                                     <th className="border border-gray-800 bg-cyan-300 p-1 print:p-0 w-auto print:w-5" rowSpan="2" title="Working Days">WD</th>
                                     <th className="border border-gray-800 bg-cyan-300 p-1 print:p-0 w-auto print:w-5" rowSpan="2" title="Sundays">SUN</th>
-                                    <th className="border border-gray-800 bg-cyan-300 p-1 print:p-0 w-auto print:w-5" rowSpan="2" title="Festival">FES</th>
+                                    <th className="border border-gray-800 bg-cyan-300 p-1 print:p-0 w-auto print:w-5" rowSpan="2" title="Festival">FEST</th>
                                     <th className="border border-gray-800 bg-cyan-300 p-1 print:p-0 w-auto print:w-8" rowSpan="2" title="Rank %">%</th>
                                 </tr>
                                 <tr className="text-center text-black">
@@ -363,7 +348,7 @@ const StudentAttendanceReport = () => {
                                              {std.regNo || '-'}
                                          </td>
                                          <td className="border border-gray-300 text-left px-2 print:px-1 font-bold text-xs md:text-sm print:text-[8px] whitespace-normal leading-tight w-auto print:max-w-[80px] overflow-hidden">
-                                            {std.firstName} {std.lastName}
+                                            {std.firstName} {std.middleName ? std.middleName + ' ' : ''}{std.lastName}
                                          </td>
                                          {daysInMonth.map(day => {
                                              const status = std.daysData[day.date];

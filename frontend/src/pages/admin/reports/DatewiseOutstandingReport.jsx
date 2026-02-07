@@ -147,8 +147,8 @@ const DatewiseOutstandingReport = () => {
                         <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
                     </div>
                     <div className="text-right text-xs space-y-1">
-                        <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name}</h2>
-                        <div className="text-gray-600 max-w-xs ml-auto whitespace-pre-line">
+                        <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name || 'Bhestan Branch'}</h2>
+                        <div className="text-gray-600 max-w-xs ml-auto">
                             {branchInfo.address}
                         </div>
                         <p className="font-semibold text-blue-800">
@@ -198,10 +198,10 @@ const DatewiseOutstandingReport = () => {
                                     {std.admissionDate ? moment(std.admissionDate).format('DD-MM-YYYY') : '-'}
                                 </td>
                                 <td className="p-2 border font-medium text-gray-900 capitalize">
-                                    {std.firstName} {std.lastName}
+                                    {std.firstName} {std.middleName ? std.middleName + ' ' : ''}{std.lastName}
                                 </td>
                                 <td className="p-2 border text-gray-700">
-                                    {std.course?.name || '-'}
+                                    {std.course?.shortName || std.course?.name || '-'}
                                 </td>
                                 
                                 <td className="p-2 border">

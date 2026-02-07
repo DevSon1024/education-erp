@@ -179,8 +179,8 @@ const LedgerReport = () => {
                                 <img src={logo} alt="Institute Logo" className="h-20 object-contain" />
                             </div>
                             <div className="text-right text-xs space-y-1">
-                                <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name}</h2>
-                                <div className="text-gray-600 max-w-xs ml-auto whitespace-pre-line">
+                                <h2 className="text-xl font-bold text-blue-600 mb-1">{branchInfo.name || 'Bhestan Branch'}</h2>
+                                <div className="text-gray-600 max-w-xs ml-auto">
                                     {branchInfo.address}
                                 </div>
                                 <p className="font-semibold text-blue-800">
@@ -201,7 +201,7 @@ const LedgerReport = () => {
                                 {/* Left Column */}
                                 <div className="space-y-0">
                                     <div className="grid grid-cols-3 py-1.5 border-b border-gray-100"><span className="font-bold text-gray-700">Reg.No. :</span> <span className="col-span-2 text-gray-800">{ledgerData.student.regNo}</span></div>
-                                    <div className="grid grid-cols-3 py-1.5 border-b border-gray-100"><span className="font-bold text-gray-700">Student Name :</span> <span className="col-span-2 font-bold text-gray-800 uppercase">{ledgerData.student.firstName} {ledgerData.student.lastName}</span></div>
+                                    <div className="grid grid-cols-3 py-1.5 border-b border-gray-100"><span className="font-bold text-gray-700">Student Name :</span> <span className="col-span-2 font-bold text-gray-800 uppercase">{ledgerData.student.firstName} {ledgerData.student.middleName ? ledgerData.student.middleName + ' ' : ''}{ledgerData.student.lastName}</span></div>
                                     <div className="grid grid-cols-3 py-1.5 border-b border-gray-100"><span className="font-bold text-gray-700">Date-of-Birth :</span> <span className="col-span-2 text-gray-800">{moment(ledgerData.student.dob).format('DD-MM-YYYY')}</span></div>
                                     <div className="grid grid-cols-3 py-1.5 border-b border-gray-100"><span className="font-bold text-gray-700">Reference :</span> <span className="col-span-2 text-gray-800">{ledgerData.student.reference}</span></div>
                                     <div className="grid grid-cols-3 py-1.5 border-b border-gray-100"><span className="font-bold text-gray-700">Address :</span> <span className="col-span-2 text-gray-800 uppercase">{ledgerData.student.address}, {ledgerData.student.city}</span></div>

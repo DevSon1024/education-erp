@@ -166,7 +166,7 @@ const InquiryDSR = () => {
       { header: 'Sr', render: (_, i) => i + 1 },
       ...(user?.role === 'Super Admin' ? [{ header: 'Branch', render: r => r.branchId?.name || '-' }] : []),
       { header: 'Date', render: r => new Date(r.inquiryDate).toLocaleDateString('en-GB') }, // dd/mm/yyyy format
-      { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.lastName || ''}</span> },
+      { header: 'Student Name', render: r => <span className="font-bold text-gray-700">{r.firstName} {r.middleName ? r.middleName + ' ' : ''}{r.lastName || ''}</span> },
       { header: 'Contact (Home)', render: r => r.contactHome || '-' },
       { header: 'Contact (Student)', render: r => r.contactStudent || '-' },
       { header: 'Contact (Parent)', render: r => r.contactParent || '-' },
