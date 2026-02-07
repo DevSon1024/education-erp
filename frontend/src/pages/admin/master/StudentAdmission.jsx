@@ -74,7 +74,8 @@ const StudentAdmission = () => {
   const [foundInquiry, setFoundInquiry] = useState(null);
   const [duplicateStudent, setDuplicateStudent] = useState(null);
   const [payAdmissionFee, setPayAdmissionFee] = useState(null); 
-  const [isNewReference, setIsNewReference] = useState(false); 
+  const [isNewReference, setIsNewReference] = useState(false);
+  const [inquiryIdFromAdmission, setInquiryIdFromAdmission] = useState(null); 
 
   // Modal & New Entry States
   const [showRefModal, setShowRefModal] = useState(false);
@@ -173,6 +174,7 @@ const StudentAdmission = () => {
           setValue("branchId", inquiry.branchId._id || inquiry.branchId);
       }
 
+      if (inquiry._id) setInquiryIdFromAdmission(inquiry._id);
       toast.success("Student data pre-filled from inquiry!");
       
       // Clear the location state to prevent re-filling on re-render
@@ -471,6 +473,7 @@ const StudentAdmission = () => {
       isMarksheetCertificate: data.isMarksheetCertificate || false,
       isAddressProof: data.isAddressProof || false,
       isActive: data.isActive !== undefined ? data.isActive : true,
+      ...(inquiryIdFromAdmission && !isUpdateMode && { inquiryId: inquiryIdFromAdmission }),
       feeDetails: isPaying
         ? {
             amount: Number(data.amountPaid),

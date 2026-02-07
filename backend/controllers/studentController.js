@@ -4,6 +4,7 @@ const FeeReceipt = require('../models/FeeReceipt');
 const Course = require('../models/Course');
 const Batch = require('../models/Batch'); 
 const Branch = require('../models/Branch'); 
+const Inquiry = require('../models/Inquiry');
 const sendSMS = require('../utils/smsSender');
 const asyncHandler = require('express-async-handler');
 const Counter = require('../models/Counter');
@@ -194,6 +195,11 @@ const createStudent = asyncHandler(async (req, res) => {
             Promise.all(contacts.map(num => sendSMS(num, smsMessage)))
                 .then(() => console.log('Admission SMS sent successfully'))
                 .catch(err => console.error('Admission SMS failed', err));
+        }
+
+        // Remove from Admin "Online Admission" list when admission fee paid (student created from inquiry)
+        if (student.inquiryId && isAdmissionFeesPaid) {
+            await Inquiry.findByIdAndUpdate(student.inquiryId, { source: 'Converted', status: 'Complete' });
         }
 
         res.status(201).json(student);

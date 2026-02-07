@@ -298,6 +298,11 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
 
   await student.save();
 
+  // 4.5. Remove from Admin "Online Admission" list when admission fee paid (student had inquiryId)
+  if (admissionCompletedNow && student.inquiryId) {
+    await Inquiry.findByIdAndUpdate(student.inquiryId, { source: 'Converted', status: 'Complete' });
+  }
+
   // 5. Send Transaction SMS (Applies to ALL Receipts)
   try {
       const var1 = `${student.firstName} ${student.lastName}`; // Student Name

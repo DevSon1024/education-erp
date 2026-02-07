@@ -21,7 +21,7 @@ const studentSchema = new mongoose.Schema(
 
     // --- Personal Details ---
     admissionDate: { type: Date, required: true, default: Date.now },
-    aadharCard: { type: String, required: true },
+    aadharCard: { type: String },
     firstName: { type: String, required: true },
     relationType: {
       type: String,
@@ -79,6 +79,9 @@ const studentSchema = new mongoose.Schema(
 
     // Link to User Login
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+    // Link to Inquiry (when student created from Admin "Online Admission")
+    inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: "Inquiry" },
 
     // EMI Details (Optional)
     emiDetails: {

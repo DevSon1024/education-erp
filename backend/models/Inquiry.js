@@ -44,6 +44,7 @@ const inquirySchema = new mongoose.Schema(
         "DSR",
         "QuickContact",
         "OnlineAdmission",
+        "Converted",
       ],    },
 
     // Specific Reference Detail

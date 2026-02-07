@@ -193,10 +193,14 @@ const AdminHome = () => {
                                 </td>
                             </tr>
                         )) : (
-                            <tr><td colSpan="10" className="text-center py-10 text-gray-500 flex flex-col items-center justify-center w-full">
-                                <AlertCircle size={32} className="mb-2 opacity-50"/>
-                                No Quick Contact inquiries found.
-                            </td></tr>
+                            <tr>
+                                <td colSpan="10" className="py-10 text-gray-500 w-full min-w-full">
+                                    <div className="flex flex-col items-center justify-center w-full text-center">
+                                        <AlertCircle size={32} className="mb-2 opacity-50"/>
+                                        No Quick Contact inquiries found.
+                                    </div>
+                                </td>
+                            </tr>
                         )}
                     </tbody>
                 </table>
@@ -271,10 +275,14 @@ const AdminHome = () => {
                                 </td>
                             </tr>
                         )) : (
-                            <tr><td colSpan="7" className="text-center py-10 text-gray-500 flex flex-col items-center justify-center w-full">
-                                <AlertCircle size={32} className="mb-2 opacity-50"/>
-                                No Online Admission inquiries found.
-                            </td></tr>
+                            <tr>
+                                <td colSpan="7" className="py-10 text-gray-500 w-full min-w-full">
+                                    <div className="flex flex-col items-center justify-center w-full text-center">
+                                        <AlertCircle size={32} className="mb-2 opacity-50"/>
+                                        No Online Admission inquiries found.
+                                    </div>
+                                </td>
+                            </tr>
                         )}
                     </tbody>
                 </table>
