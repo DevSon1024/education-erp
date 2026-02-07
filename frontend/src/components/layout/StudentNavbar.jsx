@@ -50,7 +50,7 @@ const StudentNavbar = () => {
 
     return (
         <>
-            <header className="fixed top-0 w-full z-50 bg-white shadow-md border-b border-gray-200 h-16">
+            <header className="fixed top-0 w-full z-50 bg-white shadow-md border-b border-gray-200 h-18">
                 <div className="container mx-auto px-4 h-full">
                     <div className="flex justify-between items-center h-full">
                         {/* Logo */}
@@ -119,7 +119,10 @@ const StudentNavbar = () => {
                                  onClick={() => setIsProfileModalOpen(true)}>
                                 <div className="flex flex-col items-end text-right">
                                     <span className="text-sm font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">
-                                        {user?.name || 'Student'}
+                                        {user?.firstName && user?.lastName 
+                                            ? `${user.firstName}${user.middleName ? ' ' + user.middleName : ''} ${user.lastName}`.trim()
+                                            : user?.name || 'Student'
+                                        }
                                     </span>
                                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">
                                         {user?.branchName || 'Main Branch'}
@@ -127,11 +130,11 @@ const StudentNavbar = () => {
                                     <span className="text-xs text-gray-500 font-medium">{user?.role || 'Student'}</span>
                                     
                                 </div>
-                                <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all flex items-center justify-center">
                                      {user?.photo ? (
                                         <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                                      ) : (
-                                        <UserIcon className="text-gray-400 w-6 h-6" />
+                                        <UserIcon className="text-gray-400 w-7 h-7" />
                                      )}
                                 </div>
                             </div>
@@ -151,7 +154,7 @@ const StudentNavbar = () => {
                 {/* Mobile Menu */}
                 <AnimatePresence>
                     {isMobileMenuOpen && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-white border-t border-gray-200 shadow-xl absolute w-full left-0 top-16 z-40">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-white border-t border-gray-200 shadow-xl absolute w-full left-0 top-18 z-40">
                             <div className="py-2">
                                 {MENU_ITEMS.map((item, index) => (
                                     <div key={index}>

@@ -242,6 +242,54 @@ const FeeCollection = () => {
                         />
                     </div>
 
+
+
+                    {/* Student Name */}
+                    <div>
+                        <Controller
+                            name="studentId"
+                            control={control}
+                            rules={{ required: "Student is required" }}
+                            render={({ field, fieldState: { error } }) => (
+                                <StudentSearch 
+                                    label="Student Name"
+                                    required
+                                    error={error?.message}
+                                    onSelect={handleStudentSelect}
+                                    placeholder="Search student..."
+                                    additionalFilters={{ hasPendingFees: 'true' }}
+                                />
+                            )}
+                        />
+                    </div>
+
+                    {/* Course */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Course</label>
+                        <input 
+                            type="text" 
+                            {...register('courseName')} 
+                            readOnly 
+                            placeholder="Auto-filled"
+                            className="w-full border bg-gray-100 rounded-lg p-3 outline-none text-gray-600 text-base"
+                        />
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Amount (₹)</label>
+                        <input 
+                            type="text" 
+                            {...register('amountPaid', { required: true })} 
+                            className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base"
+                            placeholder="Enter amount"
+                        />
+                         {paymentSummary && (
+                            <p className="text-xs text-red-500 mt-1 font-semibold">
+                                Outstanding: ₹{paymentSummary.outstandingAmount} | Total Due: ₹{paymentSummary.dueAmount}
+                            </p>
+                        )}
+                    </div>
                     {/* Payment Mode */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">Payment Mode</label>
@@ -289,53 +337,6 @@ const FeeCollection = () => {
                             </div>
                         </>
                     )}
-
-                    {/* Student Name */}
-                    <div>
-                        <Controller
-                            name="studentId"
-                            control={control}
-                            rules={{ required: "Student is required" }}
-                            render={({ field, fieldState: { error } }) => (
-                                <StudentSearch 
-                                    label="Student Name"
-                                    required
-                                    error={error?.message}
-                                    onSelect={handleStudentSelect}
-                                    placeholder="Search student..."
-                                    additionalFilters={{ hasPendingFees: 'true' }}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    {/* Course */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Course</label>
-                        <input 
-                            type="text" 
-                            {...register('courseName')} 
-                            readOnly 
-                            placeholder="Auto-filled"
-                            className="w-full border bg-gray-100 rounded-lg p-3 outline-none text-gray-600 text-base"
-                        />
-                    </div>
-
-                    {/* Amount */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Amount (₹)</label>
-                        <input 
-                            type="number" 
-                            {...register('amountPaid', { required: true })} 
-                            className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base"
-                            placeholder="Enter amount"
-                        />
-                         {paymentSummary && (
-                            <p className="text-xs text-red-500 mt-1 font-semibold">
-                                Outstanding: ₹{paymentSummary.outstandingAmount} | Total Due: ₹{paymentSummary.dueAmount}
-                            </p>
-                        )}
-                    </div>
 
                     {/* Remark */}
                     <div>

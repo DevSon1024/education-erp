@@ -286,12 +286,12 @@ const Navbar = () => {
                               {user?.branchName || 'Main Branch'}
                           </span>
                       </div>
-                      {/* Increased Profile Image Size */}
-                      <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all flex items-center justify-center">
+                      {/* Profile image sized to match navbar (h-16) */}
+                      <div className="w-14 h-14 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all flex items-center justify-center flex-shrink-0">
                           {user?.photo ? (
                               <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
-                              <UserIcon className="text-gray-400 w-7 h-7" />
+                              <UserIcon className="text-gray-400 w-8 h-8" />
                           )}
                       </div>
                   </div>
@@ -365,11 +365,11 @@ const Navbar = () => {
                 }}
               >
                   <div className="flex items-center gap-3">
-                       <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-gray-400 font-bold text-lg shadow-sm border border-gray-200 overflow-hidden">
+                       <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-gray-400 font-bold text-lg shadow-sm border border-gray-200 overflow-hidden flex-shrink-0">
                           {user?.photo ? (
                              <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
-                             <UserIcon size={24} />
+                             <UserIcon size={28} />
                           )}
                        </div>
                        <div>

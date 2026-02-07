@@ -414,18 +414,27 @@ const toggleStudentStatus = asyncHandler(async (req, res) => {
 });
 
 const updateStudent = asyncHandler(async (req, res) => {
+    console.log('=== UPDATE STUDENT REQUEST ===');
+    console.log('Student ID:', req.params.id);
+    console.log('Request body course:', req.body.course);
+    
     const student = await Student.findById(req.params.id);
 
     if (student) {
+        console.log('Current student course:', student.course);
+        
         // Detect if course is being changed
         const isCourseChanged = req.body.course && req.body.course.toString() !== student.course.toString();
         
-        // If course is changed, calculate fee adjustment
+        console.log('Is course changed?', isCourseChanged);
+        
+        // If course is changed, calculate fee adjustment and update all receipts
         if (isCourseChanged && req.body.totalFees !== undefined) {
-            console.log(`Course changed from ${student.course} to ${req.body.course}`);
+            console.log(`✅ Course changed from ${student.course} to ${req.body.course}`);
             
             // Fetch all receipts for this student
             const allReceipts = await FeeReceipt.find({ student: student._id });
+            console.log(`Found ${allReceipts.length} receipts for this student`);
             
             // Calculate total paid amount EXCLUDING admission fees
             // Only count registration fees and installment payments
@@ -448,6 +457,33 @@ const updateStudent = asyncHandler(async (req, res) => {
             
             // Update pending fees
             student.pendingFees = adjustedPendingFees;
+            
+            // UPDATE ALL RECEIPTS WITH NEW COURSE ID
+            const updateResult = await FeeReceipt.updateMany(
+                { student: student._id },
+                { $set: { course: req.body.course } }
+            );
+            console.log(`✅ Updated ${updateResult.modifiedCount} receipts with new course ID`);
+            console.log('Update result:', updateResult);
+        }
+
+        // Handle EMI details update when payment plan changes
+        if (req.body.emiDetails) {
+            console.log('EMI details received:', req.body.emiDetails);
+            // Parse if it's a string
+            let emiDetails = req.body.emiDetails;
+            if (typeof emiDetails === 'string') {
+                try {
+                    emiDetails = JSON.parse(emiDetails);
+                } catch (e) {
+                    console.error("Error parsing emiDetails:", e);
+                    emiDetails = null;
+                }
+            }
+            if (emiDetails) {
+                student.emiDetails = emiDetails;
+                console.log('EMI details updated');
+            }
         }
 
         student.firstName = req.body.firstName || student.firstName;
@@ -472,7 +508,10 @@ const updateStudent = asyncHandler(async (req, res) => {
         student.motherName = req.body.motherName || student.motherName;
         student.reference = req.body.reference || student.reference;
         
-        if(req.body.course) student.course = req.body.course;
+        if(req.body.course) {
+            student.course = req.body.course;
+            console.log('Student course updated to:', req.body.course);
+        }
         if(req.body.batch) student.batch = req.body.batch;
         if(req.body.batchStartDate) student.batchStartDate = req.body.batchStartDate;
         if(req.body.paymentPlan) student.paymentPlan = req.body.paymentPlan;
@@ -489,6 +528,8 @@ const updateStudent = asyncHandler(async (req, res) => {
         if(req.body.admissionDate) student.admissionDate = req.body.admissionDate;
 
         const updatedStudent = await student.save();
+        console.log('✅ Student saved successfully');
+        console.log('Updated student course:', updatedStudent.course);
         res.json(updatedStudent);
     } else {
         res.status(404); throw new Error('Student not found');
