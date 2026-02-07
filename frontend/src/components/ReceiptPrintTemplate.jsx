@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
+import logo from '../assets/logo2.png';
 
 const ReceiptPrintTemplate = React.forwardRef(({ receipt }, ref) => {
   const { user } = useSelector((state) => state.auth);
@@ -46,11 +47,10 @@ const ReceiptPrintTemplate = React.forwardRef(({ receipt }, ref) => {
     }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-        {/* Logo Section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
              {/* Left Logo (Placeholder or same logo duplicated if needed, image shows 2) */}
              <img 
-              src="/src/assets/logo2.png" 
+              src={logo}
               alt="Logo"
               style={{ width: '180px', height: 'auto', objectFit: 'contain' }}
             />

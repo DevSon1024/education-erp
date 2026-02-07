@@ -473,50 +473,67 @@ const getStudentPaymentSummary = asyncHandler(async (req, res) => {
   const receipts = await FeeReceipt.find({ student: student._id });
   const totalReceived = receipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
+  // --- Total & Due Calculation (Preserved) ---
   const courseAdmissionFee = student.course && student.course.admissionFees ? student.course.admissionFees : 0;
   const paidAdmissionFee = student.admissionFeeAmount || 0;
-  const pendingAdmission = Math.max(0, courseAdmissionFee - paidAdmissionFee);
   const effectiveAdmissionFee = Math.max(courseAdmissionFee, paidAdmissionFee);
   const totalFees = (student.totalFees || 0) + effectiveAdmissionFee;
+  
+  // Total Remaining Balance
   const dueAmount = totalFees - totalReceived;
 
-  let outstandingAmount = pendingAdmission;
+  // --- NEW OUTSTANDING CALCULATION (Per User Requirement) ---
+  let outstandingAmount = 0;
+  const feesMethod = student.paymentPlan || "One Time";
   let emiStructure = null;
-  let feesMethod = student.paymentPlan || "One Time";
 
-  if (student.paymentPlan === "Monthly" && student.emiDetails) {
-    const monthlyInstallment = student.emiDetails.monthlyInstallment || 0;
-    const months = student.emiDetails.months || 0;
-    const regFees = student.emiDetails.registrationFees || 0;
+  // 1. Calculate Pending Registration Fees
+  // "registration amount is decided in the course"
+  const courseRegFees = student.course && student.course.registrationFees ? Number(student.course.registrationFees) : 0;
+  
+  // "when student pays registration fees" - filter receipts by remarks "registration"
+  const regReceipts = receipts.filter(r => {
+      const rem = (r.remarks || "").toLowerCase();
+      return rem.includes("registration");
+  });
+  const totalRegPaid = regReceipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
+  
+  // "pending registration fees... is our outstanding amount"
+  const pendingRegFees = Math.max(0, courseRegFees - totalRegPaid);
 
-    if (monthlyInstallment && months) {
-      emiStructure = `₹${monthlyInstallment} x ${months} months`;
-    }
+  if (student.paymentPlan === "Monthly") {
+      // Monthly Plan Logic:
+      // "outstanding amount should show with upcoming EMI + pending registration amount"
 
-    const regReceipts = receipts.filter(r => {
-        const rem = (r.remarks || "").toLowerCase();
-        return rem.includes("registration") || r.installmentNumber === 2;
-    });
-    const totalRegPaid = regReceipts.reduce((acc, curr) => acc + curr.amountPaid, 0);
-    const pendingReg = Math.max(0, regFees - totalRegPaid);
+      const monthlyInstallment = student.emiDetails && student.emiDetails.monthlyInstallment ? Number(student.emiDetails.monthlyInstallment) : 0;
+      const months = student.emiDetails && student.emiDetails.months ? Number(student.emiDetails.months) : 0;
 
-    let nextInstallment = monthlyInstallment;
-    if (nextInstallment > student.pendingFees) { 
-        nextInstallment = student.pendingFees;
-    }
+      if (monthlyInstallment && months) {
+          emiStructure = `₹${monthlyInstallment} x ${months} months`;
+      }
 
-    outstandingAmount += pendingReg;
-    if (student.pendingFees > 0) {
-        outstandingAmount += nextInstallment;
-    }
+      // Add one installment (Upcoming EMI) if there is any remaining total balance
+      let upcomingEMI = 0;
+      if ((student.pendingFees || 0) > 0) {
+           upcomingEMI = monthlyInstallment;
+           // Cap EMI at total pending balance to avoid asking for more than due
+           if (upcomingEMI > student.pendingFees) {
+               upcomingEMI = student.pendingFees;
+           }
+      }
+      
+      outstandingAmount = pendingRegFees + upcomingEMI;
+
   } else {
-      outstandingAmount += (student.pendingFees || 0);
+      // One Time Plan Logic:
+      // "if one time plan holder then show only pending registration fees as outstanding amount"
+      outstandingAmount = pendingRegFees;
   }
 
   res.json({
     totalReceived,
-    dueAmount,
-    outstandingAmount,
+    dueAmount, // Total Balance
+    outstandingAmount, // Current Due (Reg + EMI or Reg Only)
     feesMethod,
     emiStructure,
     totalFees,

@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudents } from '../../../features/student/studentSlice';
 import { fetchCourses, fetchBatches, fetchBranches } from '../../../features/master/masterSlice';
+import axios from 'axios';
 import { Search, Printer, FileText, RefreshCw } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import moment from 'moment';
 import logo from '../../../assets/logo2.png';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const StudentWiseOutstanding = () => {
     const dispatch = useDispatch();
@@ -26,6 +29,9 @@ const StudentWiseOutstanding = () => {
 
     const [appliedFilters, setAppliedFilters] = useState(filters);
     const componentRef = useRef(null);
+    // Payment summary per student (outstandingAmount, dueAmount) from backend - same logic as FeeCollection
+    const [paymentSummaryMap, setPaymentSummaryMap] = useState({});
+    const [summaryLoading, setSummaryLoading] = useState(false);
 
     // Fetch Initial Data
     useEffect(() => {
@@ -40,6 +46,33 @@ const StudentWiseOutstanding = () => {
     useEffect(() => {
         dispatch(fetchStudents(appliedFilters));
     }, [dispatch, appliedFilters]);
+
+    // Fetch payment summary (outstanding + due) for each student - same backend logic as FeeCollection
+    useEffect(() => {
+        if (!students || students.length === 0) {
+            setPaymentSummaryMap({});
+            return;
+        }
+        let cancelled = false;
+        setSummaryLoading(true);
+        Promise.all(
+            students.map((s) =>
+                axios
+                    .get(`${API_URL}/transaction/student/${s._id}/payment-summary`, { withCredentials: true })
+                    .then((res) => ({ id: s._id, ...res.data }))
+                    .catch(() => ({ id: s._id, outstandingAmount: 0, dueAmount: 0 }))
+            )
+        ).then((results) => {
+            if (cancelled) return;
+            const map = {};
+            results.forEach((r) => {
+                map[r.id] = { outstandingAmount: r.outstandingAmount ?? 0, dueAmount: r.dueAmount ?? 0 };
+            });
+            setPaymentSummaryMap(map);
+            setSummaryLoading(false);
+        });
+        return () => { cancelled = true; };
+    }, [students]);
 
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -95,18 +128,12 @@ const StudentWiseOutstanding = () => {
 
     const branchInfo = getBranchDetails();
 
-    const calculateFees = (student) => {
-        const courseAdmFee = student.course?.admissionFees || 0;
-        const paidAdmFee = student.admissionFeeAmount || 0;
-        
-        // Calculate pending admission fee (if any)
-        const pendingAdmission = Math.max(0, courseAdmFee - paidAdmFee);
-        
-        // Total pending fees = (Tuition pending) + (Admission pending)
-        // assuming student.pendingFees comes from backend for tuition/installments
-        const calculatedPendingFees = (student.pendingFees || 0) + pendingAdmission;
-        
-        return calculatedPendingFees;
+    // Format amount same as FeeCollection (toLocaleString for display)
+    const formatAmount = (value) => {
+        if (value == null || value === '') return '-';
+        const num = Number(value);
+        if (isNaN(num)) return '-';
+        return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     return (
@@ -213,7 +240,9 @@ const StudentWiseOutstanding = () => {
                     </thead>
                     <tbody>
                         {students && students.length > 0 ? students.map((s, index) => {
-                            const outstanding = calculateFees(s);
+                            const summary = paymentSummaryMap[s._id];
+                            const outstandingAmount = summary?.outstandingAmount ?? 0;
+                            const dueAmount = summary?.dueAmount ?? 0;
                             return (
                                 <tr key={s._id} className="text-center hover:bg-gray-50">
                                     <td className="border border-gray-300 px-2 py-1.5">{index + 1}</td>
@@ -225,9 +254,9 @@ const StudentWiseOutstanding = () => {
                                     <td className="border border-gray-300 px-2 py-1.5">{s.course?.name || '-'}</td>
                                     <td className="border border-gray-300 px-2 py-1.5 text-center">{s.mobileParent || '-'}</td>
                                     
-                                    {/* Outstanding Amount */}
+                                    {/* Outstanding Amount (same logic as FeeCollection - reg + upcoming EMI or reg only) */}
                                     <td className="border border-gray-300 px-2 py-1.5 text-right font-semibold text-red-600">
-                                        {outstanding > 0 ? outstanding.toFixed(2) : '-'}
+                                        {summaryLoading ? '...' : (outstandingAmount > 0 ? formatAmount(outstandingAmount) : '-')}
                                     </td>
                                     
                                     {/* Follow Up Columns */}
@@ -240,8 +269,9 @@ const StudentWiseOutstanding = () => {
                                     <td className="border border-gray-300 px-2 py-1.5 text-right text-green-600">
                                          -
                                     </td>
+                                    {/* Due Amount (total balance - same as FeeCollection) */}
                                     <td className="border border-gray-300 px-2 py-1.5 text-right font-bold text-blue-600">
-                                        {outstanding > 0 ? outstanding.toFixed(2) : '-'}
+                                        {summaryLoading ? '...' : (dueAmount > 0 ? formatAmount(dueAmount) : '-')}
                                     </td>
                                 </tr>
                             );
