@@ -2,6 +2,7 @@ const StudentAttendance = require('../models/StudentAttendance');
 const EmployeeAttendance = require('../models/EmployeeAttendance');
 const Student = require('../models/Student');
 const Employee = require('../models/Employee');
+const sendSMS = require('../utils/smsSender');
 
 // --- STUDENT ATTENDANCE SECTION ---
 
@@ -139,7 +140,7 @@ exports.saveStudentAttendance = async (req, res) => {
              attendance.remarks = remarks;
              attendance.records = records;
              await attendance.save();
-             return res.status(200).json({ message: "Attendance updated successfully", attendance });
+             // response handled at end
         } else {
             // Create new
             attendance = new StudentAttendance({
@@ -151,8 +152,38 @@ exports.saveStudentAttendance = async (req, res) => {
                 records
             });
             await attendance.save();
-            return res.status(201).json({ message: "Attendance saved successfully", attendance });
         }
+
+        // --- Send Absent SMS (One by One) ---
+        try {
+            // Parse Times from batchTime (e.g. "08:00 - 10:00")
+            let startTime = 'N/A';
+            let endTime = 'N/A';
+            if (batchTime && batchTime.includes('-')) {
+                const parts = batchTime.split('-');
+                if (parts.length >= 2) {
+                    startTime = parts[0].trim();
+                    endTime = parts[1].trim();
+                }
+            }
+
+            // Loop sequentially to send SMS to absent students
+            for (const record of records) {
+                if (!record.isPresent) {
+                    const studentName = record.studentName || record.name || 'Student';
+                    const parentMobile = record.contactParent;
+                    
+                    if (parentMobile) {
+                        const message = `Dear, ${studentName} is Absent in class on today ${date} for ${startTime}-${endTime}, Batch Time-${batchName}. Regards, Smart Institute`;
+                         await sendSMS(parentMobile, message);
+                    }
+                }
+            }
+        } catch (smsError) {
+             console.error("Error sending absent SMS:", smsError);
+        }
+
+        return res.status(200).json({ message: "Attendance saved successfully", attendance });
 
     } catch (error) {
         console.error("Save Student Attendance Error:", error);

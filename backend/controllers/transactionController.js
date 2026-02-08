@@ -305,28 +305,31 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
 
   // 5. Send Transaction SMS (Applies to ALL Receipts)
   try {
-      const var1 = `${student.firstName} ${student.lastName}`; // Student Name
+      const var1 = `${student.firstName} ${student.middleName ? student.middleName + ' ' : ''}${student.lastName}`; // Student Name
       const var2 = amountPaid; // Amount
       
       // Determine var3 (Purpose)
       let var3 = `Installment ${installmentNumber}`;
       if (admissionCompletedNow || (remarks && remarks.toLowerCase().includes('admission'))) {
-          var3 = "Admission";
+          var3 = "Admission Fees";
       } else if (remarks && remarks.toLowerCase().includes('registration')) {
-          var3 = "Registration";
+          var3 = "Registration Fees";
       }
 
       // Determine var4 (Reg No or Enrollment No)
       const var4 = student.regNo || student.enrollmentNo || "N/A";
 
-      const smsMessage = `Dear, ${var1}. Your Course fees ${var2} has been deposited for ${var3}, Reg.No. ${var4}. Thank you,\nSmart Institute`;
+      const smsMessage = `Dear, ${var1}. Your Course fees ${var2} has been deposited for ${var3}, Reg.No. ${var4}. Thank you, Smart Institute`;
 
       const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))]; 
       
       // Send SMS asynchronously
-      contacts.forEach(num => {
-          sendSMS(num, smsMessage).catch(err => console.error(`Failed to send Transaction SMS to ${num}`, err));
-      });
+      console.log(`Sending Fees SMS to: ${contacts.join(', ')} | Msg: ${smsMessage}`);
+      
+      // Send SMS synchronously (awaited)
+      await Promise.all(contacts.map(num => 
+          sendSMS(num, smsMessage).catch(err => console.error(`Failed to send Transaction SMS to ${num}`, err))
+      ));
       
   } catch (error) {
       console.error("Error setting up Transaction SMS", error);
