@@ -65,8 +65,7 @@ const ReceiptPrintTemplate = React.forwardRef(({ receipt }, ref) => {
             fontSize: '24px', 
             fontWeight: 'bold' 
           }}>
-            {receipt.student?.branchId?.name || receipt.student?.branchName + ' Branch' || 'Main'}
-          </h2>
+            {receipt.student?.branchId?.name || (receipt.student?.branchName ? `${receipt.student.branchName} Branch` : 'Main')}          </h2>
           <p style={{ margin: '2px 0', fontSize: '11px', color: '#444', fontWeight: '500' }}>
             {receipt.student?.branchId?.address || '309-A, 309-B, 3rd Floor, Sai Square Building'}<br/>
             {receipt.student?.branchId?.city || 'Bhestan'}, {receipt.student?.branchId?.state || 'Gujarat'} - {receipt.student?.branchId?.pincode || '395023'} (INDIA)

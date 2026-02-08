@@ -289,8 +289,7 @@ const StudentList = () => {
                 <td className="p-2 border font-semibold text-blue-800">{s.course?.name || '-'}</td>
                 <td className="p-2 border">{s.course ? `${s.course.duration} ${s.course.durationType}` : '-'}</td>
 
-                <td className="p-2 border text-gray-600">{s.branchName + ' Branch' || 'Main'}</td>
-
+                <td className="p-2 border text-gray-600">{s.branchName ? `${s.branchName} Branch` : 'Main'}</td>
                 <td className="p-2 border text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
                         s.isActive ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'

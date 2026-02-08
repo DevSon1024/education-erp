@@ -47,7 +47,10 @@ exports.getStudentsForAttendance = async (req, res) => {
         const mappedStudents = students.map(s => ({
             _id: s._id,
             enrollmentNo: s.enrollmentNo,
-            name: `${s.firstName} ${s.lastName}`,
+            name: `${s.firstName} ${s.middleName ? s.middleName + ' ' : ''}${s.lastName}`,
+            firstName: s.firstName,
+            middleName: s.middleName,
+            lastName: s.lastName,
             courseName: s.course ? s.course.name : '',
             contactStudent: s.mobileStudent,
             contactParent: s.mobileParent,
@@ -83,7 +86,7 @@ exports.checkStudentAttendanceStatus = async (req, res) => {
             batchTime: batchTime,
             date: { $gte: startOfDay, $lte: endOfDay }
         }).populate('takenBy', 'name')
-          .populate('records.studentId', 'firstName lastName');
+          .populate('records.studentId', 'firstName middleName lastName');
 
         if (existingRecord) {
             return res.status(200).json({ 
@@ -182,7 +185,7 @@ exports.getStudentAttendanceHistory = async (req, res) => {
 
         const records = await StudentAttendance.find(query)
                                 .populate('takenBy', 'name')
-                                .populate('records.studentId', 'firstName lastName')
+                                .populate('records.studentId', 'firstName middleName lastName')
                                 .sort({ date: -1 });
                                 
         res.status(200).json(records);

@@ -279,17 +279,18 @@ const FeeCollection = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">Amount (₹)</label>
                             <input 
-                                type="text" 
+                                type="text"
+                                inputMode="numeric"
                                 {...register('amountPaid', { required: true })} 
                                 className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base"
                                 placeholder="Enter amount"
+                                onInput={(e) => e.target.value = e.target.value.replace(/[^0-9.]/g, '')}
                             />
                              {paymentSummary && (
                                 <p className="text-xs text-red-500 mt-1 font-semibold">
                                     Outstanding: ₹{paymentSummary.outstandingAmount} | Total Due: ₹{paymentSummary.dueAmount}
                                 </p>
-                            )}
-                        </div>
+                            )}                        </div>
                         {/* Payment Mode */}
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">Payment Mode</label>

@@ -79,8 +79,7 @@ const EmployeeDashboard = () => {
                         </div>
                         <div className="flex justify-between text-sm py-2 border-b border-gray-50">
                             <span className="text-gray-500">Branch</span>
-                            <span className="font-medium text-gray-800">{user?.branchName + ' Branch' || 'Main'}</span>
-                        </div>
+                            <span className="font-medium text-gray-800">{user?.branchName ? `${user.branchName} Branch` : 'Main'}</span>                        </div>
                     </div>
                 </div>
 

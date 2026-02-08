@@ -283,7 +283,7 @@ const Navbar = () => {
                           </span>
                           <span className="text-xs text-gray-500 font-medium">({user?.role})</span>
                           <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">
-                              {user?.branchName + ' Branch' || 'Main'}
+                              {user?.branchName ? `${user.branchName} Branch` : 'Main'}
                           </span>
                       </div>
                       {/* Profile image sized to match navbar (h-16) */}
@@ -377,7 +377,7 @@ const Navbar = () => {
                             {user?.name}
                             <span className="text-[10px] font-normal text-gray-500 border border-gray-200 px-1.5 py-0.5 rounded bg-white">{user?.role}</span>
                           </div>
-                          <div className="text-xs font-bold text-primary uppercase mt-0.5">{user?.branchName + ' Branch' || 'Main'}</div>
+                          <div className="text-xs font-bold text-primary uppercase mt-0.5">{user?.branchName ? `${user.branchName} Branch` : 'Main'}</div>
                           {user?.role !== 'Student' && <div className="text-[10px] text-blue-600 font-medium mt-1">Tap to edit profile</div>}
                        </div>
                   </div>

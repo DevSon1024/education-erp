@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     },
     // Added Profile Fields
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' }, // Link to Branch
-    branchName: { type: String, default: 'Main' }, // Keep for display/fallback
+    branchName: { type: String, default: 'Main Branch' }, // Keep for display/fallback
     mobile: { type: String },
     gender: { type: String, enum: ['Male', 'Female', 'Other'] },
     education: { type: String },
