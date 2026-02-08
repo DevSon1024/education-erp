@@ -32,7 +32,7 @@ const StudentRegistrationProcess = () => {
     date: new Date().toISOString().split('T')[0],
     amount: '',
     paymentMode: 'Cash',
-    remarks: '',
+    remarks: 'Registration Fees', // Default remark for identification
     // Dynamic Fields
     bankName: '',
     chequeNumber: '',

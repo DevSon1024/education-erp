@@ -139,7 +139,7 @@ const createStudent = asyncHandler(async (req, res) => {
 
         const [branchDoc, lastReceipt] = await Promise.all([branchPromise, receiptPromise]);
 
-        let finalBranchName = 'Main Branch'; 
+        let finalBranchName = 'Main'; 
         if (branchDoc) {
             finalBranchName = branchDoc.name;
         }

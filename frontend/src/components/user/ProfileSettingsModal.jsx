@@ -21,7 +21,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
         gender: user?.gender || '',
         education: user?.education || '',
         address: user?.address || '',
-        branchName: user?.branchName + ' Branch' || 'Main Branch',
+        branchName: user?.branchName + ' Branch' || 'Main',
         photo: null
     });
     const [previewImage, setPreviewImage] = useState(user?.photo || '');
@@ -71,7 +71,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                 gender: user.gender || '',
                 education: user.education || '',
                 address: user.address || '',
-                branchName: user.branchName + ' Branch' || 'Main Branch',
+                branchName: user.branchName + ' Branch' || 'Main',
                 photo: null
             });
             setPreviewImage(user.photo || '');

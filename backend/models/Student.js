@@ -16,7 +16,7 @@ const studentSchema = new mongoose.Schema(
     isAddressProof: { type: Boolean, default: false },
     
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch' },
-    branchName: { type: String, default: "Main Branch" },
+    branchName: { type: String, default: "Main" },
     registrationDate: { type: Date },
 
     // --- Personal Details ---

@@ -78,7 +78,7 @@ const StudentFollowingReport = () => {
             const branch = branches.find(b => b._id === appliedFilters.branchId);
             if (branch) return branch;
         }
-        // Default / Fallback: User's branch if stored in user object, or hardcoded Main Branch
+        // Default / Fallback: User's branch if stored in user object, or hardcoded Main
         // Assuming current user context has branchId or we fallback to main branch details
         
         // If logged in user is not super admin, they might belong to a specific branch.

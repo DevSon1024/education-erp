@@ -119,9 +119,21 @@ const PendingAdmissionFeePayment = () => {
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="border-r border-gray-100 pr-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
-              Student Information
-            </h3>
+            <div className="flex flex-col items-center mb-6 border-b pb-4">
+                {student.studentPhoto ? (
+                    <div className="p-1 bg-white border rounded-lg shadow-sm mb-3">
+                        <img
+                            src={student.studentPhoto.startsWith('http') ? student.studentPhoto : `${import.meta.env.VITE_API_URL}/${student.studentPhoto}`}
+                            alt="Student"
+                            className="w-32 h-32 rounded-lg object-cover bg-gray-50"
+                        />
+                    </div>
+                ) : (
+                    <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-3 text-gray-400">
+                        No Photo
+                    </div>
+                )}
+            </div>
 
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-3">

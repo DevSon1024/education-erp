@@ -125,7 +125,7 @@ const StudentNavbar = () => {
                                         }
                                     </span>
                                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">
-                                        {user?.branchName || 'Main Branch'}
+                                        {user?.branchName || 'Main'}
                                     </span>
                                     <span className="text-xs text-gray-500 font-medium">{user?.role || 'Student'}</span>
                                     

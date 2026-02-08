@@ -183,7 +183,7 @@ const StudentAttendanceReport = () => {
             }
         }
 
-        // 3. Fallback to Main Branch if still not found
+        // 3. Fallback to Main if still not found
         if (branchData) {
             return {
                 name: branchData.name,

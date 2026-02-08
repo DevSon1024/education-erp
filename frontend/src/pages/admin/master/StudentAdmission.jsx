@@ -283,9 +283,10 @@ const StudentAdmission = () => {
           : "Admission Draft Created!"
       );
       dispatch(resetStatus());
+      const returnUrl = searchParams.get('returnUrl');
       navigate(
         isUpdateMode
-          ? "/master/student"
+          ? (returnUrl || "/master/student")
           : payAdmissionFee
           ? "/transaction/pending-registration"
           : "/transaction/pending-admission-fees"
@@ -1555,11 +1556,44 @@ const StudentAdmission = () => {
                   <span>
                     <CreditCard className="inline mr-2" /> Fee Receipt Details
                   </span>
+
                   <span className="text-xs bg-gray-700 px-2 py-1 rounded">
                     Step 3 of 3
                   </span>
                 </div>
                 <div className="p-6 grid grid-cols-2 gap-6">
+                  {/* Enhanced Student Identity Card for Step 3 */}
+                  <div className="col-span-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex items-center gap-6 mb-2">
+                       <div className="p-1 bg-white rounded-lg shadow-sm border border-blue-100">
+                           {(previewImage || (watch('studentPhoto') && typeof watch('studentPhoto') === 'string')) ? (
+                              <img 
+                                  src={previewImage || watch('studentPhoto')} 
+                                  alt="Student" 
+                                  className="w-24 h-24 rounded-md object-cover bg-gray-100"
+                              />
+                           ) : (
+                               <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs text-center p-2">
+                                  No Photo
+                               </div>
+                           )}
+                       </div>
+                       <div>
+                           <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                               {watch('firstName')} {watch('lastName')}
+                               <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full border border-green-200 uppercase">Admitting</span>
+                           </h3>
+                           <p className="text-sm text-gray-600 mt-1">
+                               Course: <span className="font-semibold text-blue-700">{previewCourses[0]?.courseName}</span>
+                           </p>
+                           <p className="text-sm text-gray-600">
+                               Batch: <span className="font-semibold">{previewCourses[0]?.batch}</span>
+                           </p>
+                           <p className="text-sm text-gray-600">
+                               Mobile: {watch('mobileStudent') || watch('mobileParent') || 'N/A'}
+                           </p>
+                       </div>
+                  </div>
+
                   <div className="col-span-2 bg-blue-50 p-3 rounded text-blue-800 text-sm">
                     <strong>Course Fees:</strong> ₹{previewCourses[0]?.fees}
                     <br />

@@ -177,7 +177,7 @@ const PendingAdmissionFees = () => {
                 {/* <td className="p-2 border">{s.middleName || '-'}</td>
                 <td className="p-2 border">{s.lastName}</td> */}
                 
-                {isSuperAdmin && <td className="p-2 border text-gray-600">{s.branchName + ' Branch' || 'Main Branch'}</td>}
+                {isSuperAdmin && <td className="p-2 border text-gray-600">{s.branchName + ' Branch' || 'Main'}</td>}
 
                 <td className="p-2 border text-gray-600">{s.contactHome || '-'}</td>
                 <td className="p-2 border text-gray-600">{s.mobileStudent || '-'}</td>

@@ -177,7 +177,7 @@ const PendingStudentRegistration = () => {
                             <CheckCircle size={14}/> 
                         </button>
 
-                        <Link to={`/master/student/new?updateId=${s._id}`} className="bg-orange-50 text-orange-600 p-1.5 rounded border border-orange-200 hover:bg-orange-100 transition" title="Edit">
+                        <Link to={`/master/student/new?updateId=${s._id}&returnUrl=/transaction/pending-registration`} className="bg-orange-50 text-orange-600 p-1.5 rounded border border-orange-200 hover:bg-orange-100 transition" title="Edit">
                             <Edit size={14}/>
                         </Link>
 

@@ -83,7 +83,7 @@ const createEmployee = asyncHandler(async (req, res) => {
 
     // Fetch Branch Name if ID is provided
     // Fetch Branch Name if ID is provided OR if User is Branch Director
-    let branchNameParam = 'Main Branch';
+    let branchNameParam = 'Main';
     
     // Auto-assign Branch for Branch Directors/Admins
     if(req.user && (req.user.role === 'Branch Director' || req.user.role === 'Branch Admin') && req.user.branchId) {

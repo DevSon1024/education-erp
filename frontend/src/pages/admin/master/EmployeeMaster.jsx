@@ -326,7 +326,7 @@ const EmployeeMaster = () => {
                                      {emp.branchId.name || emp.branchName}
                                  </span>
                              ) : (
-                                 <span className="text-gray-400 text-xs">Main Branch</span>
+                                 <span className="text-gray-400 text-xs">Main</span>
                              )}
                         </td>
                         <td className="p-2 border text-center text-gray-600">
