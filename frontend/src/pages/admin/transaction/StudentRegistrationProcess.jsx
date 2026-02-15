@@ -47,10 +47,12 @@ const StudentRegistrationProcess = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
+    console.log("Registration Process Effect - isSuccess:", isSuccess, "Message:", message);
     if (isSuccess && message === "Student Registration Completed") {
       toast.success(message);
       setTimeout(() => navigate('/master/student'), 1500); // Go to Master List
     } else if (isSuccess === false && message) {
+        console.error("Registration Error Message:", message);
         toast.error(message);
     }
   }, [isSuccess, message, navigate]);
@@ -155,8 +157,15 @@ const StudentRegistrationProcess = () => {
         }
     };
     
+    console.log("=== REGISTRATION SUBMIT DEBUG ===");
+    console.log("Student ID:", student._id);
+    console.log("Registration Payload:", payload);
+
     // Check loading state to prevent double submission
-    if (isLoading) return;
+    if (isLoading) {
+        console.log("Registration prevented: Already loading");
+        return;
+    }
     
     dispatch(confirmRegistration(payload));
   };

@@ -21,7 +21,8 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
         gender: user?.gender || '',
         education: user?.education || '',
         address: user?.address || '',
-        branchName: user?.branchName ? `${user.branchName} Branch` : 'Main',        photo: null
+        branchName: user?.branchName ? `${user.branchName} Branch` : 'Main',        
+        photo: null
     });
     const [previewImage, setPreviewImage] = useState(user?.photo || '');
     const [passwordData, setPasswordData] = useState({
@@ -70,8 +71,8 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                 gender: user.gender || '',
                 education: user.education || '',
                 address: user.address || '',
-                branchName: user.branchName + ' Branch' || 'Main',
-                branchName: user.branchName ? `${user.branchName} Branch` : 'Main',            });
+                branchName: user.branchName ? `${user.branchName} Branch` : 'Main',
+            });
             setPreviewImage(user.photo || '');
         }
     }, [user, isOpen]);

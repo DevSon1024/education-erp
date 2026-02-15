@@ -221,26 +221,25 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     throw new Error("Student not found");
   }
 
-  // 2. Generate Global Receipt No using Atomic Counter
-  let counter = await Counter.findById("receiptNo");
-  if (!counter) {
-    // Lazy Initialization: Find max existing receipt number
-    const lastReceipt = await FeeReceipt.findOne().sort({ receiptNo: -1 }).collation({ locale: "en_US", numericOrdering: true });
-    let maxSeq = 0;
-    if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
-        maxSeq = Number(lastReceipt.receiptNo);
-    }
-    counter = await Counter.create({ _id: "receiptNo", seq: maxSeq }); // Initialize with max existing
+  // 2. Determine Branch for Receipt (Moved up for Receipt No Generation)
+  // If Super Admin, use Student's Branch. If Branch User, use their Branch.
+  let branchId = null;
+  if (req.user.role === 'Super Admin') {
+      branchId = student.branchId;
+  } else if (req.user.branchId) {
+      branchId = req.user.branchId;
   }
 
-  const updatedCounter = await Counter.findByIdAndUpdate(
-      "receiptNo",
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true } // Upsert just in case, though create above handles it
-  );
-  
-  const receiptNo = String(updatedCounter.seq);
-
+  // 3. Generate Branch-Scoped Receipt No
+  // Find max existing receipt number FOR THIS BRANCH
+  let receiptNo = "1";
+  const lastReceipt = await FeeReceipt.findOne({ branch: branchId })
+    .sort({ receiptNo: -1 })
+    .collation({ locale: "en_US", numericOrdering: true });
+    
+  if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
+      receiptNo = String(Number(lastReceipt.receiptNo) + 1);
+  }
 
   // 2.5. Calculate Installment Number
   let installmentNumber = 1;
@@ -253,14 +252,7 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     installmentNumber = 3; 
   }
 
-  // Determine Branch for Receipt
-  // If Super Admin, use Student's Branch. If Branch User, use their Branch.
-  let branchId = null;
-  if (req.user.role === 'Super Admin') {
-      branchId = student.branchId;
-  } else if (req.user.branchId) {
-      branchId = req.user.branchId;
-  }
+  // branchId is already determined above
 
   // 3. Create Receipt
   const receipt = await FeeReceipt.create({
@@ -607,18 +599,23 @@ const generateReceiptReport = asyncHandler(async (req, res) => {
 
 // @desc    Get Next Receipt Number
 const getNextReceiptNo = asyncHandler(async (req, res) => {
-    // Use Counter for Next Number prediction
-    let nextNum = 1;
-    const counter = await Counter.findById("receiptNo");
+    let branchId = req.query.branchId;
     
-    if (counter) {
-        nextNum = counter.seq + 1;
-    } else {
-        // Fallback or Init Logic just for display
-        const lastReceipt = await FeeReceipt.findOne().sort({ receiptNo: -1 }).collation({ locale: "en_US", numericOrdering: true });
-        if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
-            nextNum = Number(lastReceipt.receiptNo) + 1;
-        }
+    // Auto-detect branch for non-admins if not provided
+    if (!branchId && req.user && req.user.role !== 'Super Admin' && req.user.branchId) {
+        branchId = req.user.branchId;
+    }
+
+    let nextNum = 1;
+    // Find last receipt for the specific branch
+    const query = branchId ? { branch: branchId } : {};
+    
+    const lastReceipt = await FeeReceipt.findOne(query)
+        .sort({ receiptNo: -1 })
+        .collation({ locale: "en_US", numericOrdering: true });
+
+    if (lastReceipt && lastReceipt.receiptNo && !isNaN(lastReceipt.receiptNo)) {
+        nextNum = Number(lastReceipt.receiptNo) + 1;
     }
     
     res.json(String(nextNum));

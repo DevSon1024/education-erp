@@ -29,7 +29,7 @@ const FeeCollection = () => {
     
     const receiptRef = useRef();
 
-    const { register, handleSubmit, reset, setValue, control, watch } = useForm({
+    const { register, handleSubmit, reset, setValue, control, watch, formState: { errors } } = useForm({
         defaultValues: {
             receiptNo: 'Loading...',
             date: new Date().toISOString().split('T')[0],
@@ -281,11 +281,20 @@ const FeeCollection = () => {
                             <input 
                                 type="text"
                                 inputMode="numeric"
-                                {...register('amountPaid', { required: true })} 
-                                className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base"
+                                {...register('amountPaid', { 
+                                    required: true,
+                                    validate: (value) => {
+                                        if (paymentSummary && Number(value) > paymentSummary.dueAmount) {
+                                            return `Exceeds Total Course Due (Max: ₹${paymentSummary.dueAmount})`;
+                                        }
+                                        return true;
+                                    }
+                                })} 
+                                className={`w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base ${errors.amountPaid ? 'border-red-500' : ''}`}
                                 placeholder="Enter amount"
                                 onInput={(e) => e.target.value = e.target.value.replace(/[^0-9.]/g, '')}
                             />
+                            {errors.amountPaid && <p className="text-red-500 text-xs mt-1">{errors.amountPaid.message}</p>}
                              {paymentSummary && (
                                 <p className="text-xs text-red-500 mt-1 font-semibold">
                                     Outstanding: ₹{paymentSummary.outstandingAmount} | Total Due: ₹{paymentSummary.dueAmount}

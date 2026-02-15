@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const feeReceiptSchema = new mongoose.Schema(
   {
-    receiptNo: { type: String, required: true, unique: true },
+    receiptNo: { type: String, required: true },
     student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
@@ -41,6 +41,7 @@ const feeReceiptSchema = new mongoose.Schema(
 
 // Indexes
 feeReceiptSchema.index({ student: 1 });
+feeReceiptSchema.index({ branch: 1, receiptNo: 1 }, { unique: true }); // Compound Index Limit duplicate per branch
 // feeReceiptSchema.index({ receiptNo: 1 });
 feeReceiptSchema.index({ date: -1 });
 feeReceiptSchema.index({ createdAt: -1 }); // Optimized for sorting last Created
