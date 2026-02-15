@@ -267,14 +267,16 @@ const PendingAdmissionFeePayment = () => {
 
                     if (!isNaN(val)) {
                       const numVal = Number(val);
-                      if (numVal > maxFee) {
+                      if (numVal < 0) {
+                        // Ignore negative input
+                        return;
+                      } else if (numVal > maxFee) {
                         toast.error(`Amount cannot exceed the Total Course Fee (₹${maxFee})`);
                         setFormData({ ...formData, amountPaid: maxFee.toString() });
                       } else {
                         setFormData({ ...formData, amountPaid: val });
                       }
-                    }
-                  }}
+                    }                  }}
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200 font-bold text-gray-800"
                 />
                 <span className="text-xs text-gray-400">

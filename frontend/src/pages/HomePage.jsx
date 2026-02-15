@@ -6,7 +6,7 @@ import { createInquiry, createPublicInquiry } from '../features/transaction/tran
 import { toast } from 'react-toastify';
 import { Link, useNavigate } from 'react-router-dom';
 import newsService from '../services/newsService';
-import { ArrowRight, Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle, Quote, Star, Users, BookOpen, ChevronDown } from 'lucide-react';
+import { ArrowRight, X,Trophy, Calendar, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle, Quote, Star, Users, BookOpen, ChevronDown } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import HeroCarousel from '../components/ui/HeroCarousel';
 import HeroImage1 from '../assets/6.jpg'
@@ -105,6 +105,7 @@ const HomePage = () => {
     const [formLoading, setFormLoading] = useState(false);
     const [latestNews, setLatestNews] = useState([]); 
     const [newsLoading, setNewsLoading] = useState(true);
+    const [selectedNews, setSelectedNews] = useState(null);
   
     const [formData, setFormData] = useState({
       name: '',
@@ -524,7 +525,7 @@ const HomePage = () => {
           </div>
         </div>
   
-        {/* 5. Latest News */}
+        {/* 5. Latest News - Carousel */}
         <div className="bg-slate-50 py-20 border-t border-gray-200">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
@@ -537,60 +538,165 @@ const HomePage = () => {
                </a>
             </div>
             
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-               <Reveal width="col-span-1 md:col-span-2 lg:col-span-3" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-               {newsLoading ? (
-                  Array(3).fill(0).map((_, i) => (
-                      <div key={i} className="bg-white rounded-2xl p-6 shadow-sm animate-pulse h-64">
-                          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-                          <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                      </div>
-                  ))
+            <Reveal>
+              {newsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {Array(3).fill(0).map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-6 shadow-sm animate-pulse h-64">
+                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  ))}
+                </div>
               ) : latestNews.length === 0 ? (
-                  <div className="col-span-3 text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
-                      <div className="inline-flex justify-center items-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                          <Calendar size={24} className="text-gray-400" />
-                      </div>
-                      <p className="text-lg font-medium">No recent news available.</p>
+                <div className="text-center py-12 text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
+                  <div className="inline-flex justify-center items-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <Calendar size={24} className="text-gray-400" />
                   </div>
+                  <p className="text-lg font-medium">No recent news available.</p>
+                </div>
               ) : (
-                  latestNews.map((item) => (
-                    <div key={item._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-900/10 transition-all duration-300 hover:-translate-y-1 h-full flex flex-col overflow-hidden border border-gray-100 group">
-                      <div className="h-1.5 bg-gradient-to-r from-primary to-blue-400 relative"></div>
-                      <div className="p-8 flex-1 flex flex-col">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-3 py-1 rounded-full">
+                <div className="relative group px-2 md:px-8">
+                  <Swiper
+                    modules={[Navigation, Autoplay]}
+                    spaceBetween={30}
+                    slidesPerView={1}
+                    loop={latestNews.length > 3}
+                    autoplay={{
+                      delay: 4000,
+                      disableOnInteraction: false,
+                      pauseOnMouseEnter: true
+                    }}
+                    navigation={{
+                      nextEl: '.news-swiper-button-next',
+                      prevEl: '.news-swiper-button-prev',
+                    }}
+                    breakpoints={{
+                      640: {
+                        slidesPerView: 1,
+                        spaceBetween: 20,
+                      },
+                      768: {
+                        slidesPerView: 2,
+                        spaceBetween: 30,
+                      },
+                      1024: {
+                        slidesPerView: 3,
+                        spaceBetween: 30,
+                      },
+                    }}
+                    className="!pb-12 !pt-4 !px-2"
+                  >
+                    {latestNews.map((item) => (
+                      <SwiperSlide key={item._id} className="h-auto flex items-stretch">
+                        <div 
+                          onClick={() => setSelectedNews(item)}
+                          className="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-900/10 transition-all duration-300 hover:-translate-y-1 h-full flex flex-col overflow-hidden border border-gray-100 group cursor-pointer w-full"
+                        >
+                          <div className="h-1.5 bg-gradient-to-r from-primary to-blue-400 relative"></div>
+                          <div className="p-8 flex-1 flex flex-col">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-3 py-1 rounded-full">
                                 <Calendar size={12} />
                                 <span>{formatDate(item.releaseDate) || "Recent"}</span>
+                              </div>
+                              {item.isBreaking && (
+                                <div className="bg-red-50 text-red-600 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wide flex items-center gap-1 animate-pulse">
+                                  <AlertCircle size={10} /> BREAKING
+                                </div>
+                              )}
                             </div>
-                             {item.isBreaking && (
-                                 <div className="bg-red-50 text-red-600 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wide flex items-center gap-1 animate-pulse">
-                                    <AlertCircle size={10} /> BREAKING
-                                 </div>
-                             )}
+                            
+                            <h3 className="font-bold text-xl mb-3 text-gray-800 line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+                              {item.title}
+                            </h3>
+                            
+                            <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
+                              {item.smallDetail || item.description?.substring(0, 80) + '...'}
+                            </p>
+                            
+                            <button className="text-sm font-bold text-gray-900 flex items-center gap-2 group/btn self-start">
+                              Read More <ChevronRight size={16} className="text-accent group-hover/btn:translate-x-1 transition-transform" />
+                            </button>
+                          </div>
                         </div>
-                        
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 line-clamp-2 group-hover:text-primary transition-colors leading-tight">
-                          {item.title}
-                        </h3>
-                        
-                        <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
-                          {item.smallDetail || item.description?.substring(0, 80) + '...'}
-                        </p>
-                        
-                        <button className="text-sm font-bold text-gray-900 flex items-center gap-2 group/btn self-start">
-                            Read More <ChevronRight size={16} className="text-accent group-hover/btn:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                  
+                  {/* Custom Navigation Buttons */}
+                  <button className="news-swiper-button-prev absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-3 rounded-full shadow-lg hover:bg-accent hover:text-white transition-all z-20 cursor-pointer border border-gray-100 hidden md:block group-hover:block">
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button className="news-swiper-button-next absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-3 rounded-full shadow-lg hover:bg-accent hover:text-white transition-all z-20 cursor-pointer border border-gray-100 hidden md:block group-hover:block">
+                    <ChevronRight size={24} />
+                  </button>
+                </div>
               )}
-               </Reveal>
-             </div>
+            </Reveal>
           </div>
         </div>
+
+        {/* News Detail Modal */}
+        {selectedNews && (
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
+            onClick={() => setSelectedNews(null)}
+          >
+            <div 
+              className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl transform transition-all"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-primary to-blue-600 text-white p-6 relative">
+                <button 
+                  onClick={() => setSelectedNews(null)}
+                  className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X size={24} />
+                </button>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2 text-xs font-bold bg-white/20 px-3 py-1.5 rounded-full">
+                    <Calendar size={14} />
+                    <span>{formatDate(selectedNews.releaseDate)}</span>
+                  </div>
+                  {selectedNews.isBreaking && (
+                    <div className="bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                      <AlertCircle size={14} /> Breaking News
+                    </div>
+                  )}
+                </div>
+                <h2 className="text-2xl md:text-3xl font-black leading-tight">
+                  {selectedNews.title}
+                </h2>
+              </div>
+              
+              {/* Modal Body */}
+              <div className="p-6 md:p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
+                {selectedNews.smallDetail && (
+                  <p className="text-lg font-semibold text-gray-700 mb-4 pb-4 border-b border-gray-200">
+                    {selectedNews.smallDetail}
+                  </p>
+                )}
+                <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed whitespace-pre-wrap">
+                  {selectedNews.description || 'No detailed description available.'}
+                </div>
+              </div>
+              
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-6 md:px-8 py-4 flex justify-end border-t border-gray-200">
+                <button 
+                  onClick={() => setSelectedNews(null)}
+                  className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-primary transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

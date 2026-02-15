@@ -360,6 +360,13 @@ const StudentRegistrationProcess = () => {
                                 }
                             }
                          }}
+                         onBlur={() => {
+                            const maxFee = student.totalFees || student.course?.courseFees || 0;
+                            if (Number(feeData.amount) > maxFee) {
+                                toast.error(`Amount cannot exceed the Total Course Fee (₹${maxFee})`);
+                            }
+                         }}
+
                          placeholder="0.00"
                          className="w-full border rounded px-3 py-2 border-l-4 border-green-500 font-bold" 
                      />

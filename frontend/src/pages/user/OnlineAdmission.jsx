@@ -25,6 +25,9 @@ const OnlineAdmission = () => {
   const [newRefMode, setNewRefMode] = useState(false);
   const [newEduMode, setNewEduMode] = useState(false);
   const [isImageProcessing, setIsImageProcessing] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsContent, setTermsContent] = useState('');
+  const [termsLoading, setTermsLoading] = useState(false);
   
   // Local state for "Add New" inputs
   const [newRefName, setNewRefName] = useState('');
@@ -143,6 +146,25 @@ const OnlineAdmission = () => {
       if (previewImage) URL.revokeObjectURL(previewImage);
     };
   }, [previewImage]);
+
+  // Fetch Terms & Conditions when modal opens
+  useEffect(() => {
+    if (showTermsModal && !termsContent) {
+      const fetchTerms = async () => {
+        setTermsLoading(true);
+        try {
+          const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/master/terms`);
+          setTermsContent(data.content || "No terms and conditions defined yet.");
+        } catch (error) {
+          console.error("Failed to fetch terms", error);
+          setTermsContent("Failed to load Terms and Conditions.");
+        } finally {
+          setTermsLoading(false);
+        }
+      };
+      fetchTerms();
+    }
+  }, [showTermsModal, termsContent]);
 
 
   return (
@@ -399,7 +421,7 @@ const OnlineAdmission = () => {
                      <CheckCircle className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                   </label>
                   <span className="text-sm text-gray-600">
-                    I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline" onClick={(e) => e.stopPropagation()}>Terms and Conditions</a> for admission at Smart Institute.
+                    I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className="text-primary font-bold hover:underline">Terms and Conditions</button> for admission at Smart Institute.
                   </span>
               </div>
           </div>
@@ -414,6 +436,55 @@ const OnlineAdmission = () => {
           </button>
         </form>
       </div>
+
+      {/* Terms & Conditions Modal */}
+      {showTermsModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setShowTermsModal(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-primary to-blue-600 text-white p-6 relative">
+              <button 
+                onClick={() => setShowTermsModal(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+              <h2 className="text-2xl md:text-3xl font-black leading-tight">
+                Terms and Conditions
+              </h2>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 md:p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
+              {termsLoading ? (
+                <div className="flex justify-center items-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed whitespace-pre-wrap">
+                  {termsContent}
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 md:px-8 py-4 flex justify-end border-t border-gray-200">
+              <button 
+                onClick={() => setShowTermsModal(false)}
+                className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-primary transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

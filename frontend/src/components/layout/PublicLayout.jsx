@@ -384,7 +384,7 @@ const PublicLayout = () => {
                 <img src={logoImage} alt="Smart Institute Logo" className="h-10 w-auto object-contain bg-white rounded-lg p-1" />
               </div>
               <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                Disclaimer Smart Institute © 2026 Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
+                Disclaimer Smart Institute © {new Date().getFullYear()} Developed by Smart Institute Team All Logos / Characters are the Property of their Respective Organisation.
               </p>
               <div className="flex gap-4">
                  <a href="https://www.facebook.com/smartinstituteindia" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-lg hover:bg-primary transition-colors"><Facebook size={18} /></a>
@@ -435,7 +435,7 @@ const PublicLayout = () => {
           </div>
 
           <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
-             Copyright © 2013 - 2026 Smart Institute. All Rights Reserved.
+             Copyright © 2013 - {new Date().getFullYear()} Smart Institute. All Rights Reserved.
           </div>
         </div>
       </footer>

@@ -231,16 +231,16 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
     let attempts = 0;
     const maxAttempts = 3;
 
+    const student = await Student.findById(id);
+    if (!student) {
+        res.status(404);
+        throw new Error("Student not found for confirmation");
+    }
+
     while (attempts < maxAttempts) {
         attempts++;
         try {
-            const student = await Student.findById(id);
-
-            if (!student) {
-                res.status(404);
-                throw new Error("Student not found for confirmation");
-            }
-
+            // 1. Create User Credentials
             // 1. Create User Credentials
             let newUser = null;
             
@@ -313,6 +313,10 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
             }
             console.log(`[DEBUG] User Processed: ${newUser?._id || 'Existing'}`);
         
+            if (!req.user?._id) {
+                throw new Error('Authentication required');
+            }
+
             if (feeDetails && Number(feeDetails.amount) > 0) {
                 try {
                     // ALWAYS Generate Global Receipt No (Ignore frontend stale data)
@@ -352,8 +356,7 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
                      console.error("[DEBUG] Fee Receipt Creation Failed:", feeError);
                      throw new Error('Fee Receipt Creation Failed: ' + feeError.message);
                 }
-            }
-        
+            }        
             student.regNo = finalRegNo;
             student.isRegistered = true;
             student.registrationDate = new Date();
@@ -616,5 +619,4 @@ const resetStudentLogin = asyncHandler(async (req, res) => {
     res.json({ message: 'Login details updated successfully', username: user.username });
 });
 
-module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin, getNextRegNo };
 module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin, getNextRegNo };
