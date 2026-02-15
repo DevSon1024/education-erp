@@ -89,6 +89,16 @@ const PendingAdmissionFeePayment = () => {
       return;
     }
 
+    // Validation: Amount Check against Total Course Fee
+    // Changed from admissionFees to courseFees/totalFees as per request
+    if (student?.course) {
+       const maxFee = student.totalFees || student.course.courseFees || 0;
+       if (Number(formData.amountPaid) > maxFee) {
+          toast.error(`Amount cannot exceed the Total Course Fee (₹${maxFee})`);
+          return;
+       }
+    }
+
     // FIXED: Prevent double click
     if (feeLoading) return;
 
@@ -247,8 +257,23 @@ const PendingAdmissionFeePayment = () => {
                   value={formData.amountPaid}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (!isNaN(val))
-                      setFormData({ ...formData, amountPaid: val });
+                    // CHANGED: Allow up to Total Course Fee (User Request)
+                    const maxFee = student.totalFees || student.course?.courseFees || 0;
+
+                    if (val === "") {
+                      setFormData({ ...formData, amountPaid: "" });
+                      return;
+                    }
+
+                    if (!isNaN(val)) {
+                      const numVal = Number(val);
+                      if (numVal > maxFee) {
+                        toast.error(`Amount cannot exceed the Total Course Fee (₹${maxFee})`);
+                        setFormData({ ...formData, amountPaid: maxFee.toString() });
+                      } else {
+                        setFormData({ ...formData, amountPaid: val });
+                      }
+                    }
                   }}
                   className="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200 font-bold text-gray-800"
                 />

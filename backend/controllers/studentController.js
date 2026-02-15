@@ -220,154 +220,175 @@ const createStudent = asyncHandler(async (req, res) => {
 const confirmStudentRegistration = asyncHandler(async (req, res) => {
     // console.log("=== CONFIRM REGISTRATION DEBUG START ===");
     const { id } = req.params;
-    const { data } = req.body; // data contains regData and feeDetails
-    const { username, password, isActive, feeDetails } = data;
+    // const { id } = req.params;
+    // const { data } = req.body; // ERROR HERE: Frontend sends body directly!
+    const { username, password, feeDetails } = req.body;
 
     // console.log("DEBUG: Confirming Registration for Student ID:", id);
     // console.log("DEBUG: Received Data:", JSON.stringify(data, null, 2));
 
-    const student = await Student.findById(id);
+// Retrying Logic for reliability
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    if (!student) {
-        // console.error("DEBUG ERROR: Student not found");
-        res.status(404);
-        throw new Error("Student not found for confirmation");
-    }
-
-    // 1. Create User Credentials
-    // console.log("DEBUG: Attempting to create User with username:", username);
-    let newUser = null;
-    
-        const lastStudent = await Student.aggregate([
-            { 
-               $match: { 
-                   regNo: { $exists: true, $ne: null, $ne: "" },
-                   isRegistered: true,
-                   isDeleted: { $ne: true } 
-               } 
-            },
-            {
-               $project: {
-                   regNo: 1,
-                   seq: {
-                       $convert: {
-                           input: { $arrayElemAt: [{ $split: ["$regNo", "-"] }, 0] },
-                           to: "int",
-                           onError: 0,
-                           onNull: 0
-                       }
-                   }
-               }
-            },
-            { $sort: { seq: -1 } },
-            { $limit: 1 }
-        ]);
-
-        let nextSequence = 1;
-        if (lastStudent.length > 0 && lastStudent[0].seq > 0) {
-            nextSequence = lastStudent[0].seq + 1;
-        }
-
-        let branchCode = 'MN'; 
-        if (student.branchId) {
-             const branch = await Branch.findById(student.branchId);
-             if (branch && branch.shortCode) {
-                 branchCode = branch.shortCode;
-             }
-        }
-
-        const finalRegNo = `${nextSequence}-${branchCode}`;
-        
-    // let newUser; // Removed redeclaration
-    try {
-        const existingUser = await User.findOne({ 
-            $or: [{ username: username }, { email: student.email || `${finalRegNo}@institute.com` }] 
-        });
-
-        if (existingUser) {
-            newUser = existingUser;
-        } else {
-            newUser = await User.create({
-                name: `${student.firstName} ${student.lastName}`,
-                email: student.email || `${finalRegNo}@institute.com`, 
-                username: username,
-                password: password,
-                role: 'Student',
-                branchId: student.branchId
-            });
-        }
-    } catch (userError) {
-        // console.error("DEBUG ERROR: User Creation Failed:", userError);
-    }
-
-    if (feeDetails && Number(feeDetails.amount) > 0) {
+    while (attempts < maxAttempts) {
+        attempts++;
         try {
-            let receiptNo = feeDetails.receiptNo;
-            
-            // Branch Specific Receipt Number Logic
-            if (!receiptNo || receiptNo === 'Loading...' || receiptNo === 'Error') {
-                 
-                 // Find last receipt SPECIFIC TO THIS BRANCH, sorting by receiptNo numerically
-                 const lastReceipt = await FeeReceipt.findOne({ branch: student.branchId })
-                    .sort({ receiptNo: -1 })
-                    .collation({ locale: "en_US", numericOrdering: true });
+            const student = await Student.findById(id);
 
-                 receiptNo = lastReceipt && !isNaN(lastReceipt.receiptNo) ? Number(lastReceipt.receiptNo) + 1 : 1;
+            if (!student) {
+                res.status(404);
+                throw new Error("Student not found for confirmation");
             }
 
-            const receiptData = {
-                receiptNo: String(receiptNo),
-                student: student._id,
-                course: student.course,
-                amountPaid: Number(feeDetails.amount),
-                date: feeDetails.date || new Date(),
-                paymentMode: feeDetails.paymentMode,
-                remarks: feeDetails.remarks || 'Registration Fee',
-                createdBy: req.user?._id, 
-                branch: student.branchId,
-                bankName: feeDetails.bankName,
-                chequeNumber: feeDetails.chequeNumber,
-                chequeDate: feeDetails.chequeDate,
-                transactionId: feeDetails.transactionId,
-                transactionDate: feeDetails.transactionDate
-            };
-
-            await FeeReceipt.create(receiptData);
+            // 1. Create User Credentials
+            let newUser = null;
             
-            student.pendingFees = Math.max(0, student.pendingFees - Number(feeDetails.amount));
-            student.isRegistrationFeesPaid = true;
-        } catch (feeError) {
-             res.status(400); throw new Error('Fee Receipt Creation Failed: ' + feeError.message);
+            // RegNo Generation (Moved inside loop to regenerate on retry)
+            const lastStudent = await Student.aggregate([
+                { 
+                   $match: { 
+                       regNo: { $exists: true, $ne: null, $ne: "" },
+                       isRegistered: true,
+                       isDeleted: { $ne: true } 
+                   } 
+                },
+                {
+                   $project: {
+                       regNo: 1,
+                       seq: {
+                           $convert: {
+                               input: { $arrayElemAt: [{ $split: ["$regNo", "-"] }, 0] },
+                               to: "int",
+                               onError: 0,
+                               onNull: 0
+                           }
+                       }
+                   }
+                },
+                { $sort: { seq: -1 } },
+                { $limit: 1 }
+            ]);
+    
+            let nextSequence = 1;
+            if (lastStudent.length > 0 && lastStudent[0].seq > 0) {
+                nextSequence = lastStudent[0].seq + 1;
+            }
+    
+            let branchCode = 'MN'; 
+            if (student.branchId) {
+                 const branch = await Branch.findById(student.branchId);
+                 if (branch && branch.shortCode) {
+                     branchCode = branch.shortCode;
+                 }
+            }
+    
+            const finalRegNo = `${nextSequence}-${branchCode}`;
+            console.log(`[DEBUG] Registration Attempt ${attempts}: StudentID=${id}, Generated RegNo=${finalRegNo}`);
+            
+            try {
+                const existingUser = await User.findOne({ 
+                    $or: [{ username: username }, { email: student.email || `${finalRegNo}@institute.com` }] 
+                });
+        
+                if (existingUser) {
+                    newUser = existingUser;
+                } else {
+                    newUser = await User.create({
+                        name: `${student.firstName} ${student.lastName}`,
+                        email: student.email || `${finalRegNo}@institute.com`, 
+                        username: username,
+                        password: password,
+                        role: 'Student',
+                        branchId: student.branchId
+                    });
+                }
+            } catch (userError) {
+                if (userError.code === 11000) {
+                    console.warn(`[DEBUG] User Duplicate Key in Attempt ${attempts}, Retrying...`);
+                    continue; // Retry loop
+                }
+                console.error("[DEBUG] User Creation Failed:", userError);
+                throw new Error('User account creation failed: ' + userError.message);
+            }
+            console.log(`[DEBUG] User Processed: ${newUser?._id || 'Existing'}`);
+        
+            if (feeDetails && Number(feeDetails.amount) > 0) {
+                try {
+                    // ALWAYS Generate Global Receipt No (Ignore frontend stale data)
+                     const lastReceipt = await FeeReceipt.findOne({})
+                        .sort({ receiptNo: -1 })
+                        .collation({ locale: "en_US", numericOrdering: true });
+        
+                    let receiptNo = lastReceipt && !isNaN(lastReceipt.receiptNo) ? Number(lastReceipt.receiptNo) + 1 : 1;
+        
+                    const receiptData = {
+                        receiptNo: String(receiptNo),
+                        student: student._id,
+                        course: student.course,
+                        amountPaid: Number(feeDetails.amount),
+                        date: feeDetails.date || new Date(),
+                        paymentMode: feeDetails.paymentMode,
+                        remarks: feeDetails.remarks || 'Registration Fee',
+                        createdBy: req.user?._id, 
+                        branch: student.branchId,
+                        bankName: feeDetails.bankName,
+                        chequeNumber: feeDetails.chequeNumber,
+                        chequeDate: feeDetails.chequeDate,
+                        transactionId: feeDetails.transactionId,
+                        transactionDate: feeDetails.transactionDate
+                    };
+        
+                    await FeeReceipt.create(receiptData);
+                    console.log(`[DEBUG] Fee Receipt Created: ${receiptNo}`);
+                    
+                    student.pendingFees = Math.max(0, student.pendingFees - Number(feeDetails.amount));
+                    student.isRegistrationFeesPaid = true;
+                } catch (feeError) {
+                     if (feeError.code === 11000) {
+                         console.warn(`[DEBUG] Receipt Duplicate Key in Attempt ${attempts}, Retrying...`);
+                         continue; // Retry loop
+                     }
+                     console.error("[DEBUG] Fee Receipt Creation Failed:", feeError);
+                     throw new Error('Fee Receipt Creation Failed: ' + feeError.message);
+                }
+            }
+        
+            student.regNo = finalRegNo;
+            student.isRegistered = true;
+            student.registrationDate = new Date();
+            if (newUser) {
+                student.userId = newUser._id;
+            }
+            await student.save();
+        
+            const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))];
+        
+            if (student.mobileStudent) {
+                const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, smart institute.`;
+                await sendSMS(student.mobileStudent, regMessage)
+                    .catch(err => console.error('Registration SMS failed', err));
+            }
+        
+            // Send Fee SMS (Registration Fee)
+            if (feeDetails && Number(feeDetails.amount) > 0) {
+                const feeSmsMessage = `Dear, ${student.firstName} ${student.middleName ? student.middleName + ' ' : ''}${student.lastName}. Your Course fees ${feeDetails.amount} has been deposited for Registration Fees, Reg.No. ${finalRegNo}. Thank you,\nSmart Institute`;
+                await Promise.all(contacts.map(num => sendSMS(num, feeSmsMessage)))
+                    .catch(err => console.error('Registration Fee SMS failed', err));
+            }
+        
+            res.json({ message: 'Student Registration Completed', student });
+            return; // Success, exit function
+            
+        } catch (error) {
+            if (attempts === maxAttempts) {
+                 res.status(400);
+                 throw error; // Throw final error
+            }
+            // If not max attempts, loop will continue
+             console.warn(`[DEBUG] Registration Error in Attempt ${attempts}: ${error.message}. Retrying...`);
         }
-    } else {
-        // console.log("DEBUG: No valid fee amount provided, skipping receipt creation.");
     }
-
-    student.regNo = finalRegNo;
-    student.isRegistered = true;
-    student.registrationDate = new Date();
-    if (newUser) {
-        student.userId = newUser._id;
-    }
-    await student.save();
-
-    const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))];
-
-    if (student.mobileStudent) {
-        const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, smart institute.`;
-        await sendSMS(student.mobileStudent, regMessage)
-            .catch(err => console.error('Registration SMS failed', err));
-    }
-
-    // Send Fee SMS (Registration Fee)
-    if (feeDetails && Number(feeDetails.amount) > 0) {
-        const feeSmsMessage = `Dear, ${student.firstName} ${student.middleName ? student.middleName + ' ' : ''}${student.lastName}. Your Course fees ${feeDetails.amount} has been deposited for Registration Fees, Reg.No. ${finalRegNo}. Thank you,\nSmart Institute`;
-        // console.log(`DEBUG: Sending Registration Fee SMS to: ${contacts.join(', ')} | Msg: ${feeSmsMessage}`);
-        await Promise.all(contacts.map(num => sendSMS(num, feeSmsMessage)))
-            .catch(err => console.error('Registration Fee SMS failed', err));
-    }
-
-    res.json({ message: 'Student Registration Completed', student });
 });
 
 const getNextRegNo = asyncHandler(async (req, res) => {
@@ -595,4 +616,5 @@ const resetStudentLogin = asyncHandler(async (req, res) => {
     res.json({ message: 'Login details updated successfully', username: user.username });
 });
 
+module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin, getNextRegNo };
 module.exports = { getStudents, getStudentById, createStudent, updateStudent, confirmStudentRegistration, deleteStudent, toggleStudentStatus, resetStudentLogin, getNextRegNo };

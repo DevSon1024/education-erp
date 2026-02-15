@@ -230,10 +230,10 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
       branchId = req.user.branchId;
   }
 
-  // 3. Generate Branch-Scoped Receipt No
-  // Find max existing receipt number FOR THIS BRANCH
+  // 3. Generate Global Receipt No (Changed from Branch-Scoped)
+  // Find max existing receipt number GLOBALLY
   let receiptNo = "1";
-  const lastReceipt = await FeeReceipt.findOne({ branch: branchId })
+  const lastReceipt = await FeeReceipt.findOne({}) // Empty query means global
     .sort({ receiptNo: -1 })
     .collation({ locale: "en_US", numericOrdering: true });
     
@@ -281,6 +281,19 @@ const createFeeReceipt = asyncHandler(async (req, res) => {
     student.admissionFeeAmount = Number(amountPaid);
     admissionCompletedNow = true;
     
+    // Check if Full Course Fee is paid
+    const totalCourseFee = (student.totalFees || 0);
+    // Note: totalFees in student model typically includes everything. 
+    // If strict match requested:
+    if (Number(amountPaid) >= totalCourseFee) {
+        student.pendingFees = 0;
+    } else {
+        // If paid more than 0, reduce pending fees logic
+        // pendingFees usually starts as totalFees.
+        // So we strictly subtract what is paid.
+        student.pendingFees = Math.max(0, student.pendingFees - Number(amountPaid));
+    }
+
     if (!student.enrollmentNo && student.branchId) {
         student.enrollmentNo = await generateEnrollmentNumber(student.branchId);
     }
@@ -607,8 +620,8 @@ const getNextReceiptNo = asyncHandler(async (req, res) => {
     }
 
     let nextNum = 1;
-    // Find last receipt for the specific branch
-    const query = branchId ? { branch: branchId } : {};
+    // Find last receipt globally (removed branch filter)
+    const query = {};
     
     const lastReceipt = await FeeReceipt.findOne(query)
         .sort({ receiptNo: -1 })

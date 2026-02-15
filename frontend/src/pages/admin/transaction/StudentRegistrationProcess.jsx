@@ -47,14 +47,20 @@ const StudentRegistrationProcess = () => {
     return () => dispatch(resetStatus());
   }, [id, dispatch]);
 
+  /* 
+  // Refactored to handle success/error directly in handleSubmit for better reliability
   useEffect(() => {
     if (isSuccess && message === "Student Registration Completed") {
       toast.success(message);
       setTimeout(() => navigate('/master/student'), 1500); // Go to Master List
     } else if (isSuccess === false && message) {
-        toast.error(message);
+        // Enhance toast.error with specific error message from backend response
+        // The 'message' from Redux state should already contain the specific error.
+        // We can add a prefix for clarity if desired.
+        // toast.error(`Registration Failed: ${message}`);
     }
   }, [isSuccess, message, navigate]);
+  */
 
 
   // Initial Logic - Always start at Step 1 (Credentials) for all students
@@ -131,7 +137,7 @@ const StudentRegistrationProcess = () => {
       setStep(1); // Go back to Credentials
   };
 
-  const handleFinalSubmit = (e) => {
+  const handleFinalSubmit = async (e) => {
     if(e) e.preventDefault();
     if(!regData.username || !regData.password) {
         toast.error("Username and Password are required");
@@ -142,6 +148,16 @@ const StudentRegistrationProcess = () => {
     if (!feeData.amount || Number(feeData.amount) <= 0) {
         toast.error("Please enter a valid amount for fees");
         return;
+    }
+
+    // Validation Results: Amount Check against Course Total Fees
+    // User requested: "highest will be that course's total fees"
+    if (student?.course) {
+        const maxCourseFee = student.totalFees || student.course.courseFees;
+        if (Number(feeData.amount) > maxCourseFee) {
+            toast.error(`Amount cannot exceed the Course Total Fee (₹${maxCourseFee})`);
+            return;
+        }
     }
 
     // CONFIRMATION DIALOG (Added to prevent accidental registration)
@@ -162,7 +178,17 @@ const StudentRegistrationProcess = () => {
         return;
     }
     
-    dispatch(confirmRegistration(payload));
+    // Explicit Error Handling with unwrap()
+    try {
+        const result = await dispatch(confirmRegistration(payload)).unwrap();
+        toast.success(result.message || "Registration Successful");
+        setTimeout(() => navigate('/master/student'), 1500);
+    } catch (error) {
+        console.error("Registration Error:", error);
+        // Error payload is usually the string message from rejectWithValue
+        const errMsg = typeof error === 'string' ? error : (error.message || "Registration Failed");
+        toast.error(`Registration Failed: ${errMsg}`);
+    }
   };
 
   const getStudentPhotoUrl = (photoPath) => {
@@ -314,9 +340,28 @@ const StudentRegistrationProcess = () => {
                      <input 
                          type="number" 
                          value={feeData.amount} 
-                         onChange={(e) => setFeeData({...feeData, amount: e.target.value})}
+                         onChange={(e) => {
+                            const val = e.target.value;
+                            // CHANGED: Validation to prevent exceeding Total Course Fees
+                            const maxFee = student.totalFees || student.course?.courseFees || 0;
+
+                            if (val === "") {
+                                setFeeData({...feeData, amount: ""});
+                                return;
+                            }
+
+                            if (!isNaN(val)) {
+                                const numVal = Number(val);
+                                if (numVal > maxFee) {
+                                    toast.error(`Amount cannot exceed the Total Course Fee (₹${maxFee})`);
+                                    setFeeData({...feeData, amount: maxFee});
+                                } else {
+                                    setFeeData({...feeData, amount: val});
+                                }
+                            }
+                         }}
                          placeholder="0.00"
-                         className="w-full border rounded px-3 py-2" 
+                         className="w-full border rounded px-3 py-2 border-l-4 border-green-500 font-bold" 
                      />
                  </div>
                  <div>

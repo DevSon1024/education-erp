@@ -174,6 +174,11 @@ const StudentAdmission = () => {
           setValue("branchId", inquiry.branchId._id || inquiry.branchId);
       }
 
+      // Auto-select Course from Inquiry
+      if (inquiry.interestedCourse) {
+          setValue("selectedCourseId", inquiry.interestedCourse._id || inquiry.interestedCourse);
+      }
+
       if (inquiry._id) setInquiryIdFromAdmission(inquiry._id);
       toast.success("Student data pre-filled from inquiry!");
       
@@ -352,14 +357,39 @@ const StudentAdmission = () => {
       setValue("mobileParent", foundInquiry.contactParent || "", { shouldValidate: true });
       setValue("mobileStudent", foundInquiry.contactStudent || "", { shouldValidate: true });
       setValue("address", foundInquiry.address || "", { shouldValidate: true });
-      setValue("state", foundInquiry.state || "", { shouldValidate: true }); 
-      setValue("city", foundInquiry.city || "", { shouldValidate: true });
+      
+      // Handle State & City Autofill
+      if (foundInquiry.state) {
+          setValue("state", foundInquiry.state, { shouldValidate: true });
+          
+          // Manually trigger city filter to ensure options are available for the city value
+          const stateObj = states.find(s => s.name === foundInquiry.state);
+          if (stateObj) {
+              const citiesForState = cities.filter(c => 
+                c.stateId?._id === stateObj._id || c.stateId === stateObj._id
+              );
+              setFilteredCities(citiesForState);
+              
+              // Set city after options are ready
+              setTimeout(() => {
+                  setValue("city", foundInquiry.city || "", { shouldValidate: true });
+              }, 100);
+          } else {
+              setValue("city", foundInquiry.city || "", { shouldValidate: true });
+          }
+      }
+
       setValue("education", foundInquiry.education || "", { shouldValidate: true });
       setValue("dob", foundInquiry.dob ? new Date(foundInquiry.dob).toISOString().split('T')[0] : "", { shouldValidate: true });
       setValue("reference", foundInquiry.referenceBy || "", { shouldValidate: true });
       
       if (foundInquiry.branchId) {
           setValue("branchId", foundInquiry.branchId._id || foundInquiry.branchId, { shouldValidate: true });
+      }
+
+      // Auto-select Course from Inquiry
+      if (foundInquiry.interestedCourse) {
+          setValue("selectedCourseId", foundInquiry.interestedCourse._id || foundInquiry.interestedCourse, { shouldValidate: true });
       }
 
       if (foundInquiry.studentPhoto) {
@@ -454,6 +484,19 @@ const StudentAdmission = () => {
     setIsSubmitting(true);
 
     const primaryCourse = previewCourses[0];
+
+    // Validation: Amount Check against Course Admission Fee
+    if (payAdmissionFee === true && primaryCourse) {
+       // Ensure numeric comparison
+       const maxFee = Number(primaryCourse.admissionFees);
+       const enteredAmount = Number(data.amountPaid);
+       
+       if (enteredAmount > maxFee) {
+          toast.error(`Amount cannot exceed the Course Admission Fee (₹${maxFee})`);
+          setIsSubmitting(false);
+          return;
+       }
+    }
 
     // Ensure we only pay if the User explicitly selected "Yes" (payAdmissionFee === true)
     // Removed fallback to data.amountPaid to prevent bug where stale Step 3 data triggers payment after going back and selecting "No".
@@ -1651,6 +1694,27 @@ const StudentAdmission = () => {
                       type="number"
                       {...register("amountPaid", { required: true })}
                       className="input border-l-4 border-green-500 text-lg font-bold"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const maxFee = previewCourses[0]?.admissionFees || 0;
+                        
+                        // Allow empty input for user to type
+                        if (val === "") {
+                           setValue("amountPaid", "");
+                           return;
+                        }
+
+                        const numVal = Number(val);
+                        
+                        // Prevent typing values greater than max fee
+                        if (numVal > maxFee) {
+                           toast.error(`Amount cannot exceed the Course Admission Fee (₹${maxFee})`);
+                           // Keep the previous valid value or just clear it
+                           setValue("amountPaid", maxFee.toString()); 
+                        } else {
+                           setValue("amountPaid", val);
+                        }
+                      }}
                     />
                   </div>
                   <div>
