@@ -14,6 +14,7 @@ const StudentRegistrationProcess = () => {
   
   const { currentStudent: student, isLoading } = useSelector((state) => state.students);
   const { isSuccess, message } = useSelector((state) => state.students); // reusing student slice
+  const { user } = useSelector((state) => state.auth);
 
   const [step, setStep] = useState(1); // Always start with Step 1 (Credentials)
   const [showPassword, setShowPassword] = useState(false); // For password visibility toggle
@@ -47,12 +48,10 @@ const StudentRegistrationProcess = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    console.log("Registration Process Effect - isSuccess:", isSuccess, "Message:", message);
     if (isSuccess && message === "Student Registration Completed") {
       toast.success(message);
       setTimeout(() => navigate('/master/student'), 1500); // Go to Master List
     } else if (isSuccess === false && message) {
-        console.error("Registration Error Message:", message);
         toast.error(message);
     }
   }, [isSuccess, message, navigate]);
@@ -105,6 +104,7 @@ const StudentRegistrationProcess = () => {
             const fetchReceiptNo = async () => {
                 try {
                     const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                        params: { branchId: student.branchId },
                         withCredentials: true
                     });
                     setFeeData(prev => ({ ...prev, receiptNo: data }));
@@ -156,14 +156,9 @@ const StudentRegistrationProcess = () => {
             feeDetails: { ...feeData, amount: Number(feeData.amount) || 0 }
         }
     };
-    
-    console.log("=== REGISTRATION SUBMIT DEBUG ===");
-    console.log("Student ID:", student._id);
-    console.log("Registration Payload:", payload);
 
     // Check loading state to prevent double submission
     if (isLoading) {
-        console.log("Registration prevented: Already loading");
         return;
     }
     
@@ -294,7 +289,12 @@ const StudentRegistrationProcess = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div>
                      <label className="block text-sm font-medium text-gray-700 mb-1">Receipt No</label>
-                     <input type="text" disabled value={feeData.receiptNo} className="w-full bg-gray-100 border rounded px-3 py-2" />
+                     <div className="flex gap-2">
+                         <input type="text" disabled value={feeData.receiptNo} className="w-full bg-gray-100 border rounded px-3 py-2" />
+                         {user?.role === 'Super Admin' && (
+                             <input type="text" disabled value={student.branchName || 'Main'} className="w-full bg-blue-50 border border-blue-200 text-blue-800 rounded px-3 py-2 text-sm font-semibold" title="Branch" />
+                         )}
+                     </div>
                  </div>
                  <div>
                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>

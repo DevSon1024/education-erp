@@ -27,6 +27,8 @@ const PendingAdmissionFeePayment = () => {
     isLoading: feeLoading,
   } = useSelector((state) => state.transaction);
 
+  const { user } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
     amountPaid: "",
     paymentMode: "Cash",
@@ -46,20 +48,23 @@ const PendingAdmissionFeePayment = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    // Fetch Next Receipt No
-    const fetchReceiptNo = async () => {
-        try {
-            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
-                withCredentials: true
-            });
-            setFormData(prev => ({ ...prev, receiptNo: data }));
-        } catch (error) {
-            console.error("Failed to fetch next receipt no", error);
-            setFormData(prev => ({ ...prev, receiptNo: "Error" }));
-        }
-    };
-    fetchReceiptNo();
-  }, []);
+    // Fetch Next Receipt No when student is loaded
+    if (student) {
+        const fetchReceiptNo = async () => {
+            try {
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                    params: { branchId: student.branchId },
+                    withCredentials: true
+                });
+                setFormData(prev => ({ ...prev, receiptNo: data }));
+            } catch (error) {
+                console.error("Failed to fetch next receipt no", error);
+                setFormData(prev => ({ ...prev, receiptNo: "Error" }));
+            }
+        };
+        fetchReceiptNo();
+    }
+  }, [student]);
 
   useEffect(() => {
     if (student && student.course) {
@@ -185,12 +190,23 @@ const PendingAdmissionFeePayment = () => {
                 <label className="block text-sm text-gray-600 mb-1">
                   Receipt Number
                 </label>
-                <input
-                  type="text"
-                  disabled
-                  value={formData.receiptNo}
-                  className="w-full bg-gray-100 border rounded px-3 py-2 text-sm text-gray-500"
-                />
+                <div className="flex gap-2">
+                    <input
+                      type="text"
+                      disabled
+                      value={formData.receiptNo}
+                      className="w-full bg-gray-100 border rounded px-3 py-2 text-sm text-gray-500"
+                    />
+                    {user?.role === 'Super Admin' && (
+                         <input 
+                            type="text" 
+                            disabled 
+                            value={student.branchName || 'Main'} 
+                            className="w-full bg-blue-50 border border-blue-200 text-blue-800 rounded px-3 py-2 text-sm font-semibold" 
+                            title="Branch" 
+                        />
+                     )}
+                </div>
               </div>
 
               <div>

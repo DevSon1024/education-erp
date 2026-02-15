@@ -18,6 +18,7 @@ const FeeCollection = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { receipts, isSuccess, message, isLoading } = useSelector(state => state.transaction);
+    const { user } = useSelector((state) => state.auth);
     
     const [editingReceipt, setEditingReceipt] = useState(null);
     const [printingReceipt, setPrintingReceipt] = useState(null);
@@ -69,9 +70,14 @@ const FeeCollection = () => {
         }
     }, [isSuccess, message, dispatch, selectedStudent]);
 
-    const fetchNextReceiptNo = async () => {
+    const fetchNextReceiptNo = async (branchId = null) => {
         try {
+            const params = {};
+            if (branchId) params.branchId = branchId;
+            // If super admin and no branch selected yet, it might fetch global next or default
+            
             const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/transaction/fees/next-no`, {
+                params,
                 withCredentials: true
             });
             setValue('receiptNo', data);
@@ -111,6 +117,8 @@ const FeeCollection = () => {
             setValue('studentId', id);
             setValue('courseName', student.course?.name || 'N/A');
             fetchStudentPaymentData(id);
+            // Fetch next receipt number for this student's branch
+            fetchNextReceiptNo(student.branchId);
         } else {
             setSelectedStudent(null);
             setPaymentSummary(null);
@@ -226,12 +234,23 @@ const FeeCollection = () => {
                         {/* Receipt Number */}
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">Receipt Number</label>
-                            <input 
-                                type="text" 
-                                {...register('receiptNo')} 
-                                readOnly 
-                                className="w-full border bg-gray-100 text-gray-500 rounded-lg p-3 cursor-not-allowed text-base"
-                            />
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    {...register('receiptNo')} 
+                                    readOnly 
+                                    className="w-full border bg-gray-100 text-gray-500 rounded-lg p-3 cursor-not-allowed text-base"
+                                />
+                                {user?.role === 'Super Admin' && selectedStudent?.branchName && (
+                                    <input 
+                                        type="text" 
+                                        disabled 
+                                        value={selectedStudent.branchName} 
+                                        className="w-1/2 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-sm font-semibold text-center"
+                                        title="Branch Name"
+                                    />
+                                )}
+                            </div>
                         </div>
 
                         {/* Receipt Date */}

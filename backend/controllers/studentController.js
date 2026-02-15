@@ -218,24 +218,25 @@ const createStudent = asyncHandler(async (req, res) => {
 });
 
 const confirmStudentRegistration = asyncHandler(async (req, res) => {
-    console.log("=== CONFIRM REGISTRATION DEBUG START ===");
-    console.log("Request Recieved for ID:", req.params.id);
-    const student = await Student.findById(req.params.id);
+    // console.log("=== CONFIRM REGISTRATION DEBUG START ===");
+    const { id } = req.params;
+    const { data } = req.body; // data contains regData and feeDetails
+    const { username, password, isActive, feeDetails } = data;
+
+    // console.log("DEBUG: Confirming Registration for Student ID:", id);
+    // console.log("DEBUG: Received Data:", JSON.stringify(data, null, 2));
+
+    const student = await Student.findById(id);
+
     if (!student) {
-        console.error("DEBUG: Student Not Found");
-        res.status(404); throw new Error('Student not found');
+        // console.error("DEBUG ERROR: Student not found");
+        res.status(404);
+        throw new Error("Student not found for confirmation");
     }
-    console.log("DEBUG: Student Found:", student.firstName, student.lastName);
 
-    const { regNo, username, password, feeDetails } = req.body;
-
-    console.log("DEBUG: Request Body Payload:", {
-        regNo,
-        username,
-        hasFeeDetails: !!feeDetails,
-        feeAmount: feeDetails?.amount,
-        feeType: typeof feeDetails?.amount
-    });
+    // 1. Create User Credentials
+    // console.log("DEBUG: Attempting to create User with username:", username);
+    let newUser = null;
     
         const lastStudent = await Student.aggregate([
             { 
@@ -277,20 +278,15 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
 
         const finalRegNo = `${nextSequence}-${branchCode}`;
         
-        console.log(`DEBUG: Generated RegNo: ${finalRegNo} (Sequence: ${nextSequence})`);
-
-    let newUser;
+    // let newUser; // Removed redeclaration
     try {
-        console.log("DEBUG: Attempting to create User with username:", username);
         const existingUser = await User.findOne({ 
             $or: [{ username: username }, { email: student.email || `${finalRegNo}@institute.com` }] 
         });
 
         if (existingUser) {
-            console.log("DEBUG: User already exists. Linking to student. UserID:", existingUser._id);
             newUser = existingUser;
         } else {
-            console.log("DEBUG: Creating new user...");
             newUser = await User.create({
                 name: `${student.firstName} ${student.lastName}`,
                 email: student.email || `${finalRegNo}@institute.com`, 
@@ -299,27 +295,17 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
                 role: 'Student',
                 branchId: student.branchId
             });
-            console.log("DEBUG: User Created successfully for Student:", newUser._id);
         }
     } catch (userError) {
-        console.error("DEBUG ERROR: User Creation Failed:", userError);
+        // console.error("DEBUG ERROR: User Creation Failed:", userError);
     }
-
-    console.log("DEBUG: Fee Details Check:", { 
-        hasFeeDetails: !!feeDetails, 
-        amount: feeDetails?.amount, 
-        typeOfAmount: typeof feeDetails?.amount,
-        isAmountValid: feeDetails && Number(feeDetails.amount) > 0 
-    });
 
     if (feeDetails && Number(feeDetails.amount) > 0) {
         try {
-            console.log("DEBUG: Processing Fee Receipt creation...");
             let receiptNo = feeDetails.receiptNo;
             
             // Branch Specific Receipt Number Logic
             if (!receiptNo || receiptNo === 'Loading...' || receiptNo === 'Error') {
-                 console.log("DEBUG: Generating new receipt number for branch:", student.branchId);
                  
                  // Find last receipt SPECIFIC TO THIS BRANCH, sorting by receiptNo numerically
                  const lastReceipt = await FeeReceipt.findOne({ branch: student.branchId })
@@ -327,7 +313,6 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
                     .collation({ locale: "en_US", numericOrdering: true });
 
                  receiptNo = lastReceipt && !isNaN(lastReceipt.receiptNo) ? Number(lastReceipt.receiptNo) + 1 : 1;
-                 console.log("DEBUG: Generated Receipt No:", receiptNo);
             }
 
             const receiptData = {
@@ -346,19 +331,16 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
                 transactionId: feeDetails.transactionId,
                 transactionDate: feeDetails.transactionDate
             };
-            console.log("DEBUG: creating FeeReceipt with data:", receiptData);
 
             await FeeReceipt.create(receiptData);
             
             student.pendingFees = Math.max(0, student.pendingFees - Number(feeDetails.amount));
             student.isRegistrationFeesPaid = true;
-            console.log("DEBUG: FeeReceipt Created & Pending Fees updated");
         } catch (feeError) {
-            console.error("DEBUG ERROR: Fee Receipt Creation Failed:", feeError);
-            res.status(400); throw new Error('Fee Receipt Creation Failed: ' + feeError.message);
+             res.status(400); throw new Error('Fee Receipt Creation Failed: ' + feeError.message);
         }
     } else {
-        console.log("DEBUG: No valid fee amount provided, skipping receipt creation.");
+        // console.log("DEBUG: No valid fee amount provided, skipping receipt creation.");
     }
 
     student.regNo = finalRegNo;
@@ -368,27 +350,23 @@ const confirmStudentRegistration = asyncHandler(async (req, res) => {
         student.userId = newUser._id;
     }
     await student.save();
-    // console.log("DEBUG: Student Registration Updated Successfully. RegNo:", finalRegNo);
-
 
     const contacts = [...new Set([student.mobileStudent, student.mobileParent, student.contactHome].filter(Boolean))];
 
     if (student.mobileStudent) {
         const regMessage = `Dear, ${student.firstName} ${student.lastName}. Your Registration process has been successfully completed. Reg.No. ${finalRegNo}, User ID-${username}, Password-${password}, smart institute.`;
         await sendSMS(student.mobileStudent, regMessage)
-            .then(() => console.log('DEBUG: Registration SMS sent'))
-            .catch(err => console.error('DEBUG ERROR: Registration SMS failed', err));
+            .catch(err => console.error('Registration SMS failed', err));
     }
 
     // Send Fee SMS (Registration Fee)
     if (feeDetails && Number(feeDetails.amount) > 0) {
         const feeSmsMessage = `Dear, ${student.firstName} ${student.middleName ? student.middleName + ' ' : ''}${student.lastName}. Your Course fees ${feeDetails.amount} has been deposited for Registration Fees, Reg.No. ${finalRegNo}. Thank you,\nSmart Institute`;
-        console.log(`DEBUG: Sending Registration Fee SMS to: ${contacts.join(', ')} | Msg: ${feeSmsMessage}`);
+        // console.log(`DEBUG: Sending Registration Fee SMS to: ${contacts.join(', ')} | Msg: ${feeSmsMessage}`);
         await Promise.all(contacts.map(num => sendSMS(num, feeSmsMessage)))
-            .catch(err => console.error('DEBUG ERROR: Registration Fee SMS failed', err));
+            .catch(err => console.error('Registration Fee SMS failed', err));
     }
 
-    console.log("=== CONFIRM REGISTRATION DEBUG END ===");
     res.json({ message: 'Student Registration Completed', student });
 });
 
